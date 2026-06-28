@@ -1,0 +1,24 @@
+---
+import type { Seo, SiteData } from "../lib/types";
+import { organizationSchema } from "../lib/structuredData";
+import { resolveCanonical, resolveTitle } from "../lib/seo";
+
+const { seo, site, structuredData = organizationSchema(site) } = Astro.props as {
+  seo: Seo;
+  site: SiteData;
+  structuredData?: Record<string, unknown>;
+};
+
+const title = resolveTitle(seo, site);
+const canonical = resolveCanonical(seo);
+---
+
+<title>{title}</title>
+<meta name="description" content={seo.description} />
+<link rel="canonical" href={canonical} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={seo.description} />
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonical} />
+<meta name="robots" content={seo.noindex ? "noindex,nofollow" : "index,follow"} />
+<script type="application/ld+json" set:html={JSON.stringify(structuredData)} />

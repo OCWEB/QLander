@@ -1,0 +1,27 @@
+---
+const { posts } = Astro.props as {
+  posts: Array<{
+    title: string;
+    description: string;
+    slug: string;
+    publishedAt: string;
+    author: string;
+  }>;
+};
+---
+
+<section class="section-band">
+  <div class="section-heading">
+    <p class="eyebrow">Notes</p>
+    <h1>Blog</h1>
+  </div>
+  <div class="blog-list">
+    {posts.map((post) => (
+      <article>
+        <p class="eyebrow">{post.publishedAt} · {post.author}</p>
+        <h2><a href={`/blog/${post.slug}`}>{post.title}</a></h2>
+        <p>{post.description}</p>
+      </article>
+    ))}
+  </div>
+</section>

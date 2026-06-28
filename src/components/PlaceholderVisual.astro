@@ -1,0 +1,14 @@
+---
+const { label = "Image placeholder", variant = "default" } = Astro.props as {
+  label?: string;
+  variant?: "default" | "hero" | "card" | "small";
+};
+---
+
+<div class={`placeholder-visual placeholder-visual--${variant}`} role="img" aria-label={label}>
+  <svg class="placeholder-icon" viewBox="0 0 48 48" aria-hidden="true">
+    <rect x="8" y="10" width="32" height="28" rx="2" />
+    <circle cx="18" cy="20" r="3" />
+    <path d="M12 34l9-9 7 7 4-4 4 6" />
+  </svg>
+</div>

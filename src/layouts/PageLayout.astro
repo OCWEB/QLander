@@ -1,0 +1,29 @@
+---
+import type { PageContent, Product } from "../lib/types";
+import site from "../../data/site.json";
+import ContactForm from "../components/ContactForm.astro";
+import CTASection from "../components/CTASection.astro";
+import FeatureGrid from "../components/FeatureGrid.astro";
+import HeroSection from "../components/HeroSection.astro";
+import ProductGrid from "../components/ProductGrid.astro";
+import RichTextSection from "../components/RichTextSection.astro";
+import BaseLayout from "./BaseLayout.astro";
+
+const { page, showHeroVisual = false, products = [] } = Astro.props as {
+  page: PageContent;
+  showHeroVisual?: boolean;
+  products?: Product[];
+};
+---
+
+<BaseLayout seo={page.seo}>
+  {page.sections.map((section, index) => (
+    section.type === "hero" ? <HeroSection section={section} showVisual={showHeroVisual && index === 0} /> :
+    section.type === "featureGrid" ? <FeatureGrid section={section} /> :
+    section.type === "cta" ? <CTASection section={section} /> :
+    section.type === "productGrid" ? <ProductGrid products={products.filter((product) => section.productSlugs.includes(product.slug))} headline={section.headline} /> :
+    section.type === "contact" ? <ContactForm headline={section.headline} body={section.body} site={site} editId={section.id} /> :
+    section.type === "richText" ? <RichTextSection section={section} /> :
+    null
+  ))}
+</BaseLayout>

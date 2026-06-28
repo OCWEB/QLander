@@ -1,0 +1,18 @@
+---
+import type { Product } from "../../lib/types";
+import productsRaw from "../../../content/products/starter-product.json";
+import ProductGrid from "../../components/ProductGrid.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const products = [productsRaw] as Product[];
+const seo = {
+  title: "Products | PagePilot Starter",
+  description: "Placeholder product or service cards for the PagePilot Starter site.",
+  noindex: false,
+  canonical: "https://example.com/products"
+};
+---
+
+<BaseLayout seo={seo}>
+  <ProductGrid products={products} headline="Starter offers" />
+</BaseLayout>

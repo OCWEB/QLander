@@ -1,0 +1,62 @@
+{
+  "title": "Home",
+  "slug": "/",
+  "seo": {
+    "title": "PagePilot Starter | Website Landing Page",
+    "description": "A black and white placeholder landing page for an AI-maintainable Astro site kit.",
+    "noindex": false,
+    "canonical": "https://example.com/"
+  },
+  "sections": [
+    {
+      "id": "home.hero",
+      "type": "hero",
+      "headline": "Website landing page",
+      "subheadline": "This starter page is intentionally plain, with image placeholders and editable content blocks ready to replace.",
+      "primaryCta": {
+        "label": "Learn more",
+        "href": "/about"
+      },
+      "secondaryCta": {
+        "label": "Contact",
+        "href": "/contact"
+      }
+    },
+    {
+      "id": "home.features",
+      "type": "featureGrid",
+      "headline": "Advantages",
+      "items": [
+        {
+          "title": "Clear structure",
+          "description": "Use this section for a concise benefit or service highlight."
+        },
+        {
+          "title": "Easy editing",
+          "description": "Update the copy from structured content files with agent guidance."
+        },
+        {
+          "title": "Placeholder media",
+          "description": "Swap the gray image blocks when the real brand assets are ready."
+        }
+      ]
+    },
+    {
+      "id": "home.about",
+      "type": "richText",
+      "headline": "About product",
+      "body": "Describe the offer, product, venue, or service here. The grayscale image blocks are placeholders, so the site owner can quickly see what still needs real photography or artwork.",
+      "visual": true
+    },
+    {
+      "id": "home.cta",
+      "type": "cta",
+      "headline": "Ready to customize this page?",
+      "body": "Replace the starter copy, update the navigation, add real images, and run the PagePilot check before publishing.",
+      "cta": {
+        "label": "Send a note",
+        "href": "/contact"
+      }
+    }
+  ]
+}

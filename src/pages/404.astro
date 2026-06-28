@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const seo = {
+  title: "Page not found | PagePilot Starter",
+  description: "The page you are looking for could not be found.",
+  noindex: true,
+  canonical: "https://example.com/404"
+};
+---
+
+<BaseLayout seo={seo}>
+  <section class="not-found">
+    <p class="eyebrow">404</p>
+    <h1>Page not found</h1>
+    <p>The page may have moved or no longer exists.</p>
+    <a class="button primary" href="/">Go home</a>
+  </section>
+</BaseLayout>

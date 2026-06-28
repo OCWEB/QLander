@@ -1,0 +1,22 @@
+---
+import type { NavigationItem, SiteData } from "../lib/types";
+
+const { site, navigation } = Astro.props as {
+  site: SiteData;
+  navigation: NavigationItem[];
+};
+---
+
+<footer class="site-footer" data-pp-edit-id="global.footer">
+  <div>
+    <strong>{site.name}</strong>
+    <p>{site.description}</p>
+  </div>
+  <nav aria-label="Footer navigation">
+    {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+  </nav>
+  <address>
+    <a href={`mailto:${site.email}`}>{site.email}</a>
+    <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>
+  </address>
+</footer>

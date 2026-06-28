@@ -1,0 +1,24 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const modules = import.meta.glob("../../../content/blog/*.md");
+  const posts = await Promise.all(Object.values(modules).map((loader) => loader()));
+  return posts.map((post: any) => ({
+    params: { slug: post.frontmatter.slug },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props as { post: any };
+const { Content } = post;
+---
+
+<BaseLayout seo={post.frontmatter.seo}>
+  <article class="article-shell">
+    <p class="eyebrow">{post.frontmatter.publishedAt} · {post.frontmatter.author}</p>
+    <h1>{post.frontmatter.title}</h1>
+    <p>{post.frontmatter.description}</p>
+    <Content />
+  </article>
+</BaseLayout>

@@ -1,0 +1,32 @@
+{
+  "title": "Privacy",
+  "slug": "/privacy",
+  "seo": {
+    "title": "Privacy Policy | PagePilot Starter",
+    "description": "Placeholder privacy policy for the PagePilot Starter site.",
+    "noindex": false,
+    "canonical": "https://example.com/privacy"
+  },
+  "sections": [
+    {
+      "id": "privacy.hero",
+      "type": "hero",
+      "headline": "Privacy policy",
+      "subheadline": "Replace this placeholder policy with language that matches the real site.",
+      "primaryCta": {
+        "label": "Contact",
+        "href": "/contact"
+      },
+      "secondaryCta": {
+        "label": "Back home",
+        "href": "/"
+      }
+    },
+    {
+      "id": "privacy.notice",
+      "type": "richText",
+      "headline": "Information we collect",
+      "body": "This starter site does not include analytics tracking by default. If Google Analytics or another tracker is added later, update this policy before publishing."
+    }
+  ]
+}

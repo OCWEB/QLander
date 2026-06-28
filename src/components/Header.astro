@@ -1,0 +1,23 @@
+---
+import type { NavigationItem, SiteData } from "../lib/types";
+
+const { site, navigation } = Astro.props as {
+  site: SiteData;
+  navigation: NavigationItem[];
+};
+---
+
+<header class="site-header" data-pp-edit-id="global.header">
+  <a class="brand" href="/" aria-label={`${site.name} home`}>
+    <img src={site.logo} alt={`${site.name} logo`} width="160" height="40" />
+  </a>
+  <nav class="desktop-nav" aria-label="Primary navigation">
+    {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+  </nav>
+  <details class="mobile-nav">
+    <summary aria-label="Open navigation">Menu</summary>
+    <nav aria-label="Mobile navigation">
+      {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+  </details>
+</header>

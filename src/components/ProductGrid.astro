@@ -1,0 +1,29 @@
+---
+import type { Product } from "../lib/types";
+import PlaceholderVisual from "./PlaceholderVisual.astro";
+
+const { products, headline = "Products" } = Astro.props as {
+  products: Product[];
+  headline?: string;
+};
+---
+
+<section class="section-band">
+  <div class="section-heading">
+    <p class="eyebrow">Packages</p>
+    <h1>{headline}</h1>
+  </div>
+  <div class="product-grid">
+    {products.map((product) => (
+      <article class="product-card">
+        <PlaceholderVisual label={`${product.title} image placeholder`} variant="card" />
+        <div>
+          <p class="eyebrow">{product.priceLabel}</p>
+          <h2>{product.title}</h2>
+          <p>{product.summary}</p>
+        </div>
+        <a class="button secondary" href={`/products/${product.slug}`}>View package</a>
+      </article>
+    ))}
+  </div>
+</section>

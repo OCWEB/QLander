@@ -1,0 +1,17 @@
+---
+import type { PageSection } from "../lib/types";
+
+type CtaSection = Extract<PageSection, { type: "cta" }>;
+
+const { section } = Astro.props as {
+  section: CtaSection;
+};
+---
+
+<section class="cta-section" data-pp-edit-id={section.id}>
+  <div>
+    <h2>{section.headline}</h2>
+    <p>{section.body}</p>
+  </div>
+  <a class="button primary" href={section.cta.href}>{section.cta.label}</a>
+</section>

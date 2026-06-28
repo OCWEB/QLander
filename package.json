@@ -1,0 +1,36 @@
+{
+  "name": "pagepilot-kit",
+  "version": "0.1.0",
+  "description": "An AI-maintainable Astro static site kit with repo-local agent guardrails.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "keywords": [
+    "astro",
+    "static-site",
+    "ai",
+    "agent",
+    "website-template",
+    "site-kit"
+  ],
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1",
+    "pagepilot:check": "tsx scripts/pagepilot-check.ts ."
+  },
+  "dependencies": {
+    "astro": "^5.13.0",
+    "fast-glob": "^3.3.3",
+    "fast-xml-parser": "^4.5.1",
+    "gray-matter": "^4.0.3",
+    "node-html-parser": "^6.1.13",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

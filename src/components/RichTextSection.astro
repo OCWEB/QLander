@@ -1,0 +1,23 @@
+---
+import type { PageSection } from "../lib/types";
+import PlaceholderVisual from "./PlaceholderVisual.astro";
+
+type RichTextSection = Extract<PageSection, { type: "richText" }>;
+
+const { section } = Astro.props as {
+  section: RichTextSection;
+};
+---
+
+<section class:list={["text-section", section.visual && "text-section--visual"]} data-pp-edit-id={section.id}>
+  {section.visual && (
+    <div class="stacked-placeholders">
+      <PlaceholderVisual label={`${section.headline} background image placeholder`} variant="small" />
+      <PlaceholderVisual label={`${section.headline} foreground image placeholder`} variant="small" />
+    </div>
+  )}
+  <div class="text-copy">
+    <h2>{section.headline}</h2>
+    <p>{section.body}</p>
+  </div>
+</section>

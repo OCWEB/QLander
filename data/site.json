@@ -1,0 +1,19 @@
+{
+  "name": "PagePilot Starter",
+  "description": "A placeholder static site ready for agent-guided customization.",
+  "url": "https://example.com",
+  "logo": "/images/logo.svg",
+  "email": "hello@example.com",
+  "phone": "+1 555 123 4567",
+  "address": {
+    "street": "",
+    "city": "San Francisco",
+    "region": "CA",
+    "postalCode": "",
+    "country": "US"
+  },
+  "social": {
+    "linkedin": "",
+    "x": ""
+  }
+}

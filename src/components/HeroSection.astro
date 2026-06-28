@@ -1,0 +1,24 @@
+---
+import type { PageSection } from "../lib/types";
+import PlaceholderVisual from "./PlaceholderVisual.astro";
+
+type HeroSection = Extract<PageSection, { type: "hero" }>;
+
+const { section, showVisual = false } = Astro.props as {
+  section: HeroSection;
+  showVisual?: boolean;
+};
+---
+
+<section class="hero-section" data-pp-edit-id={section.id}>
+  {showVisual && <PlaceholderVisual label="Hero image placeholder" variant="hero" />}
+  <div class="hero-copy">
+    <p class="eyebrow">Starter wireframe</p>
+    <h1>{section.headline}</h1>
+    <p class="hero-subhead">{section.subheadline}</p>
+    <div class="actions">
+      <a class="button primary" href={section.primaryCta.href}>{section.primaryCta.label}</a>
+      {section.secondaryCta && <a class="button secondary" href={section.secondaryCta.href}>{section.secondaryCta.label}</a>}
+    </div>
+  </div>
+</section>

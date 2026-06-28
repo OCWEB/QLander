@@ -1,0 +1,26 @@
+---
+import type { PageSection } from "../lib/types";
+import PlaceholderVisual from "./PlaceholderVisual.astro";
+
+type FeatureGridSection = Extract<PageSection, { type: "featureGrid" }>;
+
+const { section } = Astro.props as {
+  section: FeatureGridSection;
+};
+---
+
+<section class="section-band" data-pp-edit-id={section.id}>
+  <div class="section-heading">
+    <p class="eyebrow">Replace these blocks</p>
+    <h2>{section.headline}</h2>
+  </div>
+  <div class="feature-grid">
+    {section.items.map((item) => (
+      <article>
+        <PlaceholderVisual label={`${item.title} image placeholder`} variant="card" />
+        <h3>{item.title}</h3>
+        <p>{item.description}</p>
+      </article>
+    ))}
+  </div>
+</section>

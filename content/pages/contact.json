@@ -1,0 +1,32 @@
+{
+  "title": "Contact",
+  "slug": "/contact",
+  "seo": {
+    "title": "Contact | PagePilot Starter",
+    "description": "Placeholder contact page for the PagePilot Starter site.",
+    "noindex": false,
+    "canonical": "https://example.com/contact"
+  },
+  "sections": [
+    {
+      "id": "contact.hero",
+      "type": "hero",
+      "headline": "Contact headline",
+      "subheadline": "Replace this text with the clearest next step for visitors.",
+      "primaryCta": {
+        "label": "Email us",
+        "href": "mailto:hello@example.com"
+      },
+      "secondaryCta": {
+        "label": "Browse products",
+        "href": "/products"
+      }
+    },
+    {
+      "id": "contact.form",
+      "type": "contact",
+      "headline": "Send a note",
+      "body": "Use this placeholder form area to explain what visitors should include in their message."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "title": "About",
+  "slug": "/about",
+  "seo": {
+    "title": "About | PagePilot Starter",
+    "description": "A placeholder about page for an AI-maintainable Astro site kit.",
+    "noindex": false,
+    "canonical": "https://example.com/about"
+  },
+  "sections": [
+    {
+      "id": "about.hero",
+      "type": "hero",
+      "headline": "About this starter site",
+      "subheadline": "Use this page to describe the organization, product, service, or project once the real content is ready.",
+      "primaryCta": {
+        "label": "Contact",
+        "href": "/contact"
+      },
+      "secondaryCta": {
+        "label": "See products",
+        "href": "/products"
+      }
+    },
+    {
+      "id": "about.story",
+      "type": "richText",
+      "headline": "Our approach",
+      "body": "This starter copy is intentionally generic. Replace it with a short story about the site owner, the audience, and the primary reason visitors should care."
+    }
+  ]
+}

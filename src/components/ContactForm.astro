@@ -1,0 +1,28 @@
+---
+import type { SiteData } from "../lib/types";
+
+const { headline, body, site, editId } = Astro.props as {
+  headline: string;
+  body: string;
+  site: SiteData;
+  editId?: string;
+};
+---
+
+<section class="contact-section" data-pp-edit-id={editId}>
+  <div>
+    <p class="eyebrow">Contact</p>
+    <h2>{headline}</h2>
+    <p>{body}</p>
+    <a href={`mailto:${site.email}`}>{site.email}</a>
+  </div>
+  <form name="contact" method="post">
+    <label for="name">Name</label>
+    <input id="name" name="name" type="text" autocomplete="name" />
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" />
+    <label for="message">Message</label>
+    <textarea id="message" name="message" rows="5"></textarea>
+    <button type="submit">Send inquiry</button>
+  </form>
+</section>

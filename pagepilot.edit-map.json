@@ -1,0 +1,106 @@
+{
+  "home.hero": {
+    "route": "/",
+    "label": "Homepage hero",
+    "scope": "single-page-content",
+    "contentFile": "content/pages/home.json",
+    "jsonPath": "sections[0]",
+    "component": "HeroSection",
+    "safeFields": [
+      "headline",
+      "subheadline",
+      "primaryCta.label",
+      "primaryCta.href",
+      "secondaryCta.label",
+      "secondaryCta.href"
+    ],
+    "affectedRoutes": ["/"]
+  },
+  "home.features": {
+    "route": "/",
+    "label": "Homepage feature grid",
+    "scope": "single-page-content",
+    "contentFile": "content/pages/home.json",
+    "jsonPath": "sections[1]",
+    "component": "FeatureGrid",
+    "safeFields": [
+      "headline",
+      "items"
+    ],
+    "affectedRoutes": ["/"]
+  },
+  "home.about": {
+    "route": "/",
+    "label": "Homepage about section",
+    "scope": "single-page-content",
+    "contentFile": "content/pages/home.json",
+    "jsonPath": "sections[2]",
+    "component": "RichTextSection",
+    "safeFields": [
+      "headline",
+      "body",
+      "visual"
+    ],
+    "affectedRoutes": ["/"]
+  },
+  "home.cta": {
+    "route": "/",
+    "label": "Homepage call to action",
+    "scope": "single-page-content",
+    "contentFile": "content/pages/home.json",
+    "jsonPath": "sections[3]",
+    "component": "CTASection",
+    "safeFields": [
+      "headline",
+      "body",
+      "cta.label",
+      "cta.href"
+    ],
+    "affectedRoutes": ["/"]
+  },
+  "global.header": {
+    "route": "*",
+    "label": "Global header",
+    "scope": "global-navigation",
+    "contentFile": "data/navigation.json",
+    "jsonPath": "header",
+    "component": "Header",
+    "safeFields": [
+      "header[].label",
+      "header[].href"
+    ],
+    "affectedRoutes": "all"
+  },
+  "global.footer": {
+    "route": "*",
+    "label": "Global footer",
+    "scope": "global-navigation",
+    "contentFile": "data/navigation.json",
+    "jsonPath": "footer",
+    "component": "Footer",
+    "safeFields": [
+      "footer[].label",
+      "footer[].href"
+    ],
+    "affectedRoutes": "all"
+  },
+  "site.info": {
+    "route": "*",
+    "label": "Company information",
+    "scope": "global-content",
+    "contentFile": "data/site.json",
+    "jsonPath": "$",
+    "component": "SiteData",
+    "safeFields": [
+      "name",
+      "description",
+      "email",
+      "phone",
+      "address.street",
+      "address.city",
+      "address.region",
+      "address.postalCode"
+    ],
+    "affectedRoutes": "all"
+  }
+}

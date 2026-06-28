@@ -1,0 +1,20 @@
+{
+  "siteId": "site_123",
+  "name": "PagePilot Starter",
+  "template": "wireframe-site-kit",
+  "templateVersion": "0.1.0",
+  "contentRoot": "content",
+  "dataRoot": "data",
+  "editMap": "pagepilot.edit-map.json",
+  "routes": [
+    "/",
+    "/about",
+    "/products",
+    "/products/starter-product",
+    "/blog",
+    "/blog/welcome",
+    "/contact",
+    "/privacy",
+    "/404"
+  ]
+}
