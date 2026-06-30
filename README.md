@@ -30,7 +30,33 @@ pnpm pagepilot:check
 
 ## Start A Real Site
 
-After copying this kit into a new project repo, open it in Claude Code, Codex Desktop, Cursor, or another coding agent and start with:
+For the simplest start, paste this into Claude Code, Codex Desktop, Cursor, or another coding agent:
+
+```text
+Start my site with PagePilot: https://github.com/OCWEB/PagePilot
+
+Make a detached project copy, then turn it into a first-draft site for [business/project]. Follow the repo instructions and run pnpm pagepilot:check before finishing.
+
+Here is the site info:
+[Paste business description, audience, offer, contact info, domain.]
+```
+
+If you are setting up the repo manually, use PagePilot as a base kit and give each real site its own repo. The usual flow is to clone the kit, detach it from the kit history, and connect it to a new project repo:
+
+```bash
+git clone https://github.com/OCWEB/PagePilot.git my-site
+cd my-site
+rm -rf .git
+git init
+git add .
+git commit -m "Start site from PagePilot kit"
+git remote add origin git@github.com:YOUR-ORG/my-site.git
+git push -u origin main
+```
+
+Use a normal fork only when the project is meant to contribute changes back to PagePilot itself.
+
+After creating the project repo, use this fuller prompt when you want more control:
 
 ```text
 pagepilot start
