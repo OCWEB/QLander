@@ -28,6 +28,26 @@ Before handing work back to a user, run:
 pnpm pagepilot:check
 ```
 
+## Start A Real Site
+
+After copying this kit into a new project repo, open it in Claude Code, Codex Desktop, Cursor, or another coding agent and start with:
+
+```text
+pagepilot start
+
+Turn this starter into a website for [business/project name].
+
+Use the existing PagePilot safe workflow:
+- edit only content/, data/, public/images/, sitemap, or robots unless needed
+- check pagepilot.edit-map.json before edits
+- keep placeholder image blocks unless I provide assets
+- run pnpm pagepilot:check before final response
+
+First inspect the repo, then replace the obvious starter placeholders with a practical first draft based on this info:
+
+[Paste business description, services/products, target audience, location, contact info, desired tone, and domain.]
+```
+
 ## Site Structure
 
 ```text
