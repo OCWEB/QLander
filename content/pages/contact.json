@@ -4,8 +4,7 @@
   "seo": {
     "title": "Contact | PagePilot Starter",
     "description": "Placeholder contact page for the PagePilot Starter site.",
-    "noindex": false,
-    "canonical": "https://example.com/contact"
+    "noindex": false
   },
   "sections": [
     {

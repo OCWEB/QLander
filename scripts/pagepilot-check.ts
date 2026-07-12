@@ -8,648 +8,199 @@ import fg from "fast-glob";
 import { XMLParser } from "fast-xml-parser";
 import matter from "gray-matter";
 import { parse } from "node-html-parser";
-import { z } from "zod";
+import type { z } from "zod";
+import { BlogFrontmatterSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, RouteSeoSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
 
-const CheckStatusSchema = z.enum(["passed", "warning", "failed", "skipped"]);
-type CheckStatus = z.infer<typeof CheckStatusSchema>;
-
-type CheckMessage = {
-  code: string;
-  message: string;
-  path?: string;
-  route?: string;
-};
-
-type CheckRun = {
-  id: string;
-  siteId: string;
-  status: "passed" | "warning" | "failed";
-  checks: {
-    schema: CheckStatus;
-    build: CheckStatus;
-    seo: CheckStatus;
-    links: CheckStatus;
-    accessibility: CheckStatus;
-    sitemap: CheckStatus;
-    robots: CheckStatus;
-    visual: CheckStatus;
-  };
-  warnings: CheckMessage[];
-  errors: CheckMessage[];
-};
-
-const SeoSchema = z.object({
-  title: z.string().min(1, "SEO title is required"),
-  description: z.string().min(1, "SEO description is required"),
-  noindex: z.boolean().default(false),
-  canonical: z.string().url("Canonical URL must be absolute")
-});
-
-const CtaSchema = z.object({
-  label: z.string().min(1),
-  href: z.string().min(1)
-});
-
-const PageSectionSchema = z.discriminatedUnion("type", [
-  z.object({
-    id: z.string().min(1),
-    type: z.literal("hero"),
-    headline: z.string().min(1),
-    subheadline: z.string().min(1),
-    primaryCta: CtaSchema,
-    secondaryCta: CtaSchema.optional()
-  }),
-  z.object({
-    id: z.string().min(1),
-    type: z.literal("featureGrid"),
-    headline: z.string().min(1),
-    items: z.array(z.object({
-      title: z.string().min(1),
-      description: z.string().min(1)
-    })).min(1)
-  }),
-  z.object({
-    id: z.string().min(1),
-    type: z.literal("cta"),
-    headline: z.string().min(1),
-    body: z.string().min(1),
-    cta: CtaSchema
-  }),
-  z.object({
-    id: z.string().min(1),
-    type: z.literal("productGrid"),
-    headline: z.string().min(1),
-    productSlugs: z.array(z.string().min(1)).min(1)
-  }),
-  z.object({
-    id: z.string().min(1),
-    type: z.literal("contact"),
-    headline: z.string().min(1),
-    body: z.string().min(1)
-  }),
-  z.object({
-    id: z.string().min(1),
-    type: z.literal("richText"),
-    headline: z.string().min(1),
-    body: z.string().min(1),
-    visual: z.boolean().optional()
-  })
-]);
-
-const PageContentSchema = z.object({
-  title: z.string().min(1),
-  slug: z.string().min(1),
-  seo: SeoSchema,
-  sections: z.array(PageSectionSchema).min(1)
-});
-
-const ProductSchema = z.object({
-  title: z.string().min(1),
-  slug: z.string().min(1),
-  summary: z.string().min(1),
-  description: z.string().min(1),
-  priceLabel: z.string().min(1),
-  featured: z.boolean().default(false),
-  seo: SeoSchema
-});
-
-const BlogFrontmatterSchema = z.object({
-  title: z.string().min(1),
-  description: z.string().min(1),
-  slug: z.string().min(1),
-  publishedAt: z.string().min(1),
-  updatedAt: z.string().min(1),
-  author: z.string().min(1),
-  tags: z.array(z.string()).default([]),
-  seo: SeoSchema
-});
-
-const NavigationSchema = z.object({
-  header: z.array(z.object({ label: z.string().min(1), href: z.string().min(1) })).min(1),
-  footer: z.array(z.object({ label: z.string().min(1), href: z.string().min(1) })).min(1)
-});
-
-const SiteDataSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  url: z.string().url(),
-  logo: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().min(1),
-  address: z.object({
-    street: z.string(),
-    city: z.string(),
-    region: z.string(),
-    postalCode: z.string(),
-    country: z.string()
-  }),
-  social: z.object({
-    linkedin: z.string(),
-    x: z.string()
-  })
-});
-
-const ThemeSchema = z.object({
-  colors: z.object({
-    ink: z.string(),
-    paper: z.string(),
-    muted: z.string(),
-    accent: z.string(),
-    accentDark: z.string(),
-    highlight: z.string()
-  }),
-  radius: z.number().max(8),
-  density: z.enum(["compact", "comfortable"]).default("comfortable")
-});
-
-const ManifestSchema = z.object({
-  siteId: z.string().min(1),
-  name: z.string().min(1),
-  template: z.string().min(1),
-  templateVersion: z.string().min(1),
-  contentRoot: z.string().default("content"),
-  dataRoot: z.string().default("data"),
-  editMap: z.string().default("pagepilot.edit-map.json"),
-  routes: z.array(z.string()).min(1)
-});
-
-const EditMapSchema = z.record(z.object({
-  route: z.union([z.string(), z.literal("*")]),
-  label: z.string().min(1),
-  scope: z.string().min(1),
-  contentFile: z.string().min(1),
-  jsonPath: z.string().min(1),
-  component: z.string().min(1),
-  safeFields: z.array(z.string()).min(1),
-  affectedRoutes: z.union([z.array(z.string()), z.literal("all")])
-}));
-
-type LoadedSite = {
-  manifest: z.infer<typeof ManifestSchema>;
-  site: z.infer<typeof SiteDataSchema>;
-  pageFiles: Array<{ file: string; content: z.infer<typeof PageContentSchema> }>;
-  productFiles: Array<{ file: string; content: z.infer<typeof ProductSchema> }>;
-  blogFiles: Array<{ file: string; frontmatter: z.infer<typeof BlogFrontmatterSchema> }>;
-  knownRoutes: Set<string>;
-};
-
+type Status = "passed" | "warning" | "failed" | "skipped";
+type Message = { code: string; message: string; path?: string; route?: string };
+const names = ["schema", "build", "seo", "links", "accessibility", "sitemap", "robots", "visual"] as const;
 const args = process.argv.slice(2);
-const siteRoot = path.resolve(args.find((arg) => !arg.startsWith("--")) ?? ".");
+const root = path.resolve(args.find((arg) => !arg.startsWith("--")) ?? ".");
 const json = args.includes("--json");
+const launch = args.includes("--launch");
 const skipBuild = args.includes("--skip-build");
-const checkNames = ["schema", "build", "seo", "links", "accessibility", "sitemap", "robots", "visual"] as const;
+const checks = Object.fromEntries(names.map((name) => [name, "passed"])) as Record<(typeof names)[number], Status>;
+const errors: Message[] = [];
+const warnings: Message[] = [];
+const addError = (code: string, message: string, extra: Partial<Message> = {}) => errors.push({ code, message, ...extra });
+const addWarning = (code: string, message: string, extra: Partial<Message> = {}) => warnings.push({ code, message, ...extra });
+const readJson = async (file: string) => JSON.parse(await readFile(path.join(root, file), "utf8"));
 
-const result = await runPagePilotChecks(siteRoot, { runBuild: !skipBuild });
+type Model = Awaited<ReturnType<typeof loadModel>>;
+let model: Model | undefined;
+try { model = await loadModel(); } catch (error) { addError("schema.load_failed", error instanceof Error ? error.message : "Unable to load site"); }
+if (errors.some((item) => item.code.startsWith("schema.") || item.code.startsWith("edit_map."))) checks.schema = "failed";
 
-if (json) {
-  console.log(JSON.stringify(result, null, 2));
+if (model) {
+  validateEditMap(model);
+  validateLaunch(model);
+}
+
+if (!skipBuild) {
+  const built = await runBuild();
+  if (!built.ok) { checks.build = "failed"; addError("build.failed", built.output || "Build failed"); }
 } else {
+  checks.build = "skipped";
+  checks.seo = checks.links = checks.accessibility = checks.sitemap = checks.robots = checks.visual = "skipped";
+}
+
+if (!skipBuild && checks.build === "passed" && model) await validateDist(model);
+if (errors.some((item) => item.code.startsWith("schema.") || item.code.startsWith("edit_map."))) checks.schema = "failed";
+for (const name of ["seo", "links", "accessibility", "sitemap", "robots", "visual"] as const) {
+  if (checks[name] !== "skipped" && errors.some((item) => item.code.startsWith(`${name}.`))) checks[name] = "failed";
+}
+for (const name of names) if (checks[name] === "passed" && warnings.some((item) => item.code.startsWith(`${name}.`))) checks[name] = "warning";
+const result = { id: `check_${randomUUID().slice(0, 8)}`, siteId: model?.manifest.siteId ?? "unknown", status: errors.length ? "failed" : warnings.length ? "warning" : "passed", checks, warnings, errors };
+if (json) console.log(JSON.stringify(result, null, 2));
+else {
   console.log(`PagePilot checks: ${result.status.toUpperCase()}`);
-  for (const [name, status] of Object.entries(result.checks)) {
-    console.log(`- ${name}: ${status}`);
-  }
-  for (const warning of result.warnings) {
-    console.log(`WARN ${warning.code}: ${warning.message}`);
-  }
-  for (const error of result.errors) {
-    console.error(`ERROR ${error.code}: ${error.message}`);
-  }
+  for (const [name, status] of Object.entries(checks)) console.log(`- ${name}: ${status}`);
+  for (const warning of warnings) console.log(`WARN ${warning.code}: ${warning.message}`);
+  for (const error of errors) console.error(`ERROR ${error.code}: ${error.message}`);
 }
+if (errors.length) process.exitCode = 1;
 
-if (result.status === "failed") {
-  process.exitCode = 1;
-}
-
-async function runPagePilotChecks(root: string, options: { runBuild: boolean }): Promise<CheckRun> {
-  const checks = Object.fromEntries(checkNames.map((name) => [name, "passed" as CheckStatus])) as CheckRun["checks"];
-  const warnings: CheckMessage[] = [];
-  const errors: CheckMessage[] = [];
-  let loadedSite: LoadedSite | undefined;
-
-  try {
-    loadedSite = await loadAndValidateSite(root, errors);
-  } catch (error) {
-    errors.push({
-      code: "schema.load_failed",
-      message: error instanceof Error ? error.message : "Unable to load site files"
-    });
-  }
-
-  if (errors.some((error) => error.code.startsWith("schema."))) {
-    checks.schema = "failed";
-  }
-
-  if (loadedSite) {
-    runContentChecks(root, loadedSite, errors, warnings);
-    if (errors.some((error) => error.code.startsWith("links."))) checks.links = "failed";
-    if (errors.some((error) => error.code.startsWith("sitemap."))) checks.sitemap = "failed";
-    if (errors.some((error) => error.code.startsWith("robots."))) checks.robots = "failed";
-  }
-
-  if (options.runBuild) {
-    const buildResult = await runAstroBuild(root);
-    if (!buildResult.ok) {
-      checks.build = "failed";
-      errors.push({
-        code: "build.failed",
-        message: buildResult.output || "Astro build failed"
-      });
-    }
-  } else {
-    checks.build = "skipped";
-  }
-
-  if (checks.build !== "failed") {
-    await runHtmlChecks(root, loadedSite, checks, errors, warnings);
-  } else {
-    checks.seo = "skipped";
-    checks.accessibility = "skipped";
-    checks.visual = "skipped";
-  }
-
-  for (const name of checkNames) {
-    if (checks[name] === "passed" && warnings.some((warning) => warning.code.startsWith(`${name}.`))) {
-      checks[name] = "warning";
-    }
-  }
-
-  return {
-    id: `check_${randomUUID().slice(0, 8)}`,
-    siteId: loadedSite?.manifest.siteId ?? "unknown",
-    status: errors.length > 0 ? "failed" : warnings.length > 0 ? "warning" : "passed",
-    checks,
-    warnings,
-    errors
+async function loadModel() {
+  const parseFile = async <T extends z.ZodTypeAny>(schema: T, file: string): Promise<z.output<T>> => {
+    const parsed = schema.safeParse(await readJson(file));
+    if (!parsed.success) { for (const issue of parsed.error.issues) addError("schema.invalid", `${file}: ${issue.path.join(".") || "(root)"} ${issue.message}`, { path: file }); throw new Error(`Invalid ${file}`); }
+    return parsed.data;
   };
+  const manifest = await parseFile(ManifestSchema, "pagepilot.manifest.json");
+  const editMap = await parseFile(EditMapSchema, manifest.editMap);
+  const site = await parseFile(SiteDataSchema, "data/site.json");
+  const navigation = await parseFile(NavigationSchema, "data/navigation.json");
+  const theme = await parseFile(ThemeSchema, "data/theme.json");
+  const routeSeo = await parseFile(RouteSeoSchema, "data/route-seo.json");
+  const pages = await Promise.all((await fg("content/pages/*.json", { cwd: root })).map(async (file) => ({ file, data: PageContentSchema.parse(await readJson(file)) })));
+  const products = await Promise.all((await fg("content/products/*.json", { cwd: root })).map(async (file) => ({ file, data: ProductSchema.parse(await readJson(file)) })));
+  const posts = await Promise.all((await fg("content/blog/*.md", { cwd: root })).map(async (file) => ({ file, data: BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data) })));
+  return { manifest, editMap, site, navigation, theme, routeSeo, pages, products, posts };
 }
 
-async function loadAndValidateSite(root: string, errors: CheckMessage[]): Promise<LoadedSite> {
-  const manifest = parseJson(ManifestSchema, await readJson(path.join(root, "pagepilot.manifest.json")), "pagepilot.manifest.json", errors);
-  parseJson(EditMapSchema, await readJson(path.join(root, manifest.editMap)), manifest.editMap, errors);
-  const site = parseJson(SiteDataSchema, await readJson(path.join(root, "data/site.json")), "data/site.json", errors);
-  parseJson(NavigationSchema, await readJson(path.join(root, "data/navigation.json")), "data/navigation.json", errors);
-  parseJson(ThemeSchema, await readJson(path.join(root, "data/theme.json")), "data/theme.json", errors);
-
-  const pageFiles = await loadJsonCollection(root, "content/pages/*.json", PageContentSchema, errors);
-  const productFiles = await loadJsonCollection(root, "content/products/*.json", ProductSchema, errors);
-  const blogFiles = await loadBlogCollection(root, "content/blog/*.md", errors);
-  const knownRoutes = new Set(manifest.routes);
-
-  for (const page of pageFiles) knownRoutes.add(page.content.slug);
-  for (const product of productFiles) knownRoutes.add(`/products/${product.content.slug}`);
-  for (const blog of blogFiles) knownRoutes.add(`/blog/${blog.frontmatter.slug}`);
-
-  return { manifest, site, pageFiles, productFiles, blogFiles, knownRoutes };
+function validateLaunch(model: Model) {
+  if (model.site.launchStatus === "draft") addWarning("seo.draft", "Draft mode forces every route to noindex and blocks crawling");
+  if (!launch) return;
+  if (model.site.launchStatus !== "live") addError("seo.launch_status", "Launch mode requires launchStatus=live");
+  if (new URL(model.site.url).hostname === "example.com") addError("seo.placeholder_domain", "Launch mode requires a production domain");
+  if (model.site.email.endsWith("@example.com")) addError("schema.placeholder_email", "Launch mode requires a real contact email");
+  if (/555/.test(model.site.phone)) addError("schema.placeholder_phone", "Launch mode requires a real phone number");
+  if (!model.site.socialImage) addError("seo.social_image_missing", "Launch mode requires a default social image");
+  if (!model.site.address.street || !model.site.address.postalCode) addError("schema.address_incomplete", "Launch mode requires a complete address");
 }
 
-function runContentChecks(root: string, site: LoadedSite, errors: CheckMessage[], warnings: CheckMessage[]) {
-  const slugCounts = new Map<string, string[]>();
-
-  for (const page of site.pageFiles) {
-    addSlug(slugCounts, page.content.slug, page.file);
-    for (const section of page.content.sections) {
-      collectAndCheckLinks(section, site.knownRoutes, errors, page.file, page.content.slug);
-    }
+function validateEditMap(model: Model) {
+  const routes = new Set(model.manifest.routes);
+  const sectionIds = new Set(model.pages.flatMap((page) => page.data.sections.map((section) => section.id)));
+  for (const id of sectionIds) if (!model.editMap[id]) addError("edit_map.section_missing", `No edit-map entry for ${id}`);
+  for (const [id, entry] of Object.entries(model.editMap)) {
+    const file = path.join(root, entry.contentFile);
+    if (!entry.contentFile.match(/^(content|data)\//) || !existsSync(file)) { addError("edit_map.file_missing", `${id} points to missing or unsafe file ${entry.contentFile}`); continue; }
+    const source = JSON.parse(readFileSync(file, "utf8"));
+    const value = resolveJsonPath(source, entry.jsonPath);
+    if (value === undefined) { addError("edit_map.path_missing", `${id} has invalid jsonPath ${entry.jsonPath}`); continue; }
+    const allowed = allowedFields(value, entry.jsonPath);
+    for (const field of entry.safeFields) if (!allowed.has(field)) addError("edit_map.safe_field_invalid", `${id} has unsupported safe field ${field}`);
+    const affected = entry.affectedRoutes === "all" ? [] : entry.affectedRoutes;
+    for (const route of affected) if (!routes.has(route)) addError("edit_map.route_missing", `${id} references unknown route ${route}`);
   }
-
-  for (const product of site.productFiles) addSlug(slugCounts, `/products/${product.content.slug}`, product.file);
-  for (const blog of site.blogFiles) addSlug(slugCounts, `/blog/${blog.frontmatter.slug}`, blog.file);
-
-  for (const [slug, files] of slugCounts.entries()) {
-    if (files.length > 1) {
-      errors.push({
-        code: "schema.duplicate_slug",
-        message: `Duplicate slug ${slug} appears in ${files.join(", ")}`,
-        route: slug
-      });
-    }
-  }
-
-  const navigation = JSON.parse(readFileSync(path.join(root, "data/navigation.json"), "utf8")) as {
-    header: Array<{ href: string }>;
-    footer: Array<{ href: string }>;
-  };
-  for (const item of [...navigation.header, ...navigation.footer]) {
-    checkInternalLink(item.href, site.knownRoutes, errors, "data/navigation.json");
-  }
-
-  checkSitemap(root, site, errors, warnings);
-  checkRobots(root, errors);
 }
 
-async function runHtmlChecks(
-  root: string,
-  site: LoadedSite | undefined,
-  checks: CheckRun["checks"],
-  errors: CheckMessage[],
-  warnings: CheckMessage[]
-) {
-  const distRoot = path.join(root, "dist");
-  if (!existsSync(distRoot)) {
-    checks.visual = "failed";
-    errors.push({ code: "visual.dist_missing", message: "Build output dist/ was not found" });
-    return;
-  }
+function allowedFields(value: any, jsonPath: string) {
+  if (Array.isArray(value)) return new Set(["[].label", "[].href"]);
+  if (value?.type === "hero") return new Set(["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height"]);
+  if (value?.type === "featureGrid") return new Set(["headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height"]);
+  if (value?.type === "cta") return new Set(["headline", "body", "cta.label", "cta.href"]);
+  if (value?.type === "contact") return new Set(["headline", "body"]);
+  if (value?.type === "richText") return new Set(["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height"]);
+  if (value?.title && value?.description && jsonPath !== "$") return new Set(["title", "description", "noindex", "socialImage"]);
+  return new Set(["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x"]);
+}
 
-  const htmlFiles = await fg("**/*.html", { cwd: distRoot, absolute: true });
-  if (htmlFiles.length === 0) {
-    checks.visual = "failed";
-    errors.push({ code: "visual.html_missing", message: "No HTML files were generated" });
-    return;
-  }
-
-  for (const file of htmlFiles) {
-    const html = await readFile(file, "utf8");
-    const document = parse(html);
-    const route = htmlFileToRoute(file, distRoot);
-    const h1Count = document.querySelectorAll("h1").length;
-
-    if (route !== "/404" && h1Count !== 1) {
-      checks.seo = "failed";
-      errors.push({
-        code: "seo.h1_count",
-        message: `Expected exactly one H1, found ${h1Count}`,
-        path: path.relative(root, file),
-        route
-      });
+async function validateDist(model: Model) {
+  const dist = path.join(root, "dist");
+  const files = await fg("**/*.html", { cwd: dist, absolute: true });
+  const builtRoutes = new Set(files.map((file) => htmlRoute(file, dist)));
+  const manifestRoutes = new Set(model.manifest.routes);
+  for (const route of builtRoutes) if (!manifestRoutes.has(route)) addError("schema.manifest_route_missing", `Manifest is missing built route ${route}`);
+  for (const route of manifestRoutes) if (!builtRoutes.has(route)) addError("schema.manifest_route_stale", `Manifest route ${route} has no built HTML`);
+  const renderedMarkers = new Map<string, Set<string>>();
+  for (const file of files) {
+    const route = htmlRoute(file, dist);
+    const document = parse(await readFile(file, "utf8"));
+    const h1 = document.querySelectorAll("h1").length;
+    if (route !== "/404" && h1 !== 1) addError("seo.h1_count", `Expected one H1 on ${route}, found ${h1}`, { route });
+    const canonical = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
+    const expectedCanonical = new URL(route === "/404" ? "/404" : route, `${model.site.url.replace(/\/$/, "")}/`).toString();
+    if (canonical !== expectedCanonical) addError("seo.canonical_mismatch", `Canonical on ${route} must be ${expectedCanonical}`, { route });
+    const robots = document.querySelector('meta[name="robots"]')?.getAttribute("content") ?? "";
+    const sourceNoindex = routeNoindex(route, model);
+    const expectedNoindex = model.site.launchStatus === "draft" || sourceNoindex;
+    if (robots.startsWith("noindex") !== expectedNoindex) addError("seo.robots_mismatch", `Robots meta is incorrect on ${route}`, { route });
+    for (const selector of ['meta[name="description"]', 'meta[property="og:title"]', 'meta[property="og:description"]', 'meta[property="og:url"]']) if (!document.querySelector(selector)) addError("seo.required_tag_missing", `Missing ${selector} on ${route}`, { route });
+    const scripts = document.querySelectorAll("script");
+    if (scripts.some((script) => script.getAttribute("type") !== "application/ld+json")) addError("seo.executable_script", `Unexpected executable script on ${route}`, { route });
+    for (const script of scripts) { try { JSON.parse(script.text); } catch { addError("seo.json_ld_invalid", `Invalid JSON-LD on ${route}`, { route }); } }
+    const markers = new Set(document.querySelectorAll("[data-pp-edit-id]").map((node) => node.getAttribute("data-pp-edit-id") ?? ""));
+    renderedMarkers.set(route, markers);
+    for (const marker of markers) if (!model.editMap[marker]) addError("edit_map.marker_unmapped", `Rendered marker ${marker} is not mapped`, { route });
+    for (const anchor of document.querySelectorAll("a[href]")) {
+      const href = anchor.getAttribute("href") ?? "";
+      if (!isSafeHref(href)) addError("links.unsafe", `Unsafe link ${href} on ${route}`, { route });
+      if (href.startsWith("/") && !href.startsWith("//")) { const target = normalize(href.split(/[?#]/)[0] || "/"); if (!builtRoutes.has(target) && !isAsset(href)) addError("links.internal_broken", `Broken link ${href} on ${route}`, { route }); }
+      if (!anchor.text.trim() && !anchor.getAttribute("aria-label")) addError("accessibility.link_label_missing", `Unlabeled link on ${route}`, { route });
     }
-
-    for (const selector of ["title", "meta[name=\"description\"]", "link[rel=\"canonical\"]", "meta[property=\"og:title\"]", "meta[property=\"og:description\"]"]) {
-      if (!document.querySelector(selector)) {
-        checks.seo = "failed";
-        errors.push({
-          code: "seo.required_tag_missing",
-          message: `Missing ${selector}`,
-          path: path.relative(root, file),
-          route
-        });
-      }
-    }
-
-    for (const link of document.querySelectorAll("a[href]")) {
-      const href = link.getAttribute("href") ?? "";
-      if (!link.text.trim() && !link.getAttribute("aria-label")) {
-        checks.accessibility = "failed";
-        errors.push({
-          code: "accessibility.link_label_missing",
-          message: "Link needs text or an aria-label",
-          path: path.relative(root, file),
-          route
-        });
-      }
-      if (site) checkInternalLink(href, site.knownRoutes, errors, path.relative(root, file), route);
-    }
-
     for (const image of document.querySelectorAll("img")) {
       const src = image.getAttribute("src") ?? "";
-      if (!image.hasAttribute("alt")) {
-        checks.accessibility = "failed";
-        errors.push({
-          code: "accessibility.image_alt_missing",
-          message: `Image ${src || "(unknown)"} needs alt text`,
-          path: path.relative(root, file),
-          route
-        });
-      }
-      if (src.startsWith("/") && !existsSync(path.join(root, "public", src))) {
-        errors.push({
-          code: "links.image_missing",
-          message: `Missing image ${src}`,
-          path: path.relative(root, file),
-          route
-        });
-      }
+      if (!image.hasAttribute("alt") || !image.getAttribute("width") || !image.getAttribute("height")) addError("accessibility.image_metadata", `Image ${src} needs alt, width, and height`, { route });
+      if (src.startsWith("/") && !existsSync(path.join(root, "public", src))) addError("links.image_missing", `Missing image ${src}`, { route });
     }
-
-    for (const button of document.querySelectorAll("button")) {
-      if (!button.text.trim() && !button.getAttribute("aria-label")) {
-        checks.accessibility = "failed";
-        errors.push({
-          code: "accessibility.button_label_missing",
-          message: "Button needs text or an aria-label",
-          path: path.relative(root, file),
-          route
-        });
-      }
-    }
-
-    for (const form of document.querySelectorAll("form")) {
-      for (const control of form.querySelectorAll("input, textarea, select")) {
-        const id = control.getAttribute("id");
-        if (!id || !form.querySelector(`label[for="${id}"]`)) {
-          checks.accessibility = "failed";
-          errors.push({
-            code: "accessibility.form_label_missing",
-            message: "Form fields need associated labels",
-            path: path.relative(root, file),
-            route
-          });
-        }
-      }
-    }
-
-    const bodyText = document.querySelector("body")?.text.trim() ?? "";
-    if (bodyText.length < 120 && route !== "/404") {
-      warnings.push({
-        code: "visual.body_sparse",
-        message: "Rendered page has very little visible text",
-        path: path.relative(root, file),
-        route
-      });
-    }
+    for (const form of document.querySelectorAll("form")) if ((form.getAttribute("method") ?? "get").toLowerCase() === "post" && !form.getAttribute("action")) addError("accessibility.form_inert", `POST form on ${route} has no action`, { route });
+    if ((document.querySelector("body")?.text.trim() ?? "").length < 120 && route !== "/404") addWarning("visual.body_sparse", `Rendered page ${route} has little visible text`, { route });
   }
-
-  if (errors.some((error) => error.code.startsWith("links."))) checks.links = "failed";
-}
-
-async function runAstroBuild(root: string): Promise<{ ok: boolean; output: string }> {
-  return new Promise((resolve) => {
-    const child = spawn("pnpm", ["exec", "astro", "build"], {
-      cwd: root,
-      env: process.env,
-      stdio: ["ignore", "pipe", "pipe"]
-    });
-    let output = "";
-    child.stdout.on("data", (chunk) => {
-      output += chunk.toString();
-    });
-    child.stderr.on("data", (chunk) => {
-      output += chunk.toString();
-    });
-    child.on("close", (code) => {
-      resolve({ ok: code === 0, output: output.trim() });
-    });
-  });
-}
-
-function parseJson<TSchema extends z.ZodTypeAny>(schema: TSchema, value: unknown, file: string, errors: CheckMessage[]): z.infer<TSchema> {
-  const result = schema.safeParse(value);
-  if (!result.success) {
-    for (const issue of result.error.issues) {
-      errors.push({
-        code: "schema.invalid",
-        message: `${file}: ${issue.path.join(".") || "(root)"} ${issue.message}`,
-        path: file
-      });
-    }
-    throw new Error(`Invalid ${file}`);
+  for (const [id, entry] of Object.entries(model.editMap)) {
+    if (["SiteData", "SEO"].includes(entry.component)) continue;
+    const routes = entry.affectedRoutes === "all" ? [...builtRoutes] : entry.affectedRoutes;
+    for (const route of routes) if (!renderedMarkers.get(route)?.has(id)) addError("edit_map.marker_missing", `${id} is not rendered on ${route}`, { route });
   }
-  return result.data;
+  validateSitemap(model, builtRoutes);
+  validateRobots(model);
+  if (errors.some((item) => item.code.startsWith("links."))) checks.links = "failed";
+  if (errors.some((item) => item.code.startsWith("seo."))) checks.seo = "failed";
+  if (errors.some((item) => item.code.startsWith("accessibility."))) checks.accessibility = "failed";
+  if (errors.some((item) => item.code.startsWith("edit_map.") || item.code.startsWith("schema.manifest"))) checks.schema = "failed";
 }
 
-async function loadJsonCollection<TSchema extends z.ZodTypeAny>(
-  root: string,
-  pattern: string,
-  schema: TSchema,
-  errors: CheckMessage[]
-): Promise<Array<{ file: string; content: z.infer<TSchema> }>> {
-  const files = await fg(pattern, { cwd: root, absolute: true });
-  const collection = [];
-
-  for (const file of files) {
-    const relativeFile = path.relative(root, file);
-    try {
-      collection.push({
-        file: relativeFile,
-        content: parseJson(schema, await readJson(file), relativeFile, errors)
-      });
-    } catch {
-      // parseJson recorded the details.
-    }
-  }
-
-  return collection;
+function validateSitemap(model: Model, builtRoutes: Set<string>) {
+  const file = path.join(root, "dist/sitemap.xml");
+  if (!existsSync(file)) { checks.sitemap = "failed"; addError("sitemap.missing", "dist/sitemap.xml is missing"); return; }
+  const parsed = new XMLParser().parse(readFileSync(file, "utf8")) as any;
+  const raw = parsed.urlset?.url ? (Array.isArray(parsed.urlset.url) ? parsed.urlset.url : [parsed.urlset.url]) : [];
+  const actual = new Set<string>(raw.map((item: any) => String(item.loc)));
+  const expected = new Set(model.site.launchStatus === "live" ? [...builtRoutes].filter((route) => !routeNoindex(route, model)).map((route) => `${model.site.url.replace(/\/$/, "")}${route === "/" ? "/" : route}`) : []);
+  for (const url of expected) if (!actual.has(url)) addError("sitemap.route_missing", `Sitemap is missing ${url}`);
+  for (const url of actual) if (!expected.has(url)) addError("sitemap.route_unexpected", `Sitemap includes unexpected ${url}`);
+  if (errors.some((item) => item.code.startsWith("sitemap."))) checks.sitemap = "failed";
 }
 
-async function loadBlogCollection(root: string, pattern: string, errors: CheckMessage[]) {
-  const files = await fg(pattern, { cwd: root, absolute: true });
-  const collection = [];
-
-  for (const file of files) {
-    const relativeFile = path.relative(root, file);
-    try {
-      const parsed = matter(await readFile(file, "utf8"));
-      collection.push({
-        file: relativeFile,
-        frontmatter: parseJson(BlogFrontmatterSchema, parsed.data, relativeFile, errors)
-      });
-    } catch (error) {
-      errors.push({
-        code: "schema.blog_frontmatter_invalid",
-        message: error instanceof Error ? error.message : `Invalid frontmatter in ${relativeFile}`,
-        path: relativeFile
-      });
-    }
-  }
-
-  return collection;
+function validateRobots(model: Model) {
+  const text = readFileSync(path.join(root, "dist/robots.txt"), "utf8");
+  if (model.site.launchStatus === "draft" && !/Disallow:\s*\//i.test(text)) addError("robots.draft_open", "Draft robots.txt must disallow crawling");
+  if (model.site.launchStatus === "live" && (!/Allow:\s*\//i.test(text) || !text.includes(`${model.site.url.replace(/\/$/, "")}/sitemap.xml`))) addError("robots.live_invalid", "Live robots.txt must allow crawling and link the sitemap");
+  if (errors.some((item) => item.code.startsWith("robots."))) checks.robots = "failed";
 }
 
-function collectAndCheckLinks(value: unknown, routes: Set<string>, errors: CheckMessage[], file: string, route: string) {
-  if (Array.isArray(value)) {
-    for (const item of value) collectAndCheckLinks(item, routes, errors, file, route);
-    return;
-  }
-
-  if (typeof value !== "object" || value === null) return;
-
-  for (const [key, nestedValue] of Object.entries(value)) {
-    if (key === "href" && typeof nestedValue === "string") {
-      checkInternalLink(nestedValue, routes, errors, file, route);
-    } else {
-      collectAndCheckLinks(nestedValue, routes, errors, file, route);
-    }
-  }
+function routeNoindex(route: string, model: Model) {
+  if (route === "/404") return true;
+  if (route === "/products") return model.routeSeo.products.noindex;
+  if (route === "/blog") return model.routeSeo.blog.noindex;
+  const page = model.pages.find((item) => item.data.slug === route); if (page) return page.data.seo.noindex;
+  const product = model.products.find((item) => `/products/${item.data.slug}` === route); if (product) return product.data.seo.noindex;
+  const post = model.posts.find((item) => `/blog/${item.data.slug}` === route); return post?.data.seo.noindex ?? false;
 }
 
-function checkInternalLink(href: string, routes: Set<string>, errors: CheckMessage[], file: string, route?: string) {
-  if (!href.startsWith("/") || href.startsWith("//")) return;
-
-  const normalized = normalizeRoute(href.split("#")[0]?.split("?")[0] || "/");
-  if (!routes.has(normalized) && !isPublicAsset(href)) {
-    errors.push({
-      code: "links.internal_broken",
-      message: `Broken internal link ${href}`,
-      path: file,
-      route
-    });
-  }
-}
-
-function checkSitemap(root: string, site: LoadedSite, errors: CheckMessage[], warnings: CheckMessage[]) {
-  const sitemapPath = path.join(root, "public/sitemap.xml");
-  if (!existsSync(sitemapPath)) {
-    errors.push({ code: "sitemap.missing", message: "public/sitemap.xml is required" });
-    return;
-  }
-
-  const parser = new XMLParser();
-  const parsed = parser.parse(readFileSync(sitemapPath, "utf8")) as {
-    urlset?: { url?: Array<{ loc?: string }> | { loc?: string } };
-  };
-  const rawUrls = parsed.urlset?.url ? (Array.isArray(parsed.urlset.url) ? parsed.urlset.url : [parsed.urlset.url]) : [];
-  const locs = new Set(rawUrls.map((url) => url.loc).filter(Boolean));
-
-  for (const page of site.pageFiles) {
-    if (page.content.seo.noindex) continue;
-
-    const loc = `${site.site.url.replace(/\/$/, "")}${page.content.slug === "/" ? "/" : page.content.slug}`;
-    if (!locs.has(loc)) {
-      errors.push({
-        code: "sitemap.public_route_missing",
-        message: `Sitemap is missing ${loc}`,
-        path: "public/sitemap.xml",
-        route: page.content.slug
-      });
-    }
-  }
-
-  if (rawUrls.length === 0) {
-    warnings.push({
-      code: "sitemap.empty",
-      message: "Sitemap has no URLs",
-      path: "public/sitemap.xml"
-    });
-  }
-}
-
-function checkRobots(root: string, errors: CheckMessage[]) {
-  const robotsPath = path.join(root, "public/robots.txt");
-  if (!existsSync(robotsPath)) {
-    errors.push({ code: "robots.missing", message: "public/robots.txt is required" });
-    return;
-  }
-
-  if (!/Sitemap:/i.test(readFileSync(robotsPath, "utf8"))) {
-    errors.push({
-      code: "robots.sitemap_missing",
-      message: "robots.txt must include a Sitemap directive",
-      path: "public/robots.txt"
-    });
-  }
-}
-
-async function readJson(filePath: string) {
-  return JSON.parse(await readFile(filePath, "utf8")) as unknown;
-}
-
-function addSlug(slugCounts: Map<string, string[]>, slug: string, file: string) {
-  const normalized = normalizeRoute(slug);
-  slugCounts.set(normalized, [...(slugCounts.get(normalized) ?? []), file]);
-}
-
-function normalizeRoute(route: string) {
-  if (route === "/") return "/";
-  return `/${route.replace(/^\/+/, "").replace(/\/+$/, "")}`;
-}
-
-function isPublicAsset(href: string) {
-  return /\.(avif|gif|ico|jpg|jpeg|png|svg|webp|xml|txt)$/i.test(href);
-}
-
-function htmlFileToRoute(file: string, distRoot: string) {
-  const relative = path.relative(distRoot, file).replace(/\\/g, "/");
-  if (relative === "index.html") return "/";
-  if (relative.endsWith("/index.html")) return `/${relative.replace(/\/index\.html$/, "")}`;
-  return `/${relative.replace(/\.html$/, "")}`;
-}
+function resolveJsonPath(value: any, expression: string) { if (expression === "$") return value; return expression.replace(/\[(\d+)\]/g, ".$1").split(".").reduce((current, key) => current?.[key], value); }
+function normalize(route: string) { return route === "/" ? "/" : `/${route.replace(/^\/+|\/+$/g, "")}`; }
+function isAsset(href: string) { return /\.(avif|gif|ico|jpg|jpeg|png|svg|webp|xml|txt)$/i.test(href.split(/[?#]/)[0]); }
+function htmlRoute(file: string, dist: string) { const relative = path.relative(dist, file).replace(/\\/g, "/"); if (relative === "index.html") return "/"; if (relative.endsWith("/index.html")) return `/${relative.replace(/\/index\.html$/, "")}`; return `/${relative.replace(/\.html$/, "")}`; }
+function runBuild(): Promise<{ ok: boolean; output: string }> { return new Promise((resolve) => { const child = spawn("pnpm", ["run", "build"], { cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"] }); let output = ""; child.stdout.on("data", (chunk) => output += chunk); child.stderr.on("data", (chunk) => output += chunk); child.on("close", (code) => resolve({ ok: code === 0, output: output.trim() })); }); }

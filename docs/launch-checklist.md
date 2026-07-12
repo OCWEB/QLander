@@ -11,10 +11,10 @@ These are the core launch decisions. Handle them before optional tools.
 1. Replace placeholder copy and images.
 2. Confirm the production domain.
 3. Set the production URL in `data/site.json`.
-4. Update canonical URLs in content files.
-5. Update `public/sitemap.xml` and `public/robots.txt`.
+4. Set `launchStatus` to `live` only after all launch requirements are complete.
+5. Confirm generated canonical, sitemap, and robots output uses the production URL.
 6. Confirm the contact path: email link, hosted form, or native static form.
-7. Run `pnpm build` and `pnpm pagepilot:check`.
+7. Run `pnpm build` and `pnpm pagepilot:check -- --launch`.
 
 ## Add Only If Needed
 
@@ -96,9 +96,9 @@ Submit the live sitemap to [Google Search Console](https://search.google.com/sea
 Before submitting:
 
 1. Confirm the live production domain.
-2. Confirm `public/sitemap.xml` uses the production URL.
-3. Confirm `public/robots.txt` points to the live sitemap.
-4. Run `pnpm pagepilot:check`.
+2. Confirm `dist/sitemap.xml` uses the production URL.
+3. Confirm `dist/robots.txt` points to the live sitemap.
+4. Run `pnpm pagepilot:check -- --launch`.
 
 ### Quality Checks
 

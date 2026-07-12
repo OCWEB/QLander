@@ -4,9 +4,7 @@
     "paper": "#f6f7f8",
     "muted": "#5f6368",
     "accent": "#2b2b2b",
-    "accentDark": "#4b5563",
-    "highlight": "#9ca3af"
+    "accentDark": "#4b5563"
   },
-  "radius": 8,
-  "density": "comfortable"
+  "radius": 8
 }

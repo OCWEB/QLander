@@ -1,18 +1,13 @@
 ---
 import type { Product } from "../../lib/types";
-import productsRaw from "../../../content/products/starter-product.json";
+import { getCollection } from "astro:content";
+import routeSeo from "../../../data/route-seo.json";
 import ProductGrid from "../../components/ProductGrid.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
-const products = [productsRaw] as Product[];
-const seo = {
-  title: "Products | PagePilot Starter",
-  description: "Placeholder product or service cards for the PagePilot Starter site.",
-  noindex: false,
-  canonical: "https://example.com/products"
-};
+const products = (await getCollection("products")).map((entry) => entry.data as Product);
 ---
 
-<BaseLayout seo={seo}>
-  <ProductGrid products={products} headline="Starter offers" />
+<BaseLayout seo={routeSeo.products}>
+  <ProductGrid products={products} headline="Starter offers" headingLevel="h1" />
 </BaseLayout>

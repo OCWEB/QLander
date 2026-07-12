@@ -1,106 +1,18 @@
 {
-  "home.hero": {
-    "route": "/",
-    "label": "Homepage hero",
-    "scope": "single-page-content",
-    "contentFile": "content/pages/home.json",
-    "jsonPath": "sections[0]",
-    "component": "HeroSection",
-    "safeFields": [
-      "headline",
-      "subheadline",
-      "primaryCta.label",
-      "primaryCta.href",
-      "secondaryCta.label",
-      "secondaryCta.href"
-    ],
-    "affectedRoutes": ["/"]
-  },
-  "home.features": {
-    "route": "/",
-    "label": "Homepage feature grid",
-    "scope": "single-page-content",
-    "contentFile": "content/pages/home.json",
-    "jsonPath": "sections[1]",
-    "component": "FeatureGrid",
-    "safeFields": [
-      "headline",
-      "items"
-    ],
-    "affectedRoutes": ["/"]
-  },
-  "home.about": {
-    "route": "/",
-    "label": "Homepage about section",
-    "scope": "single-page-content",
-    "contentFile": "content/pages/home.json",
-    "jsonPath": "sections[2]",
-    "component": "RichTextSection",
-    "safeFields": [
-      "headline",
-      "body",
-      "visual"
-    ],
-    "affectedRoutes": ["/"]
-  },
-  "home.cta": {
-    "route": "/",
-    "label": "Homepage call to action",
-    "scope": "single-page-content",
-    "contentFile": "content/pages/home.json",
-    "jsonPath": "sections[3]",
-    "component": "CTASection",
-    "safeFields": [
-      "headline",
-      "body",
-      "cta.label",
-      "cta.href"
-    ],
-    "affectedRoutes": ["/"]
-  },
-  "global.header": {
-    "route": "*",
-    "label": "Global header",
-    "scope": "global-navigation",
-    "contentFile": "data/navigation.json",
-    "jsonPath": "header",
-    "component": "Header",
-    "safeFields": [
-      "header[].label",
-      "header[].href"
-    ],
-    "affectedRoutes": "all"
-  },
-  "global.footer": {
-    "route": "*",
-    "label": "Global footer",
-    "scope": "global-navigation",
-    "contentFile": "data/navigation.json",
-    "jsonPath": "footer",
-    "component": "Footer",
-    "safeFields": [
-      "footer[].label",
-      "footer[].href"
-    ],
-    "affectedRoutes": "all"
-  },
-  "site.info": {
-    "route": "*",
-    "label": "Company information",
-    "scope": "global-content",
-    "contentFile": "data/site.json",
-    "jsonPath": "$",
-    "component": "SiteData",
-    "safeFields": [
-      "name",
-      "description",
-      "email",
-      "phone",
-      "address.street",
-      "address.city",
-      "address.region",
-      "address.postalCode"
-    ],
-    "affectedRoutes": "all"
-  }
+  "home.hero": { "route": "/", "label": "Homepage hero", "scope": "single-page-content", "contentFile": "content/pages/home.json", "jsonPath": "sections[0]", "component": "HeroSection", "safeFields": ["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height"], "affectedRoutes": ["/"] },
+  "home.features": { "route": "/", "label": "Homepage feature grid", "scope": "single-page-content", "contentFile": "content/pages/home.json", "jsonPath": "sections[1]", "component": "FeatureGrid", "safeFields": ["headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height"], "affectedRoutes": ["/"] },
+  "home.about": { "route": "/", "label": "Homepage about section", "scope": "single-page-content", "contentFile": "content/pages/home.json", "jsonPath": "sections[2]", "component": "RichTextSection", "safeFields": ["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height"], "affectedRoutes": ["/"] },
+  "home.cta": { "route": "/", "label": "Homepage call to action", "scope": "single-page-content", "contentFile": "content/pages/home.json", "jsonPath": "sections[3]", "component": "CTASection", "safeFields": ["headline", "body", "cta.label", "cta.href"], "affectedRoutes": ["/"] },
+  "about.hero": { "route": "/about", "label": "About hero", "scope": "single-page-content", "contentFile": "content/pages/about.json", "jsonPath": "sections[0]", "component": "HeroSection", "safeFields": ["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height"], "affectedRoutes": ["/about"] },
+  "about.story": { "route": "/about", "label": "About story", "scope": "single-page-content", "contentFile": "content/pages/about.json", "jsonPath": "sections[1]", "component": "RichTextSection", "safeFields": ["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height"], "affectedRoutes": ["/about"] },
+  "contact.hero": { "route": "/contact", "label": "Contact hero", "scope": "single-page-content", "contentFile": "content/pages/contact.json", "jsonPath": "sections[0]", "component": "HeroSection", "safeFields": ["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height"], "affectedRoutes": ["/contact"] },
+  "contact.form": { "route": "/contact", "label": "Contact call to action", "scope": "single-page-content", "contentFile": "content/pages/contact.json", "jsonPath": "sections[1]", "component": "ContactForm", "safeFields": ["headline", "body"], "affectedRoutes": ["/contact"] },
+  "privacy.hero": { "route": "/privacy", "label": "Privacy hero", "scope": "single-page-content", "contentFile": "content/pages/privacy.json", "jsonPath": "sections[0]", "component": "HeroSection", "safeFields": ["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height"], "affectedRoutes": ["/privacy"] },
+  "privacy.notice": { "route": "/privacy", "label": "Privacy notice", "scope": "single-page-content", "contentFile": "content/pages/privacy.json", "jsonPath": "sections[1]", "component": "RichTextSection", "safeFields": ["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height"], "affectedRoutes": ["/privacy"] },
+  "global.header": { "route": "*", "label": "Global header", "scope": "global-navigation", "contentFile": "data/navigation.json", "jsonPath": "header", "component": "Header", "safeFields": ["[].label", "[].href"], "affectedRoutes": "all" },
+  "global.footer": { "route": "*", "label": "Global footer", "scope": "global-navigation", "contentFile": "data/navigation.json", "jsonPath": "footer", "component": "Footer", "safeFields": ["[].label", "[].href"], "affectedRoutes": "all" },
+  "site.info": { "route": "*", "label": "Site information", "scope": "global-content", "contentFile": "data/site.json", "jsonPath": "$", "component": "SiteData", "safeFields": ["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x"], "affectedRoutes": "all" },
+  "route.products.seo": { "route": "/products", "label": "Products SEO", "scope": "route-metadata", "contentFile": "data/route-seo.json", "jsonPath": "products", "component": "SEO", "safeFields": ["title", "description", "noindex", "socialImage"], "affectedRoutes": ["/products"] },
+  "route.blog.seo": { "route": "/blog", "label": "Blog SEO", "scope": "route-metadata", "contentFile": "data/route-seo.json", "jsonPath": "blog", "component": "SEO", "safeFields": ["title", "description", "noindex", "socialImage"], "affectedRoutes": ["/blog"] },
+  "route.notFound.seo": { "route": "/404", "label": "404 SEO", "scope": "route-metadata", "contentFile": "data/route-seo.json", "jsonPath": "notFound", "component": "SEO", "safeFields": ["title", "description", "noindex", "socialImage"], "affectedRoutes": ["/404"] }
 }

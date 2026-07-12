@@ -26,8 +26,7 @@ When the user says `pagepilot start`, use `docs/pagepilot-start.md` before recom
 
 1. Edit `data/navigation.json`.
 2. If the link is internal, verify the route exists in `pagepilot.manifest.json` or create the page intentionally.
-3. Update `public/sitemap.xml` only if a new public route was added.
-4. Run `pnpm pagepilot:check`.
+3. Run `pnpm pagepilot:check`; generated sitemap output will be verified automatically.
 
 ## Add A Page
 
@@ -35,37 +34,34 @@ When the user says `pagepilot start`, use `docs/pagepilot-start.md` before recom
 2. Include `title`, `slug`, `seo`, and at least one section.
 3. Add or confirm the Astro route under `src/pages/` only if the route pattern does not already exist.
 4. Add the route to `pagepilot.manifest.json`.
-5. Add the public URL to `public/sitemap.xml` unless the page is `noindex`.
-6. Run `pnpm pagepilot:check`.
+5. Run `pnpm pagepilot:check`; canonical and sitemap output are generated automatically.
 
 Creating a new route usually touches `src/pages/`, so treat it as developer mode unless the template already supports the route pattern.
 
 ## Update SEO
 
 1. Edit the relevant content file under `content/pages/`, `content/products/`, or `content/blog/`.
-2. Keep SEO title, description, canonical, and `noindex` intentional.
-3. If `noindex` changes, update `public/sitemap.xml` accordingly.
-4. Run `pnpm pagepilot:check`.
+2. Keep SEO title, description, social image, and `noindex` intentional; canonical is derived from the route.
+3. Run `pnpm pagepilot:check` to regenerate and verify sitemap coverage.
 
 ## Add A Blog Post
 
 1. Add a Markdown file under `content/blog/`.
 2. Include required frontmatter: title, description, slug, publishedAt, updatedAt, author, tags, and seo.
-3. Add the public blog URL to `public/sitemap.xml`.
-4. Add the route to `pagepilot.manifest.json`.
-5. Run `pnpm pagepilot:check`.
+3. Add the route to `pagepilot.manifest.json`.
+4. Run `pnpm pagepilot:check`.
 
 ## Update Site Settings
 
 1. Edit `data/site.json`.
 2. Keep URL, email, logo path, and social values valid.
-3. If the site URL changes, update canonical URLs, `public/sitemap.xml`, and `public/robots.txt`.
-4. Run `pnpm pagepilot:check`.
+3. Set `launchStatus` to `live` only after the production URL, contact details, address, and social image are ready.
+4. Run `pnpm pagepilot:check -- --launch` before launch.
 
 ## Update Theme Tokens
 
 1. Edit `data/theme.json`.
-2. Keep `radius` at `8` or below.
+2. Use six/eight-digit hex colors and keep `radius` between `0` and `8`.
 3. Check the palette does not collapse into one dominant hue.
 4. Run `pnpm pagepilot:check`.
 
@@ -75,8 +71,8 @@ Creating a new route usually touches `src/pages/`, so treat it as developer mode
 2. Read the relevant stage in `docs/launch-checklist.md`.
 3. Recommend only tasks that match the user's current stage and goal.
 4. Do not add Google Analytics, forms, cookie consent, or Vercel-specific config without explicit user request.
-5. If the production URL changes, update `data/site.json`, canonical URLs, `public/sitemap.xml`, and `public/robots.txt`.
-6. Run `pnpm build` and `pnpm pagepilot:check`.
+5. Update the production URL and launch status in `data/site.json`.
+6. Run `pnpm build` and `pnpm pagepilot:check -- --launch`.
 
 ## Rollback
 

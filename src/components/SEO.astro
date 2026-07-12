@@ -2,15 +2,21 @@
 import type { Seo, SiteData } from "../lib/types";
 import { organizationSchema } from "../lib/structuredData";
 import { resolveCanonical, resolveTitle } from "../lib/seo";
+import { serializeJsonLd } from "../lib/schemas";
 
-const { seo, site, structuredData = organizationSchema(site) } = Astro.props as {
+const { seo, site, structuredData = organizationSchema(site), ogType = "website" } = Astro.props as {
   seo: Seo;
   site: SiteData;
   structuredData?: Record<string, unknown>;
+  ogType?: "website" | "article";
 };
 
 const title = resolveTitle(seo, site);
-const canonical = resolveCanonical(seo);
+const canonical = resolveCanonical(Astro.url.pathname, site);
+const noindex = site.launchStatus === "draft" || seo.noindex;
+const socialImage = seo.socialImage ?? site.socialImage;
+const socialImageUrl = socialImage ? new URL(socialImage, site.url).toString() : undefined;
+const jsonLd = serializeJsonLd(structuredData);
 ---
 
 <title>{title}</title>
@@ -18,7 +24,9 @@ const canonical = resolveCanonical(seo);
 <link rel="canonical" href={canonical} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={seo.description} />
-<meta property="og:type" content="website" />
+<meta property="og:type" content={ogType} />
 <meta property="og:url" content={canonical} />
-<meta name="robots" content={seo.noindex ? "noindex,nofollow" : "index,follow"} />
-<script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+{socialImageUrl && <meta property="og:image" content={socialImageUrl} />}
+{socialImageUrl && <meta name="twitter:card" content="summary_large_image" />}
+<meta name="robots" content={noindex ? "noindex,nofollow" : "index,follow"} />
+<script is:inline type="application/ld+json" set:html={jsonLd} />

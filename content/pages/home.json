@@ -4,8 +4,7 @@
   "seo": {
     "title": "PagePilot Starter | Website Landing Page",
     "description": "A black and white placeholder landing page for an AI-maintainable Astro site kit.",
-    "noindex": false,
-    "canonical": "https://example.com/"
+    "noindex": false
   },
   "sections": [
     {

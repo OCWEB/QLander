@@ -1,10 +1,13 @@
 ---
 import type { NavigationItem, SiteData } from "../lib/types";
 
-const { site, navigation } = Astro.props as {
+const { site, navigation, currentPath } = Astro.props as {
   site: SiteData;
   navigation: NavigationItem[];
+  currentPath: string;
 };
+
+const current = (href: string) => href === "/" ? currentPath === "/" : currentPath === href || currentPath.startsWith(`${href}/`);
 ---
 
 <header class="site-header" data-pp-edit-id="global.header">
@@ -12,12 +15,12 @@ const { site, navigation } = Astro.props as {
     <img src={site.logo} alt={`${site.name} logo`} width="160" height="40" />
   </a>
   <nav class="desktop-nav" aria-label="Primary navigation">
-    {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+    {navigation.map((item) => <a href={item.href} aria-current={current(item.href) ? "page" : undefined}>{item.label}</a>)}
   </nav>
   <details class="mobile-nav">
     <summary aria-label="Open navigation">Menu</summary>
     <nav aria-label="Mobile navigation">
-      {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+      {navigation.map((item) => <a href={item.href} aria-current={current(item.href) ? "page" : undefined}>{item.label}</a>)}
     </nav>
   </details>
 </header>

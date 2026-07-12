@@ -8,7 +8,6 @@
   "seo": {
     "title": "Starter Offer | PagePilot Starter",
     "description": "Placeholder product page for the PagePilot Starter site.",
-    "noindex": false,
-    "canonical": "https://example.com/products/starter-product"
+    "noindex": false
   }
 }

@@ -4,8 +4,7 @@
   "seo": {
     "title": "About | PagePilot Starter",
     "description": "A placeholder about page for an AI-maintainable Astro site kit.",
-    "noindex": false,
-    "canonical": "https://example.com/about"
+    "noindex": false
   },
   "sections": [
     {

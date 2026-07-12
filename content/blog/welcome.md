@@ -12,7 +12,6 @@ seo:
   title: "Welcome to PagePilot Starter"
   description: "How to customize the placeholder Astro site kit."
   noindex: false
-  canonical: "https://example.com/blog/welcome"
 ---
 
 This starter site is intentionally plain. The grayscale blocks show where real photography, product screenshots, or custom artwork should go later.

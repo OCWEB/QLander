@@ -16,13 +16,8 @@ const { headline, body, site, editId } = Astro.props as {
     <p>{body}</p>
     <a href={`mailto:${site.email}`}>{site.email}</a>
   </div>
-  <form name="contact" method="post">
-    <label for="name">Name</label>
-    <input id="name" name="name" type="text" autocomplete="name" />
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" autocomplete="email" />
-    <label for="message">Message</label>
-    <textarea id="message" name="message" rows="5"></textarea>
-    <button type="submit">Send inquiry</button>
-  </form>
+  <div class="contact-action">
+    <p>Email is the reliable contact path for this starter until a form provider is explicitly configured.</p>
+    <a class="button primary" href={`mailto:${site.email}`}>Email {site.name}</a>
+  </div>
 </section>

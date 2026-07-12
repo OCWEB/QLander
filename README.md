@@ -1,6 +1,6 @@
 # PagePilot Kit
 
-PagePilot Kit is an AI-maintainable Astro website template for small static sites. It is designed to be opened directly in Claude Code, Codex Desktop, Cursor, or another coding agent without a hosted dashboard or custom admin system.
+PagePilot Kit is an AI-maintainable Astro website template for small static sites. This repository is the public, site-side kit: it is designed to be opened directly in Claude Code, Codex Desktop, Cursor, or another coding agent without a hosted dashboard or control plane.
 
 The starter site is intentionally black, white, and grayscale. Its image blocks are placeholders, so site owners and agents can immediately see what needs real brand assets before launch.
 
@@ -15,7 +15,10 @@ The kit combines:
 
 ## Quick Start
 
+Requires Node.js 22.12 or newer and Corepack-enabled pnpm.
+
 ```bash
+corepack enable
 pnpm install
 pnpm dev
 ```
@@ -47,7 +50,7 @@ If you are setting up the repo manually, use PagePilot as a base kit and give ea
 git clone https://github.com/OCWEB/PagePilot.git my-site
 cd my-site
 rm -rf .git
-git init
+git init -b main
 git add .
 git commit -m "Start site from PagePilot kit"
 git remote add origin git@github.com:YOUR-ORG/my-site.git
@@ -64,7 +67,7 @@ pagepilot start
 Turn this starter into a website for [business/project name].
 
 Use the existing PagePilot safe workflow:
-- edit only content/, data/, public/images/, sitemap, or robots unless needed
+- edit only content/, data/, or public/images/ unless the user explicitly requests developer mode
 - check pagepilot.edit-map.json before edits
 - keep placeholder image blocks unless I provide assets
 - run pnpm pagepilot:check before final response
@@ -86,7 +89,6 @@ data/
   site.json
   navigation.json
   theme.json
-  redirects.json
 
 src/
   components/
@@ -95,10 +97,10 @@ src/
   lib/
 
 public/
-  robots.txt
-  sitemap.xml
   images/
 ```
+
+Canonical URLs, `robots.txt`, and `sitemap.xml` are generated into `dist/` from validated site and route data during the build.
 
 Normal site-owner edits should touch only `content/` and `data/`.
 
@@ -114,7 +116,7 @@ The short version:
 - Keep normal edits in `content/` and `data/`.
 - Do not change `src/`, Astro config, package files, or build tooling unless the user explicitly asks for developer-mode changes.
 - For navigation changes, verify the target route exists or create the page intentionally.
-- For SEO changes, keep title, description, canonical, sitemap, and robots aligned.
+- For SEO changes, update structured metadata; canonical, sitemap, and robots output are derived automatically.
 - Run `pnpm pagepilot:check` before final response.
 
 Workflow examples live in [docs/agent-playbook.md](docs/agent-playbook.md).
@@ -129,5 +131,8 @@ For guided setup, ask an agent to run `pagepilot start`. The workflow lives in [
 pnpm dev
 pnpm build
 pnpm preview
+pnpm typecheck
+pnpm test
 pnpm pagepilot:check
+pnpm pagepilot:check -- --launch
 ```

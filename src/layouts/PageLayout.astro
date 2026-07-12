@@ -1,6 +1,7 @@
 ---
 import type { PageContent, Product } from "../lib/types";
-import site from "../../data/site.json";
+import { getCollection } from "astro:content";
+import { site } from "../lib/site";
 import ContactForm from "../components/ContactForm.astro";
 import CTASection from "../components/CTASection.astro";
 import FeatureGrid from "../components/FeatureGrid.astro";
@@ -9,11 +10,12 @@ import ProductGrid from "../components/ProductGrid.astro";
 import RichTextSection from "../components/RichTextSection.astro";
 import BaseLayout from "./BaseLayout.astro";
 
-const { page, showHeroVisual = false, products = [] } = Astro.props as {
+const { page, showHeroVisual = false, products: suppliedProducts } = Astro.props as {
   page: PageContent;
   showHeroVisual?: boolean;
   products?: Product[];
 };
+const products = suppliedProducts ?? (await getCollection("products")).map((entry) => entry.data as Product);
 ---
 
 <BaseLayout seo={page.seo}>
@@ -21,7 +23,7 @@ const { page, showHeroVisual = false, products = [] } = Astro.props as {
     section.type === "hero" ? <HeroSection section={section} showVisual={showHeroVisual && index === 0} /> :
     section.type === "featureGrid" ? <FeatureGrid section={section} /> :
     section.type === "cta" ? <CTASection section={section} /> :
-    section.type === "productGrid" ? <ProductGrid products={products.filter((product) => section.productSlugs.includes(product.slug))} headline={section.headline} /> :
+    section.type === "productGrid" ? <ProductGrid products={products.filter((product) => section.productSlugs.includes(product.slug))} headline={section.headline} headingLevel="h2" editId={section.id} /> :
     section.type === "contact" ? <ContactForm headline={section.headline} body={section.body} site={site} editId={section.id} /> :
     section.type === "richText" ? <RichTextSection section={section} /> :
     null

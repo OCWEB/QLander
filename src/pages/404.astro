@@ -1,15 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-const seo = {
-  title: "Page not found | PagePilot Starter",
-  description: "The page you are looking for could not be found.",
-  noindex: true,
-  canonical: "https://example.com/404"
-};
+import routeSeo from "../../data/route-seo.json";
 ---
 
-<BaseLayout seo={seo}>
+<BaseLayout seo={routeSeo.notFound}>
   <section class="not-found">
     <p class="eyebrow">404</p>
     <h1>Page not found</h1>

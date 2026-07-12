@@ -1,24 +1,26 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection, render } from "astro:content";
+import { site } from "../../lib/site";
+import { blogPostingSchema } from "../../lib/structuredData";
 
 export async function getStaticPaths() {
-  const modules = import.meta.glob("../../../content/blog/*.md");
-  const posts = await Promise.all(Object.values(modules).map((loader) => loader()));
-  return posts.map((post: any) => ({
-    params: { slug: post.frontmatter.slug },
+  const posts = await getCollection("blog");
+  return posts.map((post) => ({
+    params: { slug: post.data.slug },
     props: { post }
   }));
 }
 
-const { post } = Astro.props as { post: any };
-const { Content } = post;
+const { post } = Astro.props;
+const { Content } = await render(post);
 ---
 
-<BaseLayout seo={post.frontmatter.seo}>
+<BaseLayout seo={post.data.seo} structuredData={blogPostingSchema(site, post.data)} ogType="article">
   <article class="article-shell">
-    <p class="eyebrow">{post.frontmatter.publishedAt} · {post.frontmatter.author}</p>
-    <h1>{post.frontmatter.title}</h1>
-    <p>{post.frontmatter.description}</p>
+    <p class="eyebrow"><time datetime={post.data.publishedAt}>{post.data.publishedAt}</time> · {post.data.author}</p>
+    <h1>{post.data.title}</h1>
+    <p>{post.data.description}</p>
     <Content />
   </article>
 </BaseLayout>

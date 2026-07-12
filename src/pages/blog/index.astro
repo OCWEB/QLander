@@ -1,17 +1,12 @@
 ---
 import BlogList from "../../components/BlogList.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import routeSeo from "../../../data/route-seo.json";
 
-const modules = import.meta.glob("../../../content/blog/*.md", { eager: true });
-const posts = Object.values(modules).map((post: any) => post.frontmatter).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-const seo = {
-  title: "Blog | PagePilot Starter",
-  description: "Placeholder posts for the PagePilot Starter site.",
-  noindex: false,
-  canonical: "https://example.com/blog"
-};
+const posts = (await getCollection("blog")).map((entry) => entry.data).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 ---
 
-<BaseLayout seo={seo}>
+<BaseLayout seo={routeSeo.blog}>
   <BlogList posts={posts} />
 </BaseLayout>

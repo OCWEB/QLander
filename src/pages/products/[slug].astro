@@ -1,15 +1,15 @@
 ---
 import type { Product } from "../../lib/types";
-import site from "../../../data/site.json";
+import { getCollection } from "astro:content";
+import { site } from "../../lib/site";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { productSchema } from "../../lib/structuredData";
 
-export function getStaticPaths() {
-  const modules = import.meta.glob("../../../content/products/*.json", { eager: true, import: "default" });
-  const products = Object.values(modules) as Product[];
-  return products.map((product) => ({
-    params: { slug: product.slug },
-    props: { product }
+export async function getStaticPaths() {
+  const products = await getCollection("products");
+  return products.map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: { product: entry.data as Product }
   }));
 }
 
@@ -22,6 +22,7 @@ const { product } = Astro.props as { product: Product };
     <h1>{product.title}</h1>
     <p>{product.summary}</p>
     <p>{product.description}</p>
+    {product.image && <img class="content-image" src={product.image.src} alt={product.image.alt} width={product.image.width} height={product.image.height} />}
     <a class="button primary" href="/contact">Ask about this offer</a>
   </article>
 </BaseLayout>

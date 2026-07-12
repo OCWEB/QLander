@@ -2,21 +2,24 @@
 import type { Product } from "../lib/types";
 import PlaceholderVisual from "./PlaceholderVisual.astro";
 
-const { products, headline = "Products" } = Astro.props as {
+const { products, headline = "Products", headingLevel = "h2", editId } = Astro.props as {
   products: Product[];
   headline?: string;
+  headingLevel?: "h1" | "h2";
+  editId?: string;
 };
+const Heading = headingLevel;
 ---
 
-<section class="section-band">
+<section class="section-band" data-pp-edit-id={editId}>
   <div class="section-heading">
     <p class="eyebrow">Packages</p>
-    <h1>{headline}</h1>
+    <Heading>{headline}</Heading>
   </div>
   <div class="product-grid">
     {products.map((product) => (
       <article class="product-card">
-        <PlaceholderVisual label={`${product.title} image placeholder`} variant="card" />
+        {product.image ? <img class="content-image" src={product.image.src} alt={product.image.alt} width={product.image.width} height={product.image.height} loading="lazy" decoding="async" /> : <PlaceholderVisual label={`${product.title} image placeholder`} variant="card" />}
         <div>
           <p class="eyebrow">{product.priceLabel}</p>
           <h2>{product.title}</h2>

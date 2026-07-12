@@ -1,6 +1,7 @@
 import { defineConfig } from "astro/config";
+import site from "./data/site.json" with { type: "json" };
 
 export default defineConfig({
-  site: "https://example.com",
+  site: site.url,
   output: "static"
 });

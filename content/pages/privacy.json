@@ -4,8 +4,7 @@
   "seo": {
     "title": "Privacy Policy | PagePilot Starter",
     "description": "Placeholder privacy policy for the PagePilot Starter site.",
-    "noindex": false,
-    "canonical": "https://example.com/privacy"
+    "noindex": false
   },
   "sections": [
     {

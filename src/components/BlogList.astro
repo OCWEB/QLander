@@ -18,7 +18,7 @@ const { posts } = Astro.props as {
   <div class="blog-list">
     {posts.map((post) => (
       <article>
-        <p class="eyebrow">{post.publishedAt} · {post.author}</p>
+        <p class="eyebrow"><time datetime={post.publishedAt}>{post.publishedAt}</time> · {post.author}</p>
         <h2><a href={`/blog/${post.slug}`}>{post.title}</a></h2>
         <p>{post.description}</p>
       </article>

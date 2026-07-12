@@ -12,8 +12,6 @@ Normal edits touch only:
 content/
 data/
 public/images/
-public/sitemap.xml
-public/robots.txt
 ```
 
 Do not edit `src/`, `astro.config.mjs`, `package.json`, `tsconfig.json`, or `scripts/` unless the user explicitly asks for developer-mode or template-level changes.
@@ -34,7 +32,7 @@ If the user says `pagepilot start`, follow `docs/pagepilot-start.md`. Ask the in
 - Theme tokens: update `data/theme.json`; keep `radius` at `8` or below.
 - Blog posts: add or edit Markdown under `content/blog/`.
 - Product/service entries: add or edit JSON under `content/products/`.
-- Images: add files under `public/images/` and ensure rendered images have useful alt text.
+- Images: add files under `public/images/` and configure structured `image` fields with alt text and intrinsic dimensions.
 - Launch tasks: follow `docs/launch-checklist.md`; do not add analytics tracking or deploy-specific config unless the user explicitly asks.
 - Guided launch planning: use `docs/pagepilot-start.md`; do not present every optional launch item at once.
 
@@ -45,7 +43,7 @@ Every public page needs:
 - one visible `h1`
 - SEO title
 - SEO description
-- canonical URL
+- a canonical URL derived from `data/site.json` and the rendered route
 - Open Graph title and description through the SEO component
 - sitemap coverage unless `noindex` is true
 
@@ -53,7 +51,6 @@ If you add or remove a route, update:
 
 ```text
 pagepilot.manifest.json
-public/sitemap.xml
 data/navigation.json, if navigation should change
 ```
 
@@ -77,3 +74,4 @@ When in developer mode:
 - preserve existing content/data contracts
 - update this instruction file or `docs/agent-playbook.md` if the safe workflow changes
 - run `pnpm build` and `pnpm pagepilot:check`
+- run `pnpm typecheck` and `pnpm test`
