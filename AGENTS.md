@@ -33,7 +33,7 @@ If the user says `pagepilot start`, follow `docs/pagepilot-start.md`. Ask the in
 - Blog posts: add or edit Markdown under `content/blog/`.
 - Product/service entries: add or edit JSON under `content/products/`.
 - Images: add files under `public/images/` and configure structured `image` fields with alt text and intrinsic dimensions.
-- Launch tasks: follow `docs/launch-checklist.md`; do not add analytics tracking or deploy-specific config unless the user explicitly asks.
+- Launch tasks: follow `docs/launch-checklist.md`; do not suggest or add cookie consent, accessibility/ADA services, analytics tracking, or deploy-specific config unless the user explicitly asks.
 - Guided launch planning: use `docs/pagepilot-start.md`; do not present every optional launch item at once.
 
 ## SEO Rules

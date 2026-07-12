@@ -30,7 +30,6 @@ Ask only the questions needed to decide the next step. If the user already answe
 4. What optional tools are needed now?
    - contact form
    - analytics
-   - cookie consent
    - search indexing
    - PageSpeed review
    - uptime monitor
@@ -57,7 +56,7 @@ If the user is unsure, assume:
 - Recommend no more than five next steps.
 - Put content replacement before tools.
 - Put deploy readiness before indexing, PageSpeed, or uptime monitoring.
-- Recommend cookie consent only when analytics, advertising, or marketing scripts are planned.
+- Do not suggest cookie consent or accessibility/ADA services unless the user explicitly asks about them.
 - Keep external provider details in `docs/launch-checklist.md`; summarize choices here.
 
 ## Output Format
@@ -86,7 +85,6 @@ Recommended optional tools:
 
 - Tally or Google Forms if the user needs a quick contact form.
 - GA4 only if reporting is expected.
-- Cookie consent only if analytics or marketing scripts are enabled.
 
 ### Full Marketing Site
 

@@ -2,7 +2,7 @@
 
 Use this checklist only when the starter site is ready to become a real public site. These tasks are intentionally not enabled by default.
 
-Do not add embeds, analytics snippets, cookie scripts, deploy adapters, or new dependencies unless the user explicitly asks for that launch item. If the user says `pagepilot start`, use `docs/pagepilot-start.md` first and recommend only the relevant next steps.
+Do not add embeds, analytics snippets, cookie scripts, deploy adapters, or new dependencies unless the user explicitly asks for that launch item. Cookie consent and accessibility/ADA services are opt-in topics: do not suggest or add them unless the user asks. If the user says `pagepilot start`, use `docs/pagepilot-start.md` first and recommend only the relevant next steps.
 
 ## Decide Before Launch
 
@@ -51,7 +51,7 @@ Before adding analytics:
 
 ### Cookie Consent
 
-Add cookie consent only if analytics, advertising, or marketing scripts are enabled.
+Discuss or add cookie consent only when the user explicitly asks for it. If requested, confirm that the site uses analytics, advertising, marketing, or another nonessential script before selecting a consent solution.
 
 Kit-friendly code option: [Orest Bida CookieConsent](https://cookieconsent.orestbida.com/). It is a free, open source, vanilla JS option that fits static Astro sites.
 
@@ -65,6 +65,12 @@ Before adding consent:
 2. Confirm required regions and consent categories.
 3. Keep consent copy aligned with the privacy policy.
 4. Run `pnpm build` and `pnpm pagepilot:check`.
+
+### Accessibility / ADA
+
+Discuss or add accessibility/ADA services only when the user explicitly asks for them. Treat accessibility as a site review and remediation workflow, not as a banner or automatic compliance guarantee.
+
+If requested, confirm the target standard and scope before recommending automated testing, manual review, an accessibility statement, or a third-party service.
 
 ## Deploy Static Site
 
