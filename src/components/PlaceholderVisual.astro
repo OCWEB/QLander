@@ -1,6 +1,7 @@
 ---
-const { label = "Image placeholder", variant = "default" } = Astro.props as {
+const { label = "Image placeholder", promptId, variant = "default" } = Astro.props as {
   label?: string;
+  promptId?: string;
   variant?: "default" | "hero" | "card" | "small";
 };
 ---
@@ -11,4 +12,5 @@ const { label = "Image placeholder", variant = "default" } = Astro.props as {
     <circle cx="18" cy="20" r="3" />
     <path d="M12 34l9-9 7 7 4-4 4 6" />
   </svg>
+  {promptId && <span class="placeholder-prompt">Prompt: {promptId}</span>}
 </div>

@@ -1,0 +1,17 @@
+---
+import type { ScrollWorldExperience } from "../lib/types";
+import { ScrollWorldExperienceSchema } from "../lib/schemas";
+import ScrollWorldPage from "../components/ScrollWorldPage.astro";
+
+export function getStaticPaths() {
+  const modules = import.meta.glob<{ default: unknown }>("../../data/experiences/*.json", { eager: true });
+  return Object.values(modules)
+    .map((module) => ScrollWorldExperienceSchema.parse(module.default))
+    .filter((experience) => experience.placement === "route" && experience.route !== "/")
+    .map((experience) => ({ params: { experience: experience.slug }, props: { experience } }));
+}
+
+const { experience } = Astro.props as { experience: ScrollWorldExperience };
+---
+
+<ScrollWorldPage experience={experience} editId={`experience.${experience.slug}`} />

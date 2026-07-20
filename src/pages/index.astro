@@ -1,6 +1,21 @@
 ---
-import home from "../../content/pages/home.json";
+import type { PageContent, ScrollWorldExperience } from "../lib/types";
+import { PageContentSchema, ScrollWorldExperienceSchema } from "../lib/schemas";
 import PageLayout from "../layouts/PageLayout.astro";
+import ScrollWorldPage from "../components/ScrollWorldPage.astro";
+
+const experienceModules = import.meta.glob<{ default: unknown }>("../../data/experiences/*.json", { eager: true });
+const rootExperience = Object.values(experienceModules)
+  .map((module) => ScrollWorldExperienceSchema.parse(module.default))
+  .find((experience) => experience.placement === "route" && experience.route === "/") as ScrollWorldExperience | undefined;
+
+const pageModules = import.meta.glob<{ default: unknown }>("../../content/pages/home.json", { eager: true });
+const homeModule = Object.values(pageModules)[0];
+const home = homeModule ? PageContentSchema.parse(homeModule.default) as PageContent : undefined;
 ---
 
-<PageLayout page={home} showHeroVisual />
+{rootExperience
+  ? <ScrollWorldPage experience={rootExperience} editId="experience.root" />
+  : home
+    ? <PageLayout page={home} showHeroVisual />
+    : <main><h1>QLander site setup incomplete</h1><p>Add content/pages/home.json or register a root Scroll World experience.</p></main>}

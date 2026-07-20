@@ -1,5 +1,5 @@
 {
-  "products": { "title": "Products | PagePilot Starter", "description": "Placeholder product or service cards for the PagePilot Starter site.", "noindex": false },
-  "blog": { "title": "Blog | PagePilot Starter", "description": "Placeholder posts for the PagePilot Starter site.", "noindex": false },
-  "notFound": { "title": "Page not found | PagePilot Starter", "description": "The page you are looking for could not be found.", "noindex": true }
+  "products": { "title": "Products | QLander Starter", "description": "Placeholder product or service cards for the QLander Starter site.", "noindex": false, "eyebrow": "Packages", "heading": "Starter offers", "itemCtaLabel": "View package", "detailCtaLabel": "Ask about this offer", "detailCtaHref": "/contact" },
+  "blog": { "title": "Blog | QLander Starter", "description": "Placeholder posts for the QLander Starter site.", "noindex": false, "eyebrow": "Notes", "heading": "Blog" },
+  "notFound": { "title": "Page not found | QLander Starter", "description": "The page you are looking for could not be found.", "noindex": true }
 }

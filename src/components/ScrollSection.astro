@@ -1,0 +1,54 @@
+---
+import type { ScrollWorldExperience } from "../lib/types";
+import { serializeJsonLd } from "../lib/schemas";
+import theme from "../../data/theme.json";
+import scrubEngine from "../../skills/scroll-world/references/scrub-engine.js?raw";
+
+const { experience, sectionId, headingLevel = "h2" } = Astro.props as { experience: ScrollWorldExperience; sectionId: string; headingLevel?: "h1" | "h2" };
+const first = experience.sections[0];
+const Heading = headingLevel;
+const mountId = `scroll-section-${experience.slug}`;
+const serialized = serializeJsonLd({
+  ...experience,
+  mode: "section",
+  headingLevel,
+  brand: undefined,
+  cta: undefined,
+  nav: false
+});
+---
+
+<section
+  class="scroll-section"
+  data-pp-edit-id={sectionId}
+  style={`--sw-bg:${theme.colors.paper};--sw-ink:${theme.colors.ink};--sw-ink-soft:${theme.colors.muted};--sw-accent:${theme.colors.accent}`}
+>
+  <div class="scroll-section__fallback">
+    <img src={first.stillMobile ?? first.still} alt="" width="1600" height="900" loading="eager" />
+    <div>
+      {first.eyebrow && <small>{first.eyebrow}</small>}
+      <Heading>{first.title}</Heading>
+      <p>{first.body}</p>
+      {first.cta && <a href={first.cta.primary.href}>{first.cta.primary.label}</a>}
+    </div>
+  </div>
+  <div id={mountId} class="scroll-section__mount" data-pp-edit-id={`experience.${experience.slug}`}></div>
+</section>
+
+<script is:inline set:html={scrubEngine} />
+<script is:inline set:html={`mountScrollWorld(document.getElementById(${JSON.stringify(mountId)}), ${serialized}); document.getElementById(${JSON.stringify(mountId)}).closest(".scroll-section").classList.add("is-mounted");`} />
+
+<style>
+  .scroll-section { background: var(--sw-bg); color: var(--sw-ink); }
+  .scroll-section__fallback { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .6fr); align-items: center; gap: clamp(24px, 5vw, 72px); width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: clamp(56px, 9vw, 112px) 0; }
+  .scroll-section__fallback img { width: 100%; height: auto; border-radius: 8px; }
+  .scroll-section__fallback small { color: var(--sw-accent); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .scroll-section__fallback h2 { margin: 12px 0; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.05; }
+  .scroll-section__fallback p { color: var(--sw-ink-soft); line-height: 1.65; }
+  .scroll-section__fallback a { color: inherit; font-weight: 700; }
+  .scroll-section__mount { min-height: 0; }
+  .scroll-section.is-mounted .scroll-section__fallback { display: none; }
+  @media (max-width: 760px) {
+    .scroll-section__fallback { grid-template-columns: 1fr; }
+  }
+</style>

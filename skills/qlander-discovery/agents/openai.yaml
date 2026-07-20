@@ -1,0 +1,4 @@
+interface:
+  display_name: "QLander Discovery"
+  short_description: "Research and populate a QLander site"
+  default_prompt: "Use $qlander-discovery to research my official sources, prepare the site brief and image plan, then build the approved QLander draft."

@@ -7,10 +7,11 @@ import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import SEO from "../components/SEO.astro";
 
-const { seo, structuredData, ogType } = Astro.props as {
+const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
   seo: Seo;
   structuredData?: Record<string, unknown>;
   ogType?: "website" | "article";
+  chrome?: "site" | "landing";
 };
 ---
 
@@ -217,6 +218,8 @@ const { seo, structuredData, ogType } = Astro.props as {
       .placeholder-visual {
         display: grid;
         place-items: center;
+        align-content: center;
+        gap: 14px;
         border: 1px solid color-mix(in srgb, var(--ink), transparent 76%);
         border-radius: var(--radius);
         background:
@@ -252,6 +255,26 @@ const { seo, structuredData, ogType } = Astro.props as {
         stroke-linecap: round;
         stroke-linejoin: round;
       }
+
+      .placeholder-prompt {
+        max-width: calc(100% - 28px);
+        border-radius: var(--radius);
+        background: color-mix(in srgb, var(--paper), transparent 8%);
+        padding: 6px 9px;
+        font: 700 0.72rem/1.25 ui-monospace, SFMono-Regular, Menlo, monospace;
+        overflow-wrap: anywhere;
+      }
+
+      .landing-header {
+        width: min(1180px, calc(100% - 32px));
+        min-height: 76px;
+        display: flex;
+        align-items: center;
+        margin-inline: auto;
+        padding-block: 18px;
+      }
+
+      .landing-header img { width: 150px; }
 
       .section-band,
       .text-section,
@@ -463,10 +486,16 @@ const { seo, structuredData, ogType } = Astro.props as {
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
-    <Header site={site} navigation={navigation.header} currentPath={Astro.url.pathname} />
+    {chrome === "site" ? (
+      <Header site={site} navigation={navigation.header} currentPath={Astro.url.pathname} />
+    ) : (
+      <header class="landing-header" aria-label={`${site.name} campaign`}>
+        <img src={site.logo} alt={`${site.name} logo`} width="160" height="40" />
+      </header>
+    )}
     <main id="main-content">
       <slot />
     </main>
-    <Footer site={site} navigation={navigation.footer} />
+    {chrome === "site" && <Footer site={site} navigation={navigation.footer} />}
   </body>
 </html>

@@ -9,7 +9,7 @@ import { XMLParser } from "fast-xml-parser";
 import matter from "gray-matter";
 import { parse } from "node-html-parser";
 import type { z } from "zod";
-import { BlogFrontmatterSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, RouteSeoSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
+import { BlogFrontmatterSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
 
 type Status = "passed" | "warning" | "failed" | "skipped";
 type Message = { code: string; message: string; path?: string; route?: string };
@@ -34,6 +34,10 @@ if (errors.some((item) => item.code.startsWith("schema.") || item.code.startsWit
 if (model) {
   validateEditMap(model);
   validateLaunch(model);
+  validateProfile(model);
+  validatePpcPages(model);
+  await validateImagePrompts(model);
+  validateExperienceAssets(model);
 }
 
 if (!skipBuild) {
@@ -53,7 +57,7 @@ for (const name of names) if (checks[name] === "passed" && warnings.some((item) 
 const result = { id: `check_${randomUUID().slice(0, 8)}`, siteId: model?.manifest.siteId ?? "unknown", status: errors.length ? "failed" : warnings.length ? "warning" : "passed", checks, warnings, errors };
 if (json) console.log(JSON.stringify(result, null, 2));
 else {
-  console.log(`PagePilot checks: ${result.status.toUpperCase()}`);
+  console.log(`QLander checks: ${result.status.toUpperCase()}`);
   for (const [name, status] of Object.entries(checks)) console.log(`- ${name}: ${status}`);
   for (const warning of warnings) console.log(`WARN ${warning.code}: ${warning.message}`);
   for (const error of errors) console.error(`ERROR ${error.code}: ${error.message}`);
@@ -66,7 +70,7 @@ async function loadModel() {
     if (!parsed.success) { for (const issue of parsed.error.issues) addError("schema.invalid", `${file}: ${issue.path.join(".") || "(root)"} ${issue.message}`, { path: file }); throw new Error(`Invalid ${file}`); }
     return parsed.data;
   };
-  const manifest = await parseFile(ManifestSchema, "pagepilot.manifest.json");
+  const manifest = await parseFile(ManifestSchema, "qlander.manifest.json");
   const editMap = await parseFile(EditMapSchema, manifest.editMap);
   const site = await parseFile(SiteDataSchema, "data/site.json");
   const navigation = await parseFile(NavigationSchema, "data/navigation.json");
@@ -75,7 +79,36 @@ async function loadModel() {
   const pages = await Promise.all((await fg("content/pages/*.json", { cwd: root })).map(async (file) => ({ file, data: PageContentSchema.parse(await readJson(file)) })));
   const products = await Promise.all((await fg("content/products/*.json", { cwd: root })).map(async (file) => ({ file, data: ProductSchema.parse(await readJson(file)) })));
   const posts = await Promise.all((await fg("content/blog/*.md", { cwd: root })).map(async (file) => ({ file, data: BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data) })));
-  return { manifest, editMap, site, navigation, theme, routeSeo, pages, products, posts };
+  const experiences = await Promise.all((await fg("data/experiences/*.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldExperienceSchema.parse(await readJson(file)) })));
+  const queues = await Promise.all((await fg("scroll-world/**/queue.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldQueueSchema.parse(await readJson(file)) })));
+  return { manifest, editMap, site, navigation, theme, routeSeo, pages, products, posts, experiences, queues };
+}
+
+function validateProfile(model: Model) {
+  const profile = model.manifest.projectType;
+  if (!profile) return;
+  const routes = model.manifest.routes;
+  if (profile === "single-page-ppc") {
+    if (routes.length !== 2 || !routes.includes("/") || !routes.includes("/404")) addError("schema.profile_routes", "single-page-ppc requires only / and /404");
+    const home = model.pages.find((page) => page.data.slug === "/");
+    if (!home || home.data.layout !== "ppc") addError("schema.profile_ppc_home", "single-page-ppc requires a root page with layout=ppc");
+  }
+  if (profile === "root-scroll-world") {
+    if (routes.length !== 2 || !routes.includes("/") || !routes.includes("/404")) addError("schema.profile_routes", "root-scroll-world requires only / and /404");
+    if (!model.experiences.some((experience) => experienceRoute(experience.data) === "/")) addError("schema.profile_root_experience", "root-scroll-world requires a Scroll World experience with route=/");
+  }
+  if (profile === "internal-scroll-world" && !model.experiences.some((experience) => {
+    const route = experienceRoute(experience.data);
+    return route !== null && route !== "/";
+  })) addError("schema.profile_internal_experience", "internal-scroll-world requires at least one named experience route");
+}
+
+function validatePpcPages(model: Model) {
+  for (const page of model.pages.filter((item) => item.data.layout === "ppc")) {
+    const primary = page.data.sections.flatMap((section) => section.type === "hero" ? [section.primaryCta.href] : section.type === "cta" ? [section.cta.href] : []);
+    if (!primary.length) addError("schema.ppc_cta_missing", `PPC page ${page.data.slug} needs a primary conversion action`, { route: page.data.slug });
+    if (new Set(primary).size > 1) addError("schema.ppc_cta_mismatch", `PPC page ${page.data.slug} must reuse one primary CTA destination`, { route: page.data.slug });
+  }
 }
 
 function validateLaunch(model: Model) {
@@ -83,16 +116,70 @@ function validateLaunch(model: Model) {
   if (!launch) return;
   if (model.site.launchStatus !== "live") addError("seo.launch_status", "Launch mode requires launchStatus=live");
   if (new URL(model.site.url).hostname === "example.com") addError("seo.placeholder_domain", "Launch mode requires a production domain");
-  if (model.site.email.endsWith("@example.com")) addError("schema.placeholder_email", "Launch mode requires a real contact email");
-  if (/555/.test(model.site.phone)) addError("schema.placeholder_phone", "Launch mode requires a real phone number");
+  if (model.site.email && model.site.email.endsWith("@example.com")) addError("schema.placeholder_email", "Launch mode requires a real contact email");
+  if (model.site.phone && /555/.test(model.site.phone)) addError("schema.placeholder_phone", "Launch mode requires a real phone number");
+  if (!model.site.email && !model.site.phone && !model.site.contactUrl) addError("schema.contact_missing", "Launch mode requires an email, phone number, or HTTPS contact URL");
   if (!model.site.socialImage) addError("seo.social_image_missing", "Launch mode requires a default social image");
   if (!model.site.address.street || !model.site.address.postalCode) addError("schema.address_incomplete", "Launch mode requires a complete address");
 }
 
+async function validateImagePrompts(model: Model) {
+  const promptIds = new Set<string>();
+  for (const page of model.pages) {
+    for (const section of page.data.sections) {
+      if ((section.type === "hero" || section.type === "richText") && section.imagePromptId) promptIds.add(section.imagePromptId);
+      if (section.type === "featureGrid") for (const item of section.items) if (item.imagePromptId) promptIds.add(item.imagePromptId);
+    }
+  }
+  if (!promptIds.size) return;
+  const documented = new Set<string>();
+  for (const file of await fg("content/prompts/**/*.md", { cwd: root })) {
+    const source = await readFile(path.join(root, file), "utf8");
+    for (const match of source.matchAll(/^##\s+([a-z0-9]+(?:[.-][a-z0-9]+)*)\s*$/gim)) documented.add(match[1].toLowerCase());
+  }
+  for (const id of promptIds) if (!documented.has(id)) addError("schema.image_prompt_missing", `Image prompt ${id} needs a matching ## ${id} heading under content/prompts/`);
+}
+
+function validateExperienceAssets(model: Model) {
+  const assets = new Set<string>();
+  for (const experience of model.experiences) {
+    for (const section of experience.data.sections) for (const value of [section.still, section.stillMobile, section.clip, section.clipMobile]) if (value) assets.add(value);
+    for (const value of [...experience.data.connectors, ...experience.data.connectorsMobile]) if (value) assets.add(value);
+  }
+  for (const asset of assets) if (!existsSync(path.join(root, "public", asset))) addError("links.experience_asset_missing", `Missing Scroll World asset ${asset}`, { path: asset });
+  for (const queue of model.queues) {
+    const experience = model.experiences.find((item) => item.data.slug === queue.data.experience);
+    if (!experience) addError("schema.queue_experience_missing", `${queue.file} references unknown experience ${queue.data.experience}`, { path: queue.file });
+    const ids = new Set(queue.data.jobs.map((job) => job.id));
+    for (const job of queue.data.jobs) for (const dependency of job.dependencies) if (!ids.has(dependency)) addError("schema.queue_dependency_missing", `${queue.file} job ${job.id} references missing dependency ${dependency}`, { path: queue.file });
+  }
+}
+
 function validateEditMap(model: Model) {
   const routes = new Set(model.manifest.routes);
-  const sectionIds = new Set(model.pages.flatMap((page) => page.data.sections.map((section) => section.id)));
+  const experienceRoutes = new Set<string>(model.experiences.flatMap((experience) => {
+    const route = experienceRoute(experience.data);
+    return route === null ? [] : [route];
+  }));
+  const sectionIds = new Set(model.pages.filter((page) => !experienceRoutes.has(page.data.slug)).flatMap((page) => page.data.sections.map((section) => section.id)));
   for (const id of sectionIds) if (!model.editMap[id]) addError("edit_map.section_missing", `No edit-map entry for ${id}`);
+  for (const page of model.pages) for (const section of page.data.sections) if (section.type === "scrollSection") {
+    const experience = model.experiences.find((item) => item.data.slug === section.experience);
+    if (!experience) addError("schema.scroll_section_experience_missing", `${page.file} references unknown scroll-section experience ${section.experience}`);
+    else if (experience.data.placement !== "section") addError("schema.scroll_section_placement", `${page.file} references ${section.experience}, but its placement is not section`);
+  }
+  for (const experience of model.experiences) {
+    const id = `experience.${experience.data.slug}`;
+    const fileSlug = path.basename(experience.file, ".json");
+    if (fileSlug !== experience.data.slug) addError("schema.experience_filename", `${experience.file} must match slug ${experience.data.slug}`);
+    if (!model.editMap[id]) addError("edit_map.experience_missing", `No edit-map entry for ${id}`);
+    const route = experienceRoute(experience.data);
+    if (experience.data.placement === "section") {
+      const references = model.pages.filter((page) => page.data.sections.some((section) => section.type === "scrollSection" && section.experience === experience.data.slug));
+      if (!references.length) addError("schema.scroll_section_unreferenced", `${experience.file} is a section experience but no page references it`);
+      if (model.manifest.routes.includes(`/${experience.data.slug}`)) addError("schema.scroll_section_route_leak", `Section experience ${experience.data.slug} must not add /${experience.data.slug} to the manifest`);
+    } else if (route && !routes.has(route)) addError("schema.manifest_experience_missing", `Manifest is missing Scroll World route ${route}`);
+  }
   for (const [id, entry] of Object.entries(model.editMap)) {
     const file = path.join(root, entry.contentFile);
     if (!entry.contentFile.match(/^(content|data)\//) || !existsSync(file)) { addError("edit_map.file_missing", `${id} points to missing or unsafe file ${entry.contentFile}`); continue; }
@@ -108,13 +195,15 @@ function validateEditMap(model: Model) {
 
 function allowedFields(value: any, jsonPath: string) {
   if (Array.isArray(value)) return new Set(["[].label", "[].href"]);
-  if (value?.type === "hero") return new Set(["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height"]);
-  if (value?.type === "featureGrid") return new Set(["headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height"]);
+  if (value?.type === "hero") return new Set(["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);
+  if (value?.type === "featureGrid") return new Set(["headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"]);
   if (value?.type === "cta") return new Set(["headline", "body", "cta.label", "cta.href"]);
   if (value?.type === "contact") return new Set(["headline", "body"]);
-  if (value?.type === "richText") return new Set(["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height"]);
-  if (value?.title && value?.description && jsonPath !== "$") return new Set(["title", "description", "noindex", "socialImage"]);
-  return new Set(["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x"]);
+  if (value?.type === "richText") return new Set(["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);
+  if (value?.type === "scrollSection") return new Set(["experience", "headingLevel"]);
+  if (value?.kind === "scroll-world") return new Set(["route", "seo.title", "seo.description", "seo.noindex", "seo.socialImage", "brand.name", "brand.href", "cta.label", "cta.href", "hint", "diveScroll", "connScroll", "crossfade", "nav", "atmosphere", "sections[].label", "sections[].accent", "sections[].still", "sections[].stillMobile", "sections[].clip", "sections[].clipMobile", "sections[].scroll", "sections[].linger", "sections[].eyebrow", "sections[].title", "sections[].body", "sections[].tags", "sections[].cta.primary.label", "sections[].cta.primary.href", "sections[].cta.secondary.label", "sections[].cta.secondary.href", "connectors", "connectorsMobile"]);
+  if (value?.title && value?.description && jsonPath !== "$") return new Set(["title", "description", "noindex", "socialImage", "eyebrow", "heading", "itemCtaLabel", "detailCtaLabel", "detailCtaHref"]);
+  return new Set(["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "contactUrl", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x"]);
 }
 
 async function validateDist(model: Model) {
@@ -138,9 +227,8 @@ async function validateDist(model: Model) {
     const expectedNoindex = model.site.launchStatus === "draft" || sourceNoindex;
     if (robots.startsWith("noindex") !== expectedNoindex) addError("seo.robots_mismatch", `Robots meta is incorrect on ${route}`, { route });
     for (const selector of ['meta[name="description"]', 'meta[property="og:title"]', 'meta[property="og:description"]', 'meta[property="og:url"]']) if (!document.querySelector(selector)) addError("seo.required_tag_missing", `Missing ${selector} on ${route}`, { route });
-    const scripts = document.querySelectorAll("script");
-    if (scripts.some((script) => script.getAttribute("type") !== "application/ld+json")) addError("seo.executable_script", `Unexpected executable script on ${route}`, { route });
-    for (const script of scripts) { try { JSON.parse(script.text); } catch { addError("seo.json_ld_invalid", `Invalid JSON-LD on ${route}`, { route }); } }
+    const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
+    for (const script of jsonLdScripts) { try { JSON.parse(script.text); } catch { addError("seo.json_ld_invalid", `Invalid JSON-LD on ${route}`, { route }); } }
     const markers = new Set(document.querySelectorAll("[data-pp-edit-id]").map((node) => node.getAttribute("data-pp-edit-id") ?? ""));
     renderedMarkers.set(route, markers);
     for (const marker of markers) if (!model.editMap[marker]) addError("edit_map.marker_unmapped", `Rendered marker ${marker} is not mapped`, { route });
@@ -157,10 +245,20 @@ async function validateDist(model: Model) {
     }
     for (const form of document.querySelectorAll("form")) if ((form.getAttribute("method") ?? "get").toLowerCase() === "post" && !form.getAttribute("action")) addError("accessibility.form_inert", `POST form on ${route} has no action`, { route });
     if ((document.querySelector("body")?.text.trim() ?? "").length < 120 && route !== "/404") addWarning("visual.body_sparse", `Rendered page ${route} has little visible text`, { route });
+    const ppcPage = model.pages.find((page) => page.data.slug === route && page.data.layout === "ppc");
+    if (ppcPage) {
+      if (document.querySelector(".site-header") || document.querySelector(".site-footer")) addError("visual.ppc_chrome_leak", `PPC page ${route} must not render normal site chrome`, { route });
+      if (!document.querySelector(".landing-header")) addError("visual.ppc_landing_header_missing", `PPC page ${route} must render the landing header`, { route });
+    }
   }
   for (const [id, entry] of Object.entries(model.editMap)) {
     if (["SiteData", "SEO"].includes(entry.component)) continue;
-    const routes = entry.affectedRoutes === "all" ? [...builtRoutes] : entry.affectedRoutes;
+    const routes = (entry.affectedRoutes === "all" ? [...builtRoutes] : entry.affectedRoutes).filter((route) => {
+      const experienceOwnsRoute = model.experiences.some((experience) => experienceRoute(experience.data) === route);
+      if (experienceOwnsRoute) return entry.component === "ScrollWorldExperience";
+      if (!["Header", "Footer"].includes(entry.component)) return true;
+      return model.pages.find((page) => page.data.slug === route)?.data.layout !== "ppc";
+    });
     for (const route of routes) if (!renderedMarkers.get(route)?.has(id)) addError("edit_map.marker_missing", `${id} is not rendered on ${route}`, { route });
   }
   validateSitemap(model, builtRoutes);
@@ -196,10 +294,13 @@ function routeNoindex(route: string, model: Model) {
   if (route === "/blog") return model.routeSeo.blog.noindex;
   const page = model.pages.find((item) => item.data.slug === route); if (page) return page.data.seo.noindex;
   const product = model.products.find((item) => `/products/${item.data.slug}` === route); if (product) return product.data.seo.noindex;
-  const post = model.posts.find((item) => `/blog/${item.data.slug}` === route); return post?.data.seo.noindex ?? false;
+  const post = model.posts.find((item) => `/blog/${item.data.slug}` === route); if (post) return post.data.seo.noindex;
+  const experience = model.experiences.find((item) => experienceRoute(item.data) === route); if (experience) return experience.data.seo.noindex;
+  return false;
 }
 
 function resolveJsonPath(value: any, expression: string) { if (expression === "$") return value; return expression.replace(/\[(\d+)\]/g, ".$1").split(".").reduce((current, key) => current?.[key], value); }
+function experienceRoute(experience: { slug: string; placement?: "route" | "section"; route?: "/" }) { return experience.placement === "section" ? null : experience.route ?? `/${experience.slug}`; }
 function normalize(route: string) { return route === "/" ? "/" : `/${route.replace(/^\/+|\/+$/g, "")}`; }
 function isAsset(href: string) { return /\.(avif|gif|ico|jpg|jpeg|png|svg|webp|xml|txt)$/i.test(href.split(/[?#]/)[0]); }
 function htmlRoute(file: string, dist: string) { const relative = path.relative(dist, file).replace(/\\/g, "/"); if (relative === "index.html") return "/"; if (relative.endsWith("/index.html")) return `/${relative.replace(/\/index\.html$/, "")}`; return `/${relative.replace(/\.html$/, "")}`; }

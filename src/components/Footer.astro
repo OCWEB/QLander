@@ -15,8 +15,11 @@ const { site, navigation } = Astro.props as {
   <nav aria-label="Footer navigation">
     {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
   </nav>
-  <address>
-    <a href={`mailto:${site.email}`}>{site.email}</a>
-    <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>
-  </address>
+  {(site.email || site.phone || site.contactUrl) && (
+    <address>
+      {site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}
+      {site.phone && <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>}
+      {site.contactUrl && <a href={site.contactUrl}>Contact</a>}
+    </address>
+  )}
 </footer>

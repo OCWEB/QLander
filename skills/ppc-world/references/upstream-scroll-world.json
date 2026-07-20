@@ -1,0 +1,10 @@
+{
+  "name": "oso95/scroll-world",
+  "repository": "https://github.com/oso95/scroll-world.git",
+  "ref": "refs/heads/main",
+  "sourcePath": "skills/scroll-world",
+  "pinnedCommit": "2912048246d057cdfe134dfc0b4dfb7e6a12f30e",
+  "license": "MIT",
+  "tracking": "vendored",
+  "reviewDocument": "skills/ppc-world/references/upstream-scroll-world.md"
+}

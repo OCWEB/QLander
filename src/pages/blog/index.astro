@@ -8,5 +8,5 @@ const posts = (await getCollection("blog")).map((entry) => entry.data).sort((a, 
 ---
 
 <BaseLayout seo={routeSeo.blog}>
-  <BlogList posts={posts} />
+  <BlogList posts={posts} eyebrow={routeSeo.blog.eyebrow} heading={routeSeo.blog.heading} />
 </BaseLayout>

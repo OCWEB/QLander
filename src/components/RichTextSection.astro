@@ -12,8 +12,8 @@ const { section } = Astro.props as {
 <section class:list={["text-section", section.visual && "text-section--visual"]} data-pp-edit-id={section.id}>
   {section.image ? <img class="content-image" src={section.image.src} alt={section.image.alt} width={section.image.width} height={section.image.height} loading="lazy" decoding="async" /> : section.visual && (
     <div class="stacked-placeholders">
-      <PlaceholderVisual label={`${section.headline} background image placeholder`} variant="small" />
-      <PlaceholderVisual label={`${section.headline} foreground image placeholder`} variant="small" />
+      <PlaceholderVisual label={`${section.headline} background image placeholder`} promptId={section.imagePromptId} variant="small" />
+      <PlaceholderVisual label={`${section.headline} foreground image placeholder`} promptId={section.imagePromptId} variant="small" />
     </div>
   )}
   <div class="text-copy">

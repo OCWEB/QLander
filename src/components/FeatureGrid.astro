@@ -17,7 +17,7 @@ const { section } = Astro.props as {
   <div class="feature-grid">
     {section.items.map((item) => (
       <article>
-        {item.image ? <img class="content-image" src={item.image.src} alt={item.image.alt} width={item.image.width} height={item.image.height} loading="lazy" decoding="async" /> : <PlaceholderVisual label={`${item.title} image placeholder`} variant="card" />}
+        {item.image ? <img class="content-image" src={item.image.src} alt={item.image.alt} width={item.image.width} height={item.image.height} loading="lazy" decoding="async" /> : <PlaceholderVisual label={`${item.title} image placeholder`} promptId={item.imagePromptId} variant="card" />}
         <h3>{item.title}</h3>
         <p>{item.description}</p>
       </article>

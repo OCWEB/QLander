@@ -8,6 +8,8 @@ import FeatureGrid from "../components/FeatureGrid.astro";
 import HeroSection from "../components/HeroSection.astro";
 import ProductGrid from "../components/ProductGrid.astro";
 import RichTextSection from "../components/RichTextSection.astro";
+import ScrollSection from "../components/ScrollSection.astro";
+import { ScrollWorldExperienceSchema } from "../lib/schemas";
 import BaseLayout from "./BaseLayout.astro";
 
 const { page, showHeroVisual = false, products: suppliedProducts } = Astro.props as {
@@ -15,10 +17,21 @@ const { page, showHeroVisual = false, products: suppliedProducts } = Astro.props
   showHeroVisual?: boolean;
   products?: Product[];
 };
-const products = suppliedProducts ?? (await getCollection("products")).map((entry) => entry.data as Product);
+const needsProducts = page.sections.some((section) => section.type === "productGrid");
+const products = suppliedProducts ?? (needsProducts ? (await getCollection("products")).map((entry) => entry.data as Product) : []);
+const experienceModules = import.meta.glob<{ default: unknown }>("../../data/experiences/*.json", { eager: true });
+const sectionExperiences = new Map(Object.values(experienceModules)
+  .map((module) => ScrollWorldExperienceSchema.parse(module.default))
+  .filter((experience) => experience.placement === "section")
+  .map((experience) => [experience.slug, experience]));
+const sectionExperience = (slug: string) => {
+  const experience = sectionExperiences.get(slug);
+  if (!experience) throw new Error(`Missing section Scroll World experience ${slug}`);
+  return experience;
+};
 ---
 
-<BaseLayout seo={page.seo}>
+<BaseLayout seo={page.seo} chrome={page.layout === "ppc" ? "landing" : "site"}>
   {page.sections.map((section, index) => (
     section.type === "hero" ? <HeroSection section={section} showVisual={showHeroVisual && index === 0} /> :
     section.type === "featureGrid" ? <FeatureGrid section={section} /> :
@@ -26,6 +39,7 @@ const products = suppliedProducts ?? (await getCollection("products")).map((entr
     section.type === "productGrid" ? <ProductGrid products={products.filter((product) => section.productSlugs.includes(product.slug))} headline={section.headline} headingLevel="h2" editId={section.id} /> :
     section.type === "contact" ? <ContactForm headline={section.headline} body={section.body} site={site} editId={section.id} /> :
     section.type === "richText" ? <RichTextSection section={section} /> :
+    section.type === "scrollSection" ? <ScrollSection experience={sectionExperience(section.experience)} sectionId={section.id} headingLevel={section.headingLevel} /> :
     null
   ))}
 </BaseLayout>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "PPC World"
+  short_description: "Build focused visual PPC landing pages"
+  default_prompt: "Use $ppc-world to create a focused paid-ad landing page in this QLander project."

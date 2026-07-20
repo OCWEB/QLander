@@ -1,5 +1,5 @@
 ---
-const { posts } = Astro.props as {
+const { posts, eyebrow, heading } = Astro.props as {
   posts: Array<{
     title: string;
     description: string;
@@ -7,13 +7,15 @@ const { posts } = Astro.props as {
     publishedAt: string;
     author: string;
   }>;
+  eyebrow: string;
+  heading: string;
 };
 ---
 
 <section class="section-band">
   <div class="section-heading">
-    <p class="eyebrow">Notes</p>
-    <h1>Blog</h1>
+    <p class="eyebrow">{eyebrow}</p>
+    <h1>{heading}</h1>
   </div>
   <div class="blog-list">
     {posts.map((post) => (

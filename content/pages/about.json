@@ -2,7 +2,7 @@
   "title": "About",
   "slug": "/about",
   "seo": {
-    "title": "About | PagePilot Starter",
+    "title": "About | QLander Starter",
     "description": "A placeholder about page for an AI-maintainable Astro site kit.",
     "noindex": false
   },

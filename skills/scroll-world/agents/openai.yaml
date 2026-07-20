@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scroll World"
+  short_description: "Build cinematic routes or scoped scroll sections"
+  default_prompt: "Use $scroll-world to add a cinematic route or scoped scroll-section to this QLander site with the default manual slow queue."

@@ -19,5 +19,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm pagepilot:check
+      - run: pnpm qlander:check
       - run: pnpm audit:high

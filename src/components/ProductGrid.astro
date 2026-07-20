@@ -2,9 +2,11 @@
 import type { Product } from "../lib/types";
 import PlaceholderVisual from "./PlaceholderVisual.astro";
 
-const { products, headline = "Products", headingLevel = "h2", editId } = Astro.props as {
+const { products, headline = "Products", eyebrow = "Products", itemCtaLabel = "View product", headingLevel = "h2", editId } = Astro.props as {
   products: Product[];
   headline?: string;
+  eyebrow?: string;
+  itemCtaLabel?: string;
   headingLevel?: "h1" | "h2";
   editId?: string;
 };
@@ -13,7 +15,7 @@ const Heading = headingLevel;
 
 <section class="section-band" data-pp-edit-id={editId}>
   <div class="section-heading">
-    <p class="eyebrow">Packages</p>
+    <p class="eyebrow">{eyebrow}</p>
     <Heading>{headline}</Heading>
   </div>
   <div class="product-grid">
@@ -25,7 +27,7 @@ const Heading = headingLevel;
           <h2>{product.title}</h2>
           <p>{product.summary}</p>
         </div>
-        <a class="button secondary" href={`/products/${product.slug}`}>View package</a>
+        <a class="button secondary" href={`/products/${product.slug}`}>{itemCtaLabel}</a>
       </article>
     ))}
   </div>

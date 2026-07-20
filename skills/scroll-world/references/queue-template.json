@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "experience": "tour",
+  "mode": "manual",
+  "provider": "Magnific",
+  "mobile": false,
+  "status": "phase1-ready",
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "jobs": [
+    { "id": "S1", "phase": 1, "kind": "still", "filename": "still_1_intro.png", "status": "pending", "dependencies": [] },
+    { "id": "V1", "phase": 1, "kind": "dive", "filename": "dive_1_intro.mp4", "status": "pending", "dependencies": ["S1"] }
+  ]
+}

@@ -2,7 +2,7 @@
   "title": "Home",
   "slug": "/",
   "seo": {
-    "title": "PagePilot Starter | Website Landing Page",
+    "title": "QLander Starter | Website Landing Page",
     "description": "A black and white placeholder landing page for an AI-maintainable Astro site kit.",
     "noindex": false
   },
@@ -51,7 +51,7 @@
       "id": "home.cta",
       "type": "cta",
       "headline": "Ready to customize this page?",
-      "body": "Replace the starter copy, update the navigation, add real images, and run the PagePilot check before publishing.",
+      "body": "Replace the starter copy, update the navigation, add real images, and run the QLander check before publishing.",
       "cta": {
         "label": "Send a note",
         "href": "/contact"

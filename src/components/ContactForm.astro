@@ -7,6 +7,7 @@ const { headline, body, site, editId } = Astro.props as {
   site: SiteData;
   editId?: string;
 };
+const action = site.contactUrl || (site.email ? `mailto:${site.email}` : undefined);
 ---
 
 <section class="contact-section" data-pp-edit-id={editId}>
@@ -14,10 +15,11 @@ const { headline, body, site, editId } = Astro.props as {
     <p class="eyebrow">Contact</p>
     <h2>{headline}</h2>
     <p>{body}</p>
-    <a href={`mailto:${site.email}`}>{site.email}</a>
+    {site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}
+    {site.phone && <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>}
   </div>
   <div class="contact-action">
-    <p>Email is the reliable contact path for this starter until a form provider is explicitly configured.</p>
-    <a class="button primary" href={`mailto:${site.email}`}>Email {site.name}</a>
+    <p>{site.contactUrl ? "Continue to the approved contact destination." : site.email ? "Email is the available contact path." : "Contact details will be added before launch."}</p>
+    {action && <a class="button primary" href={action}>Contact {site.name}</a>}
   </div>
 </section>

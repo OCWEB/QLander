@@ -5,5 +5,5 @@ updates:
     schedule:
       interval: weekly
     groups:
-      pagepilot-dependencies:
+      qlander-dependencies:
         patterns: ["*"]

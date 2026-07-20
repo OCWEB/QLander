@@ -20,5 +20,5 @@ const { section, showVisual = false } = Astro.props as {
       {section.secondaryCta && <a class="button secondary" href={section.secondaryCta.href}>{section.secondaryCta.label}</a>}
     </div>
   </div>
-  {section.image ? <img class="content-image" src={section.image.src} alt={section.image.alt} width={section.image.width} height={section.image.height} fetchpriority="high" /> : showVisual && <PlaceholderVisual label="Hero image placeholder" variant="hero" />}
+  {section.image ? <img class="content-image" src={section.image.src} alt={section.image.alt} width={section.image.width} height={section.image.height} fetchpriority="high" /> : showVisual && <PlaceholderVisual label="Hero image placeholder" promptId={section.imagePromptId} variant="hero" />}
 </section>

@@ -1,12 +1,13 @@
 {
   "siteId": "site_123",
-  "name": "PagePilot Starter",
+  "name": "QLander Starter",
   "template": "wireframe-site-kit",
-  "templateSource": "https://github.com/OCWEB/PagePilot",
-  "templateVersion": "0.2.0",
+  "templateSource": "https://github.com/OCWEB/QLander",
+  "templateVersion": "0.3.0",
+  "projectType": "marketing-site",
   "contentRoot": "content",
   "dataRoot": "data",
-  "editMap": "pagepilot.edit-map.json",
+  "editMap": "qlander.edit-map.json",
   "routes": [
     "/",
     "/about",

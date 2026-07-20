@@ -9,5 +9,5 @@ const products = (await getCollection("products")).map((entry) => entry.data as 
 ---
 
 <BaseLayout seo={routeSeo.products}>
-  <ProductGrid products={products} headline="Starter offers" headingLevel="h1" />
+  <ProductGrid products={products} headline={routeSeo.products.heading} eyebrow={routeSeo.products.eyebrow} itemCtaLabel={routeSeo.products.itemCtaLabel} headingLevel="h1" />
 </BaseLayout>
