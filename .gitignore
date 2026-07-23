@@ -16,3 +16,4 @@ dist/
 build/
 *.log
 .vercel
+.claude/launch.json
