@@ -12,7 +12,7 @@ import ScrollSection from "../components/ScrollSection.astro";
 import { ScrollWorldExperienceSchema } from "../lib/schemas";
 import BaseLayout from "./BaseLayout.astro";
 
-const { page, showHeroVisual = false, products: suppliedProducts } = Astro.props as {
+const { page, showHeroVisual = true, products: suppliedProducts } = Astro.props as {
   page: PageContent;
   showHeroVisual?: boolean;
   products?: Product[];

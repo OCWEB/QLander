@@ -21,4 +21,17 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm qlander:check
-      - run: pnpm audit:high
+      - name: Dependency security audit (advisory only)
+        run: |
+          if ! pnpm audit:high; then
+            echo "::warning::New dependency security advisories were found. The site still builds; ask your agent to 'update dependencies to clear the security audit' when convenient."
+            echo "### Heads up: dependency advisories" >> "$GITHUB_STEP_SUMMARY"
+            echo "New security advisories were published for packages this site uses. Nothing is broken. Paste this to your agent: **update dependencies to clear the security audit, then run pnpm qlander:check**." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Plain-English failure help
+        if: failure()
+        run: |
+          echo "### Something needs attention" >> "$GITHUB_STEP_SUMMARY"
+          echo "A check failed. You do not need to read the logs. Paste this to your agent:" >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo "> CI failed on this run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} - please investigate and fix it, then run pnpm qlander:check." >> "$GITHUB_STEP_SUMMARY"

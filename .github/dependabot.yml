@@ -2,6 +2,9 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    # Version-update PRs are disabled (limit 0) so non-technical site owners are
+    # not flooded with bump PRs; Dependabot still opens security-fix PRs.
+    open-pull-requests-limit: 0
     schedule:
       interval: weekly
     groups:
