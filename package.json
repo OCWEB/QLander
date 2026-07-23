@@ -30,9 +30,9 @@
     "qlander:check": "tsx scripts/qlander-check.ts ."
   },
   "dependencies": {
-    "astro": "7.0.7",
+    "astro": "7.1.1",
     "fast-glob": "^3.3.3",
-    "fast-xml-parser": "5.10.0",
+    "fast-xml-parser": "5.10.1",
     "gray-matter": "^4.0.3",
     "node-html-parser": "^6.1.13",
     "zod": "4.3.6"
