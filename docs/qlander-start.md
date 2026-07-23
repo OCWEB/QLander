@@ -33,6 +33,11 @@ Profile meaning:
 - `internal-scroll-world`: marketing site with a named cinematic route.
 - `root-scroll-world`: standalone cinematic `/` plus `/404`.
 
+Route contract notes for `marketing-site`:
+
+- The profile ships demo `/blog` and `/products` routes. Visible labels (navigation, headings, CTAs) are data-tier edits via `data/route-seo.json` and `data/navigation.json`; for a services business, relabel `/products` as "Services" without changing the URL.
+- Changing route URLs, or adding and removing route files under `src/pages/`, is developer mode. If the approved sitemap requires it, follow the developer-mode rules in `AGENTS.md` (minimal edits, keep content contracts, run build, typecheck, test, and `pnpm qlander:check`). The lightest data-tier alternative for an unwanted route is: remove it from navigation, empty its collection, and set it `noindex` in `data/route-seo.json`.
+
 ## 1. Choose sources
 
 Ask which context QLander should use:

@@ -18,8 +18,8 @@ remain draft/noindex.
 
 Before copying, the QLander contact contract was corrected for URL-first
 businesses: email and phone may be empty, optional HTTPS `contactUrl` is
-supported, available methods render conditionally, and launch validation—not
-draft validation—requires at least one method.
+supported, available methods render conditionally, and launch validation, not
+draft validation, requires at least one method.
 
 ## Three-way comparison
 
@@ -64,7 +64,7 @@ machine paths are intentionally omitted from this repository record.
 
 ## Prioritized QLander improvement backlog
 
-### P0 — make initialization reproducible
+### P0: make initialization reproducible
 
 1. Add `qlander init` profiles for `marketing-site`, `single-page-ppc`,
    `internal-scroll-world`, and `root-scroll-world`.
@@ -73,7 +73,7 @@ machine paths are intentionally omitted from this repository record.
 3. Generate route-support mappings and tests from the selected profile.
 4. Record structured stage start/end times and command results automatically.
 
-### P1 — keep standard work inside the safe zone
+### P1: keep standard work inside the safe zone
 
 1. Move collection headings, eyebrow labels, and route CTAs into structured data.
 2. Load collections only when a selected section consumes them.
@@ -84,7 +84,7 @@ machine paths are intentionally omitted from this repository record.
 5. Add a root Scroll World registration path that retains a static fallback and
    404 without retrofit work.
 
-### P2 — improve media and progress handoffs
+### P2: improve media and progress handoffs
 
 1. Add a machine-readable manual-queue manifest beside the Markdown checklist.
 2. Track exact filenames, provider/model, phase dependencies, ingest state, and

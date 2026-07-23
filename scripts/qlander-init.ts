@@ -60,6 +60,8 @@ try {
   await writeRunLog(target, answers, baselineCommit, stages, validationResults);
   console.log(`QLander ${answers.profile} initialized at ${target}`);
   console.log(`Baseline commit: ${baselineCommit}`);
+  console.log("Stage results and validation output: docs/qlander-run.md in the new project.");
+  console.log("Note: profile configuration is left uncommitted on top of the baseline commit on purpose.");
   console.log("Next: run QLander Discovery, approve the brief and media plan, then populate the draft.");
 } catch (error) {
   await writeRunLog(target, answers, baselineCommit, stages, validationResults).catch(() => {});

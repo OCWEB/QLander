@@ -197,6 +197,7 @@ function allowedFields(value: any, jsonPath: string) {
   if (Array.isArray(value)) return new Set(["[].label", "[].href"]);
   if (value?.type === "hero") return new Set(["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);
   if (value?.type === "featureGrid") return new Set(["headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"]);
+  if (value?.type === "productGrid") return new Set(["headline", "productSlugs"]);
   if (value?.type === "cta") return new Set(["headline", "body", "cta.label", "cta.href"]);
   if (value?.type === "contact") return new Set(["headline", "body"]);
   if (value?.type === "richText") return new Set(["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);

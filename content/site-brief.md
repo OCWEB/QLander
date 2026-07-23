@@ -124,7 +124,7 @@ must not replace the rest of the site.
 | /resources | Provide guides, case studies, webinars, and documentation links | Explore resources | standard | Official navigation; content taxonomy needs confirmation |
 | /tour | Link to or embed the approved external product tour | Start the tour | standard | Official homepage exposes a product-tour entry; exact provider/URL and embed permission need confirmation |
 | /contact | Route sales, support, partnership, media, and general inquiries | Request a demo / Get in touch | focused-landing | Official contact page; form/integration is not approved yet |
-| /privacy | Publish approved legal/privacy content | — | standard | Required site support route; legal source not yet supplied |
+| /privacy | Publish approved legal/privacy content | none | standard | Required site support route; legal source not yet supplied |
 
 ## Image plan
 

@@ -18,7 +18,7 @@ For routine copy, SEO, navigation, or small section edits, reuse `content/site-b
 1. Read `AGENTS.md`, `docs/qlander-start.md`, current structured content/data, and any existing `content/site-brief.md`. For a fresh detached project, confirm that `qlander.manifest.json.projectType` matches the approved delivery shape; use `pnpm qlander:init` before population when it does not.
 2. Ask for the source mode: official website, named local project context, written brief, or a combination. Do not browse or inspect outside the current repository until the user supplies a URL or local path.
 3. Research using [references/research-and-provenance.md](references/research-and-provenance.md). Use official sources first. Broader web research requires approval.
-4. Create or refresh `content/site-brief.md` using [references/site-brief-template.md](references/site-brief-template.md). It is repository-internal and non-routed, but not a place for secrets.
+4. Create or refresh `content/site-brief.md` using [references/site-brief-template.md](references/site-brief-template.md). Writing the brief with `status: proposed` before the approval gate is sanctioned; it is the one pre-approval content write. Flip it to `status: approved` only after the combined approval. It is repository-internal and non-routed, but not a place for secrets.
 5. Propose the sitemap. For each page, ask for one experience when it materially affects the build: standard, focused landing, image-led scroll story, scoped `scroll-section`, or continuous Scroll World route.
 6. Prepare the media inventory and image plan using [references/media-plan.md](references/media-plan.md). Do not reuse website assets until the user confirms ownership or permission.
 7. Present one compact approval covering key facts, unresolved items, sitemap, page experiences, and image plan. Do not populate the site or generate images before approval.
@@ -30,10 +30,10 @@ For routine copy, SEO, navigation, or small section edits, reuse `content/site-b
 
 Use one explicit profile instead of retrofitting the starter after population:
 
-- `marketing-site` — normal multi-page site.
-- `single-page-ppc` — `/` plus `/404`, with `layout: "ppc"`.
-- `internal-scroll-world` — marketing site plus a named experience such as `/tour`.
-- `root-scroll-world` — standalone cinematic experience at `/` plus `/404`.
+- `marketing-site`: normal multi-page site.
+- `single-page-ppc`: `/` plus `/404`, with `layout: "ppc"`.
+- `internal-scroll-world`: marketing site plus a named experience such as `/tour`.
+- `root-scroll-world`: standalone cinematic experience at `/` plus `/404`.
 
 The init command creates the detached repository, baseline commit, profile contracts,
 run log, screenshot directory, tests, and optional first validation. The approved brief
