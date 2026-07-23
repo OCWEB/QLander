@@ -42,6 +42,7 @@ If the user says `qlander start`, requests a new site/migration/redesign/rebrand
 - Scroll World pages: use the bundled `skills/scroll-world/SKILL.md`. In a marketing site, default to a dedicated internal route registered with `pnpm qlander:experience`; never generate a standalone Scroll World page and retrofit it afterward. After the user approves the experience, default to its manual slow queue and use paid/API generation only after an explicit choice. Scroll World remains an opt-in page experience, not the default for every page.
 - Scroll World queues: keep `queue.md` and `queue.json` synchronized. The JSON file records exact filenames, dependencies, render/ingest status, and QA state, never credentials.
 - Launch tasks: follow `docs/launch-checklist.md`; do not suggest or add cookie consent, accessibility/ADA services, analytics tracking, or deploy-specific config unless the user explicitly asks.
+- Going live, hosting, or deploy requests: follow `docs/deploy.md`, recommending hosts in its listed order (Cloudflare, GitHub Pages, Netlify, Vercel). Hosting stays opt-in: add no deploy workflow or host files until the user picks a host.
 - Guided launch planning: use `docs/qlander-start.md`; do not present every optional launch item at once.
 
 ## SEO Rules

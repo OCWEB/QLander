@@ -153,7 +153,7 @@ The short version:
 
 Workflow examples live in [docs/agent-playbook.md](docs/agent-playbook.md).
 
-Optional launch tasks, including Google Analytics and Vercel static deploy, live in [docs/launch-checklist.md](docs/launch-checklist.md). They are not enabled by default.
+Optional launch tasks live in [docs/launch-checklist.md](docs/launch-checklist.md). They are not enabled by default. You own the site and can host it for free: [docs/deploy.md](docs/deploy.md) covers Cloudflare (recommended), GitHub Pages, Netlify, and Vercel with steps an agent can walk you through.
 
 For guided setup, ask an agent to run `qlander start`. The universal research, approval, population, and media workflow lives in `skills/qlander-discovery/` and is routed by [docs/qlander-start.md](docs/qlander-start.md).
 

@@ -76,19 +76,14 @@ If requested, confirm the target standard and scope before recommending automate
 
 The site can deploy as a standard static Astro project. No QLander deploy adapter is required.
 
-Recommended Vercel settings:
-
-- Framework preset: `Astro`
-- Install command: `pnpm install`
-- Build command: `pnpm build`
-- Output directory: `dist`
+Free hosting options (Cloudflare recommended, then GitHub Pages, Netlify, Vercel), each with agent-executable steps, live in [deploy.md](deploy.md).
 
 Before deploy:
 
 1. Confirm the production URL and metadata are updated.
 2. Run `pnpm build`.
 3. Run `pnpm qlander:check`.
-4. Deploy the generated static site.
+4. Deploy per [deploy.md](deploy.md).
 5. Open the live site and inspect the homepage, contact page, sitemap, and robots file.
 
 ## Do After Deploy
