@@ -97,6 +97,21 @@ export const SiteDataSchema = z.object({
   social: z.object({ linkedin: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]), x: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]), facebook: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]).optional(), instagram: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]).optional(), youtube: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]).optional() }).strict()
 }).strict();
 export const ThemeSchema = z.object({ colors: z.object({ ink: z.string().regex(hexColorPattern), paper: z.string().regex(hexColorPattern), muted: z.string().regex(hexColorPattern), accent: z.string().regex(hexColorPattern), accentDark: z.string().regex(hexColorPattern) }).strict(), radius: z.number().min(0).max(8) }).strict();
+const fontStackPattern = /^[A-Za-z0-9 "'.,-]+$/;
+export const DesignSystemSchema = z.object({
+  status: z.enum(["starter", "proposed", "approved"]),
+  direction: z.string().min(1),
+  typography: z.object({
+    displayFamily: z.string().min(1).max(240).regex(fontStackPattern), bodyFamily: z.string().min(1).max(240).regex(fontStackPattern), labelFamily: z.string().min(1).max(240).regex(fontStackPattern),
+    displayWeight: z.number().int().min(100).max(900), bodyWeight: z.number().int().min(100).max(900), labelWeight: z.number().int().min(100).max(900),
+    headingLeading: z.number().min(0.8).max(1.5), bodyLeading: z.number().min(1.2).max(2), trackingEm: z.number().min(-0.1).max(0.1),
+    displayMinRem: z.number().min(1.5).max(6), displayMaxRem: z.number().min(2).max(10), headingMinRem: z.number().min(1).max(4), headingMaxRem: z.number().min(1.2).max(6), bodyRem: z.number().min(0.8).max(1.5), labelRem: z.number().min(0.65).max(1)
+  }).strict().refine((value) => value.displayMaxRem >= value.displayMinRem && value.headingMaxRem >= value.headingMinRem, "type scale maximums must be at least their minimums"),
+  spacing: z.object({ base: z.number().int().min(2).max(12), sectionY: z.number().int().min(32).max(160), contentGap: z.number().int().min(8).max(80) }).strict(),
+  layout: z.object({ contentMax: z.number().int().min(640).max(1600), readingMax: z.number().int().min(45).max(90) }).strict(),
+  components: z.object({ surface: z.enum(["flat", "bordered", "elevated"]), image: z.enum(["full-bleed", "framed", "soft", "editorial"]), button: z.enum(["solid", "solid-outline", "text-forward"])}).strict(),
+  motion: z.enum(["none", "subtle", "expressive"])
+}).strict();
 export const ProductRouteSeoSchema = SeoSchema.extend({
   eyebrow: z.string().min(1), heading: z.string().min(1), itemCtaLabel: z.string().min(1), detailCtaLabel: z.string().min(1), detailCtaHref: SafeHrefSchema
 }).strict();
@@ -107,8 +122,16 @@ export const ResourceRouteSeoSchema = SeoSchema.extend({
 }).strict();
 export const RouteSeoSchema = z.object({ products: ProductRouteSeoSchema.optional(), resources: ResourceRouteSeoSchema.optional(), blog: BlogRouteSeoSchema.optional(), notFound: SeoSchema }).strict();
 export const ProjectTypeSchema = z.enum(["marketing-site", "single-page-ppc", "internal-scroll-world", "root-scroll-world"]);
+export const CreationModeSchema = z.enum(["blank", "prompted"]);
+export const LayoutHandoffSchema = z.object({
+  kind: z.enum(["page", "section"]),
+  id: z.string().regex(/^(\/[A-Za-z0-9/_-]*|[A-Za-z0-9][A-Za-z0-9._-]*)$/),
+  renderer: z.string().regex(/^src\/[A-Za-z0-9._/-]+\.astro$/).refine((value) => !value.split("/").includes(".."), "renderer may not traverse directories"),
+  routes: z.array(z.string().startsWith("/")).min(1)
+}).strict();
+export const DesignManifestSchema = z.object({ status: z.enum(["starter", "required", "implemented"]), direction: z.string(), system: z.literal("data/design-system.json"), handoffs: z.array(LayoutHandoffSchema) }).strict();
 export const MigrationRecordSchema = z.object({ from: z.string().min(1), to: z.string().min(1), appliedAt: z.iso.datetime(), status: z.enum(["runtime-pending", "complete"]), operations: z.array(z.string()), runtimePending: z.array(z.string()) }).strict();
-export const ManifestSchema = z.object({ siteId: z.string().min(1), name: z.string().min(1), template: z.string().min(1), templateSource: z.url(), templateVersion: z.string().min(1), projectType: ProjectTypeSchema.optional(), contentRoot: z.string(), dataRoot: z.string(), editMap: z.string(), routes: z.array(z.string()).min(1), migrations: z.array(MigrationRecordSchema).optional() }).strict();
+export const ManifestSchema = z.object({ siteId: z.string().min(1), name: z.string().min(1), template: z.string().min(1), templateSource: z.url(), templateVersion: z.string().min(1), projectType: ProjectTypeSchema.optional(), creationMode: CreationModeSchema.optional(), design: DesignManifestSchema.optional(), contentRoot: z.string(), dataRoot: z.string(), editMap: z.string(), routes: z.array(z.string()).min(1), migrations: z.array(MigrationRecordSchema).optional() }).strict();
 export const EditMapEntrySchema = z.object({ route: z.string(), label: z.string().min(1), scope: z.string().min(1), contentFile: z.string().min(1), jsonPath: z.string().min(1), component: z.string().min(1), safeFields: z.array(z.string()).min(1), affectedRoutes: z.union([z.array(z.string()), z.literal("all")]) }).strict();
 export const EditMapSchema = z.record(z.string(), EditMapEntrySchema);
 

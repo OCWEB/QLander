@@ -10,6 +10,7 @@ import ProductGrid from "../components/ProductGrid.astro";
 import RichTextSection from "../components/RichTextSection.astro";
 import ScrollSection from "../components/ScrollSection.astro";
 import { ScrollWorldExperienceSchema } from "../lib/schemas";
+import { pageHandoffs, sectionHandoffs } from "../layout-handoffs";
 import BaseLayout from "./BaseLayout.astro";
 
 const { page, showHeroVisual = true, products: suppliedProducts } = Astro.props as {
@@ -17,7 +18,9 @@ const { page, showHeroVisual = true, products: suppliedProducts } = Astro.props 
   showHeroVisual?: boolean;
   products?: Product[];
 };
-const needsProducts = page.sections.some((section) => section.type === "productGrid");
+const pageRoute = page.slug === "home" ? "/" : `/${page.slug}`;
+const PageHandoff = pageHandoffs[pageRoute];
+const needsProducts = page.sections.some((section) => section.type === "productGrid" || Boolean(sectionHandoffs[section.id])) || Boolean(PageHandoff);
 const products = suppliedProducts ?? (needsProducts ? (await getCollection("products")).map((entry) => entry.data as Product) : []);
 const experienceModules = import.meta.glob<{ default: unknown }>("../../data/experiences/*.json", { eager: true });
 const sectionExperiences = new Map(Object.values(experienceModules)
@@ -32,14 +35,16 @@ const sectionExperience = (slug: string) => {
 ---
 
 <BaseLayout seo={page.seo} chrome={page.layout === "ppc" ? "landing" : "site"}>
-  {page.sections.map((section, index) => (
-    section.type === "hero" ? <HeroSection section={section} showVisual={showHeroVisual && index === 0} /> :
-    section.type === "featureGrid" ? <FeatureGrid section={section} /> :
-    section.type === "cta" ? <CTASection section={section} /> :
-    section.type === "productGrid" ? <ProductGrid products={products.filter((product) => section.productSlugs.includes(product.slug))} headline={section.headline} headingLevel="h2" editId={section.id} /> :
-    section.type === "contact" ? <ContactForm section={section} site={site} /> :
-    section.type === "richText" ? <RichTextSection section={section} /> :
-    section.type === "scrollSection" ? <ScrollSection experience={sectionExperience(section.experience)} sectionId={section.id} headingLevel={section.headingLevel} /> :
-    null
-  ))}
+  {PageHandoff ? <PageHandoff page={page} products={products} /> : page.sections.map((section, index) => {
+    const SectionHandoff = sectionHandoffs[section.id];
+    return SectionHandoff ? <SectionHandoff section={section} page={page} products={products} /> :
+      section.type === "hero" ? <HeroSection section={section} showVisual={showHeroVisual && index === 0} /> :
+      section.type === "featureGrid" ? <FeatureGrid section={section} /> :
+      section.type === "cta" ? <CTASection section={section} /> :
+      section.type === "productGrid" ? <ProductGrid products={products.filter((product) => section.productSlugs.includes(product.slug))} headline={section.headline} headingLevel="h2" editId={section.id} /> :
+      section.type === "contact" ? <ContactForm section={section} site={site} /> :
+      section.type === "richText" ? <RichTextSection section={section} /> :
+      section.type === "scrollSection" ? <ScrollSection experience={sectionExperience(section.experience)} sectionId={section.id} headingLevel={section.headingLevel} /> :
+      null;
+  })}
 </BaseLayout>

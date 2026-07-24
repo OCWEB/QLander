@@ -26,10 +26,10 @@ Turn a product brief or redesign prompt into a small set of evidence-backed visu
 
 Variation changes where QLander looks for inspiration, not the approved brand system.
 
-1. Before selecting external sources, record the design token invariants from the approved site brief, `data/theme.json`, supplied brand assets, and any previously approved design research. Include semantic color roles, locked hex values when approved, radius, typography commitments, spacing or density character, motion policy, and imagery character.
+1. Before selecting external sources, record design token invariants from the approved site brief, `data/theme.json`, `data/design-system.json`, supplied brand assets, and prior approved research. Include semantic color roles, locked hex values, radius, typography roles, spacing and width rhythm, component treatment, motion policy, and imagery character.
 2. Mark each invariant `locked` or `provisional`. Existing approved tokens are locked. Starter-wireframe values may remain provisional until the first `qlander-design` approval.
 3. All aesthetic families in one run must demonstrate different layout, hierarchy, component, or art-direction ideas through the same locked invariants. Do not create variation by silently swapping brand colors, radius personality, or type commitments.
-4. The QLander file `data/theme.json` remains authoritative for color and radius tokens; in other words, theme.json remains authoritative after implementation. External references and Impeccable cannot overwrite it. A repeated research run may recommend a token change only as an explicit rebrand hypothesis requiring a new `qlander-design` approval.
+4. `data/theme.json` remains authoritative for color and radius (theme.json remains authoritative after implementation). `data/design-system.json` remains authoritative for typography, spacing, widths, component treatment, and motion across components and pages. External references and optional tools cannot overwrite either silently.
 
 ## Source mix and repeat variation
 
@@ -61,7 +61,7 @@ During a frozen audit, record cache entries and blocked-source substitutions in 
 
 ## Research workflow
 
-1. Read `AGENTS.md`, the approved `content/site-brief.md`, current pages, `data/theme.json`, existing brand assets, the prior `content/design-research.md` when present, and [references/design-research-template.md](references/design-research-template.md).
+1. Read `AGENTS.md`, the approved `content/site-brief.md`, current pages, `data/theme.json`, `data/design-system.json`, existing brand assets, prior `content/design-research.md`, and the research template.
 2. Restate the design problem and design token invariants: audience, primary action, brand personality, content density, accessibility needs, implementation constraints, and explicit likes/dislikes.
 3. For a redesign, evaluate the existing site before external references. Record what should be preserved, repaired, or removed.
 4. Create and record the run's varied source mix, then research the whole page, not only the hero. Cover relevant examples of navigation, hero composition, body rhythm, content modules, typography, calls to action, imagery, responsive behavior, and purposeful motion.
@@ -69,8 +69,8 @@ During a frozen audit, record cache entries and blocked-source substitutions in 
 6. For every reference, record the reference URL, review date, exact page or component observed, transferable principles, fit to the brief, accessibility or usability risks, and asset-rights status. A screenshot without a source URL is supporting evidence, not provenance.
 7. Score each direction from 1 to 5 for audience fit, brand distinctiveness, conversion clarity, content fit, accessibility, responsive feasibility, performance, and QLander implementation cost. Explain material trade-offs; do not hide them inside a total.
 8. Name anti-goals and recurring AI-design tells to avoid. Guardrails must be specific to this project rather than a universal ban on a particular aesthetic.
-9. Write `content/design-research.md` with `status: proposed`. Present one compact approval covering the recommended direction, acceptable fallback, principles to adapt, patterns to avoid, and unresolved rights or feasibility questions.
-10. After the user selects a direction, update the file to `status: approved`, record the selection and approval date, then hand it to `qlander-design`. Do not implement during this step.
+9. Write `content/design-research.md` with `status: proposed`. Include a design-system handoff and at least one material page/section layout-handoff plan for every prompted project. Present one compact approval covering the direction, fallback, shared tokens, structural handoffs, anti-goals, and unresolved rights or feasibility questions.
+10. After the user selects a direction, update the file to `status: approved`, record the selection and approval date, then hand it to `qlander-design`. Research approval authorizes the named design-system and layout proposal for execution; it does not make the untouched starter a finished design.
 
 ## Reference rules
 
@@ -101,4 +101,4 @@ The artifact is design evidence, not a mood-board dump. Every recommendation sho
 
 ## Handoff to qlander-design
 
-Pass the approved direction, scorecard, source URLs, transferable principles, anti-goals, media implications, and any sanctioned template-tier needs. `qlander-design` owns palette contrast checks, final typography and motion proposals, optional Impeccable consent, implementation, and verification.
+Pass the approved direction, scorecard, source URLs, transferable principles, anti-goals, media implications, the complete shared design-system decisions, and named page/section handoffs. `qlander-design` owns contrast checks, final token persistence, renderer registration, optional tool consent, implementation, and verification. Prompted work may not conclude with all primary content still using starter renderers.

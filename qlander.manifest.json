@@ -5,6 +5,13 @@
   "templateSource": "https://github.com/OCWEB/QLander",
   "templateVersion": "0.4.0",
   "projectType": "marketing-site",
+  "creationMode": "blank",
+  "design": {
+    "status": "starter",
+    "direction": "QLander starter scaffold",
+    "system": "data/design-system.json",
+    "handoffs": []
+  },
   "contentRoot": "content",
   "dataRoot": "data",
   "editMap": "qlander.edit-map.json",

@@ -100,6 +100,24 @@ Score 1–5 and explain important differences.
 - Acceptable fallback:
 - Design hypotheses requiring a prototype:
 
+## Design-system handoff
+
+Translate the selected direction into one consistent site-wide contract before implementation.
+
+- `data/theme.json`: approved color roles and radius:
+- `data/design-system.json`: display/body/label families and weights, type rhythm, spacing base, section rhythm, content/reading widths, surface/image/button treatment, and motion policy:
+- Locked brand tokens preserved:
+- Approved changes from provisional research:
+- Cross-page rules that every custom renderer must consume:
+
+## Layout handoff plan
+
+Prompted work must materially replace starter composition. List at least one meaningful primary-page or section renderer; token, copy, image, or section-order changes alone do not qualify.
+
+| Kind | Page route or section edit ID | Project-local renderer | Structural difference from starter | Preserved content/edit contracts |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
+
 ## Project-specific anti-goals
 
 - Avoid:

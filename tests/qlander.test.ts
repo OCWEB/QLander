@@ -6,7 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 import fg from "fast-glob";
-import { MediaSchema, PageContentSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref, serializeJsonLd } from "../src/lib/schemas";
+import { DesignSystemSchema, MediaSchema, PageContentSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref, serializeJsonLd } from "../src/lib/schemas";
 import { resolveCanonical } from "../src/lib/seo";
 import { site } from "../src/lib/site";
 
@@ -32,6 +32,19 @@ test("[fast] editable URLs and theme/media tokens are allowlisted", () => {
   assert.equal(isSafeHref("data:text/html,test"), false);
   assert.equal(ThemeSchema.safeParse({ colors: { ink: "red; background:url(x)", paper: "#ffffff", muted: "#555555", accent: "#111111", accentDark: "#222222" }, radius: -1 }).success, false);
   assert.equal(MediaSchema.safeParse({ src: "/images/../secret", alt: "x", width: 1, height: 1 }).success, false);
+});
+
+test("[fast] site-wide design system tokens are structured and injection-safe", async () => {
+  const system = JSON.parse(await readFile(path.join(repo, "data/design-system.json"), "utf8"));
+  assert.equal(DesignSystemSchema.safeParse(system).success, true);
+  assert.equal(DesignSystemSchema.safeParse({ ...system, typography: { ...system.typography, bodyFamily: "Inter; background:red" } }).success, false);
+  const layout = await readFile(path.join(repo, "src/layouts/BaseLayout.astro"), "utf8");
+  const scrollWorld = await readFile(path.join(repo, "src/components/ScrollWorldPage.astro"), "utf8");
+  assert.match(layout, /design-system\.json/);
+  assert.match(layout, /var\(--fontBody\)/);
+  assert.match(layout, /var\(--contentMax\)/);
+  assert.match(scrollWorld, /design-system\.json/);
+  assert.match(scrollWorld, /var\(--fontDisplay\)/);
 });
 
 test("[fast] site contact data supports a URL without inventing email or phone values", () => {
@@ -106,6 +119,11 @@ test("[fast] design research separates sourced direction selection from optional
   assert.match(template, /## Source mix/);
   assert.match(template, /## Design token invariants/);
   assert.match(template, /## Direction scorecard/);
+  assert.match(template, /## Design-system handoff/);
+  assert.match(template, /## Layout handoff plan/);
+  assert.match(design, /data\/design-system\.json/);
+  assert.match(design, /src\/layout-handoffs\.ts/);
+  assert.match(design, /must use at least one material handoff/i);
   assert.match(design, /npx impeccable install/);
   assert.match(design, /explicit approval/i);
   assert.match(design, /optional/i);
@@ -388,6 +406,31 @@ test("[fast] checker rejects an undocumented image prompt ID", async () => {
   const result = await runChecker(fixture, ["--skip-build", "--json"]);
   assert.notEqual(result.code, 0);
   assert.match(result.output, /schema\.image_prompt_missing/);
+});
+
+test("[integration] registered section handoff replaces the starter renderer and passes the design contract", async () => {
+  const root = await copyFixture(true);
+  const manifestFile = path.join(root, "qlander.manifest.json");
+  const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
+  manifest.creationMode = "prompted";
+  manifest.design = {
+    status: "implemented",
+    direction: "Test editorial system",
+    system: "data/design-system.json",
+    handoffs: [{ kind: "section", id: "home.features", renderer: "src/components/TestHandoff.astro", routes: ["/"] }]
+  };
+  await writeFile(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
+  const systemFile = path.join(root, "data/design-system.json");
+  const system = JSON.parse(await readFile(systemFile, "utf8"));
+  system.status = "approved";
+  system.direction = "Test editorial system";
+  await writeFile(systemFile, `${JSON.stringify(system, null, 2)}\n`);
+  await writeFile(path.join(root, "content/design-research.md"), "---\nstatus: approved\nselectedDirection: Test editorial system\n---\n\n# Approved test direction\n");
+  await writeFile(path.join(root, "src/components/TestHandoff.astro"), "---\nconst { section } = Astro.props;\n---\n<section data-layout-handoff=\"true\" data-pp-edit-id={section.id}><h2>{section.headline}</h2></section>\n");
+  await writeFile(path.join(root, "src/layout-handoffs.ts"), "import TestHandoff from './components/TestHandoff.astro';\nexport const pageHandoffs: Record<string, any> = {};\nexport const sectionHandoffs: Record<string, any> = { \"home.features\": TestHandoff };\n");
+  await run(tsx, [path.join(root, "scripts/qlander-check.ts"), root], { cwd: root, maxBuffer: 5_000_000 });
+  const html = await readFile(path.join(root, "dist/index.html"), "utf8");
+  assert.match(html, /data-layout-handoff="true"/);
 });
 
 async function copyFixture(withRuntime = false) {

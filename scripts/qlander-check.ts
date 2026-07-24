@@ -9,7 +9,7 @@ import { XMLParser } from "fast-xml-parser";
 import matter from "gray-matter";
 import { parse } from "node-html-parser";
 import type { z } from "zod";
-import { BlogFrontmatterSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, ResourceSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
+import { BlogFrontmatterSchema, DesignSystemSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, ResourceSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
 
 type Status = "passed" | "warning" | "failed" | "skipped";
 type Message = { code: string; message: string; path?: string; route?: string };
@@ -38,6 +38,7 @@ if (model) {
   validateLaunch(model);
   validateProfile(model);
   validatePpcPages(model);
+  await validateDesignContract(model);
   await validateImagePrompts(model);
   validateExperienceAssets(model);
 }
@@ -185,6 +186,7 @@ async function loadModel() {
   const site = await parseFile(SiteDataSchema, "data/site.json");
   const navigation = await parseFile(NavigationSchema, "data/navigation.json");
   const theme = await parseFile(ThemeSchema, "data/theme.json");
+  const designSystem = await parseFile(DesignSystemSchema, "data/design-system.json");
   const routeSeo = await parseFile(RouteSeoSchema, "data/route-seo.json");
   const pages = await Promise.all((await fg("content/pages/*.json", { cwd: root })).map(async (file) => ({ file, data: PageContentSchema.parse(await readJson(file)) })));
   const products = await Promise.all((await fg("content/products/*.json", { cwd: root })).map(async (file) => ({ file, data: ProductSchema.parse(await readJson(file)) })));
@@ -192,7 +194,7 @@ async function loadModel() {
   const posts = (await Promise.all((await fg("content/blog/*.md", { cwd: root })).map(async (file) => ({ file, data: BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data) })))).filter((post) => post.data.routed);
   const experiences = await Promise.all((await fg("data/experiences/*.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldExperienceSchema.parse(await readJson(file)) })));
   const queues = await Promise.all((await fg("scroll-world/**/queue.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldQueueSchema.parse(await readJson(file)) })));
-  return { manifest, editMap, site, navigation, theme, routeSeo, pages, products, resources, posts, experiences, queues };
+  return { manifest, editMap, site, navigation, theme, designSystem, routeSeo, pages, products, resources, posts, experiences, queues };
 }
 
 function validateProfile(model: Model) {
@@ -212,6 +214,46 @@ function validateProfile(model: Model) {
     const route = experienceRoute(experience.data);
     return route !== null && route !== "/";
   })) addError("schema.profile_internal_experience", "internal-scroll-world requires at least one named experience route");
+}
+
+async function validateDesignContract(model: Model) {
+  const mode = model.manifest.creationMode;
+  const design = model.manifest.design;
+  if (!mode || !design) {
+    addWarning("visual.design_contract_legacy", "Legacy manifest has no creationMode/design contract; migrate before the next prompted design run");
+    return;
+  }
+  if (mode === "prompted" && design.status !== "implemented") {
+    const message = "Prompted projects must approve a site-wide design system and register a material page or section layout handoff; token or copy changes alone are not a finished design";
+    if (audit) addError("visual.design_incomplete", message);
+    else addWarning("visual.design_pending", message);
+    return;
+  }
+  if (design.status !== "implemented") return;
+  if (!design.direction.trim()) addError("visual.design_direction_missing", "Implemented design requires a named approved direction");
+  if (model.designSystem.status !== "approved") addError("visual.design_system_unapproved", "Implemented design requires data/design-system.json status=approved");
+  if (!design.handoffs.length) addError("visual.layout_handoff_missing", "Implemented design requires at least one page or section layout handoff");
+
+  const researchFile = path.join(root, "content/design-research.md");
+  if (!existsSync(researchFile)) addError("visual.design_research_missing", "Implemented prompted design requires content/design-research.md");
+  else {
+    const research = matter(await readFile(researchFile, "utf8"));
+    if (research.data.status !== "approved") addError("visual.design_research_unapproved", "content/design-research.md must have status: approved");
+    if (typeof research.data.selectedDirection !== "string" || !research.data.selectedDirection.trim()) addError("visual.design_direction_missing", "Approved design research requires selectedDirection");
+    else if (research.data.selectedDirection !== design.direction) addError("visual.design_direction_mismatch", "Manifest direction must match design research selectedDirection");
+  }
+
+  const sectionIds = new Set(model.pages.flatMap((page) => page.data.sections.map((section) => section.id)));
+  const pageRoutes = new Set(model.pages.map((page) => page.data.slug === "home" ? "/" : `/${page.data.slug}`));
+  const registryFile = path.join(root, "src/layout-handoffs.ts");
+  const registry = existsSync(registryFile) ? await readFile(registryFile, "utf8") : "";
+  for (const handoff of design.handoffs) {
+    if (!existsSync(path.join(root, handoff.renderer))) addError("visual.layout_renderer_missing", `Missing layout renderer ${handoff.renderer}`);
+    for (const route of handoff.routes) if (!model.manifest.routes.includes(route)) addError("visual.layout_route_missing", `Layout handoff ${handoff.id} references undeclared route ${route}`);
+    if (handoff.kind === "page" && !pageRoutes.has(handoff.id)) addError("visual.layout_page_missing", `Page handoff ${handoff.id} does not match a content page route`);
+    if (handoff.kind === "section" && !sectionIds.has(handoff.id)) addError("visual.layout_section_missing", `Section handoff ${handoff.id} does not match an edit ID`);
+    if (!registry.includes(JSON.stringify(handoff.id))) addError("visual.layout_registry_missing", `Register ${handoff.id} in src/layout-handoffs.ts`);
+  }
 }
 
 function validatePpcPages(model: Model) {

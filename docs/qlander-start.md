@@ -6,15 +6,22 @@ The default outcome is an approved, source-backed first draft: intake → resear
 
 ## 0. Initialize the project shape
 
-For a fresh project, choose the delivery shape before population:
+For a fresh project, choose the delivery shape and creation intent before population. Prompted mode is the default because a business brief, migration, redesign, source site, or design instruction requires research and a materially different layout. Use blank mode only when the user explicitly asks for an untouched starter site or page.
 
 ```bash
-pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Site"
-pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Site" --minimal
-pnpm qlander:init -- --profile single-page-ppc --target ../my-campaign --name "My Campaign"
-pnpm qlander:init -- --profile internal-scroll-world --target ../my-site-tour --name "My Site"
-pnpm qlander:init -- --profile root-scroll-world --target ../my-tour --name "My Tour"
+# Normal prompted work (default): starter is temporary scaffolding, not the deliverable
+pnpm qlander:init -- --mode prompted --profile marketing-site --target ../my-site --name "My Site"
+
+# Explicit blank request only: built-in starter is the intended initial result
+pnpm qlander:init -- --blank --profile marketing-site --target ../my-blank-site --name "My Blank Site"
+
+pnpm qlander:init -- --mode prompted --profile marketing-site --target ../my-site --name "My Site" --minimal
+pnpm qlander:init -- --mode prompted --profile single-page-ppc --target ../my-campaign --name "My Campaign"
+pnpm qlander:init -- --mode prompted --profile internal-scroll-world --target ../my-site-tour --name "My Site"
+pnpm qlander:init -- --mode prompted --profile root-scroll-world --target ../my-tour --name "My Tour"
 ```
+
+With no mode flag, `qlander:init` records `creationMode: prompted`; `--blank` is the explicit exception. Initialization may still copy the starter internally, but a prompted project remains `design.status: required` until approved research, an approved `data/design-system.json`, and at least one registered page/section layout handoff are implemented. Standard checks warn while work is pending; audit completion fails.
 
 With no arguments in an interactive terminal, `qlander:init` asks for the profile,
 site name, and new project directory. It copies a detached repository, creates a

@@ -31,7 +31,7 @@ try {
     await stage("copy-template", async () => copyTemplate(target));
     if (!answers.noGit) baselineCommit = await stage("baseline-commit", async () => createBaselineCommit(target));
   }
-  await stage("configure-profile", async () => configureProfile(target, answers.profile, answers.name, answers.experienceSlug, { blog: answers.noBlog, products: answers.noProducts, resources: answers.noResources }));
+  await stage("configure-profile", async () => configureProfile(target, answers.profile, answers.name, answers.experienceSlug, answers.creationMode, { blog: answers.noBlog, products: answers.noProducts, resources: answers.noResources }));
   await stage("generate-contracts", async () => {
     await generateProfileTest(target, answers.profile, answers.experienceSlug);
     await mkdir(path.join(target, "docs/screenshots"), { recursive: true });
@@ -67,7 +67,9 @@ try {
   console.log(`QLander ${answers.profile} initialized at ${target}`);
   console.log(`Baseline commit: ${baselineCommit}`);
   console.log("Stage results and validation output: docs/qlander-run.md in the new project.");
-  console.log("Next: run QLander Discovery, approve the brief and media plan, then populate the draft.");
+  console.log(answers.creationMode === "blank"
+    ? "Blank mode: the built-in starter is ready for a later layout handoff."
+    : "Prompted mode: complete discovery, approve design research and data/design-system.json, then register at least one page or section layout handoff before audit completion.");
 } catch (error) {
   await writeRunLog(target, answers, baselineCommit, stages, validationResults).catch(() => {});
   console.error(error instanceof Error ? error.message : String(error));
@@ -94,6 +96,7 @@ async function resolveAnswers(values: Record<string, string | boolean>, canAsk: 
   let profile = typeof values.profile === "string" ? values.profile : "";
   let name = typeof values.name === "string" ? values.name : "QLander Site";
   let target = typeof values.target === "string" ? values.target : "";
+  let creationMode = values.blank === true ? "blank" : typeof values.mode === "string" ? values.mode : "prompted";
   const inPlace = values["in-place"] === true;
   if ((!profile || (!target && !inPlace)) && canAsk) {
     const prompt = createInterface({ input: process.stdin, output: process.stdout });
@@ -103,9 +106,11 @@ async function resolveAnswers(values: Record<string, string | boolean>, canAsk: 
     prompt.close();
   }
   if (!profiles.includes(profile as Profile)) fail(`--profile must be one of: ${profiles.join(", ")}`);
+  if (creationMode !== "blank" && creationMode !== "prompted") fail("--mode must be blank or prompted");
   if (!target && !inPlace) fail("Provide --target <new-directory> or explicitly use --in-place");
   return {
     profile: profile as Profile,
+    creationMode: creationMode as "blank" | "prompted",
     name,
     target,
     inPlace,
@@ -159,17 +164,28 @@ async function createBaselineCommit(target: string) {
   return (await run(target, "git", ["rev-parse", "--short", "HEAD"])).trim();
 }
 
-async function configureProfile(target: string, profile: Profile, name: string, experienceSlug: string, exclude: { blog: boolean; products: boolean; resources: boolean } = { blog: false, products: false, resources: false }) {
+async function configureProfile(target: string, profile: Profile, name: string, experienceSlug: string, creationMode: "blank" | "prompted", exclude: { blog: boolean; products: boolean; resources: boolean } = { blog: false, products: false, resources: false }) {
   const manifest = await readJson(path.join(target, "qlander.manifest.json"));
   const site = await readJson(path.join(target, "data/site.json"));
+  const designSystem = await readJson(path.join(target, "data/design-system.json"));
   manifest.projectType = profile;
+  manifest.creationMode = creationMode;
+  manifest.design = {
+    status: creationMode === "blank" ? "starter" : "required",
+    direction: creationMode === "blank" ? "QLander starter scaffold" : "",
+    system: "data/design-system.json",
+    handoffs: []
+  };
   manifest.name = name;
   manifest.siteId = slugify(name) || "qlander-site";
   site.name = name;
   site.description = `${name} draft site pending approved content.`;
   site.launchStatus = "draft";
+  designSystem.status = "starter";
+  designSystem.direction = creationMode === "blank" ? "QLander starter scaffold" : "Pending approved design research";
   await writeJson(path.join(target, "qlander.manifest.json"), manifest);
   await writeJson(path.join(target, "data/site.json"), site);
+  await writeJson(path.join(target, "data/design-system.json"), designSystem);
   await writeWordmarkLogo(target, name);
 
   if (profile === "marketing-site" && (exclude.blog || exclude.products || exclude.resources)) await pruneMarketingRoutes(target, exclude);
@@ -359,7 +375,7 @@ async function writeRunLog(target: string, answers: Awaited<ReturnType<typeof re
   await mkdir(path.join(target, "docs"), { recursive: true });
   const rows = stageItems.map((item) => `| ${item.name} | ${item.status} | ${item.startedAt} | ${item.completedAt ?? "-"} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| initialization | pending | - | - | - |";
   const validationRows = validations.map((item) => `| \`${item.command}\` | ${item.status} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| Validation | pending | Run after dependencies are installed |";
-  const log = `# QLander run\n\n- Profile: \`${answers.profile}\`\n- Site name: ${answers.name}\n- Source template: ${templateSource}\n- Baseline commit: \`${baseline}\`\n- Draft/noindex: yes\n- Created: ${stageItems[0]?.startedAt ?? new Date().toISOString()}\n\n## Stage timeline\n\n| Stage | Status | Started | Completed | Detail |\n|---|---|---|---|---|\n${rows}\n\n## Validation\n\n| Command | Status | Detail |\n|---|---|---|\n${validationRows}\n\n## Screenshots\n\nSave browser-verified PNG captures under \`docs/screenshots/\` and describe each one in the versioned \`docs/screenshots/manifest.json\`. Each entry records route, viewport width and height, site ID, page title, preview port, URL, filename, SHA-256, and capture time. Audit verification requires committed, clean manifest and PNG files with at least one desktop-width and one phone-width capture. Screenshot capture remains an agent/browser QA step so the repository does not install a browser runtime or download Chromium by default.\n\n## Discovery and media\n\nRun QLander Discovery before population. Record approved sources, reused facts, repeated questions, safe-zone edits, developer-mode edits, and media handoffs here as work continues. Scroll World profiles keep human \`queue.md\` and machine-readable \`queue.json\` status together.\n`;
+  const log = `# QLander run\n\n- Profile: \`${answers.profile}\`\n- Creation mode: \`${answers.creationMode}\`\n- Site name: ${answers.name}\n- Source template: ${templateSource}\n- Baseline commit: \`${baseline}\`\n- Draft/noindex: yes\n- Created: ${stageItems[0]?.startedAt ?? new Date().toISOString()}\n\n## Stage timeline\n\n| Stage | Status | Started | Completed | Detail |\n|---|---|---|---|---|\n${rows}\n\n## Validation\n\n| Command | Status | Detail |\n|---|---|---|\n${validationRows}\n\n## Screenshots\n\nSave browser-verified PNG captures under \`docs/screenshots/\` and describe each one in the versioned \`docs/screenshots/manifest.json\`. Each entry records route, viewport width and height, site ID, page title, preview port, URL, filename, SHA-256, and capture time. Audit verification requires committed, clean manifest and PNG files with at least one desktop-width and one phone-width capture. Screenshot capture remains an agent/browser QA step so the repository does not install a browser runtime or download Chromium by default.\n\n## Discovery and media\n\nRun QLander Discovery before population. Record approved sources, reused facts, repeated questions, safe-zone edits, developer-mode edits, and media handoffs here as work continues. Scroll World profiles keep human \`queue.md\` and machine-readable \`queue.json\` status together.\n`;
   await writeFile(path.join(target, "docs/qlander-run.md"), log);
 }
 
@@ -380,7 +396,7 @@ async function writeJson(file: string, value: unknown) { await mkdir(path.dirnam
 
 function parseArgs(values: string[]) {
   const result: Record<string, string | boolean> = {};
-  const booleans = new Set(["in-place", "no-git", "skip-install", "skip-validate", "no-blog", "no-products", "no-resources", "minimal"]);
+  const booleans = new Set(["blank", "in-place", "no-git", "skip-install", "skip-validate", "no-blog", "no-products", "no-resources", "minimal"]);
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
     if (value === "--") continue;

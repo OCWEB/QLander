@@ -2,6 +2,7 @@
 import type { Seo } from "../lib/types";
 import { site } from "../lib/site";
 import navigation from "../../data/navigation.json";
+import designSystem from "../../data/design-system.json";
 import theme from "../../data/theme.json";
 import manifest from "../../qlander.manifest.json";
 import Footer from "../components/Footer.astro";
@@ -17,7 +18,7 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
 ---
 
 <!doctype html>
-<html lang={site.locale}>
+<html lang={site.locale} data-surface={designSystem.components.surface} data-image-treatment={designSystem.components.image} data-button-style={designSystem.components.button} data-motion={designSystem.motion}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,11 +30,33 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       muted: theme.colors.muted,
       accent: theme.colors.accent,
       accentDark: theme.colors.accentDark,
-      radius: `${theme.radius}px`
+      radius: `${theme.radius}px`,
+      fontDisplay: designSystem.typography.displayFamily,
+      fontBody: designSystem.typography.bodyFamily,
+      fontLabel: designSystem.typography.labelFamily,
+      weightDisplay: designSystem.typography.displayWeight,
+      weightBody: designSystem.typography.bodyWeight,
+      weightLabel: designSystem.typography.labelWeight,
+      headingLeading: designSystem.typography.headingLeading,
+      bodyLeading: designSystem.typography.bodyLeading,
+      tracking: `${designSystem.typography.trackingEm}em`,
+      displayMin: `${designSystem.typography.displayMinRem}rem`,
+      displayMax: `${designSystem.typography.displayMaxRem}rem`,
+      headingMin: `${designSystem.typography.headingMinRem}rem`,
+      headingMax: `${designSystem.typography.headingMaxRem}rem`,
+      bodySize: `${designSystem.typography.bodyRem}rem`,
+      labelSize: `${designSystem.typography.labelRem}rem`,
+      contentMax: `${designSystem.layout.contentMax}px`,
+      readingMax: `${designSystem.layout.readingMax}ch`,
+      sectionY: `${designSystem.spacing.sectionY}px`,
+      contentGap: `${designSystem.spacing.contentGap}px`,
+      spaceUnit: `${designSystem.spacing.base}px`
     }}>
       :root {
         color-scheme: light;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: var(--fontBody);
+        font-size: var(--bodySize);
+        font-weight: var(--weightBody);
         background: var(--paper);
         color: var(--ink);
       }
@@ -80,6 +103,15 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
 
       h1,
       h2,
+      h3 {
+        font-family: var(--fontDisplay);
+        font-weight: var(--weightDisplay);
+        line-height: var(--headingLeading);
+        letter-spacing: var(--tracking);
+      }
+
+      h1,
+      h2,
       h3,
       p {
         margin: 0;
@@ -87,16 +119,12 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
 
       h1 {
         max-width: 14ch;
-        font-size: clamp(2.6rem, 7vw, 5.5rem);
-        line-height: 1;
-        font-weight: 750;
-        letter-spacing: 0;
+        font-size: clamp(var(--displayMin), 7vw, var(--displayMax));
+        line-height: max(0.9, calc(var(--headingLeading) - 0.05));
       }
 
       h2 {
-        font-size: clamp(1.7rem, 3.5vw, 3rem);
-        line-height: 1.05;
-        letter-spacing: 0;
+        font-size: clamp(var(--headingMin), 3.5vw, var(--headingMax));
       }
 
       h3 {
@@ -106,7 +134,7 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
 
       p {
         color: var(--muted);
-        line-height: 1.7;
+        line-height: var(--bodyLeading);
       }
 
       main {
@@ -122,7 +150,7 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       .contact-section,
       .article-shell,
       .not-found {
-        width: min(1180px, calc(100% - 32px));
+        width: min(var(--contentMax), calc(100% - 32px));
         margin-inline: auto;
       }
 
@@ -149,7 +177,7 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       .site-footer address {
         display: flex;
         align-items: center;
-        gap: 22px;
+        gap: var(--contentGap);
         font-size: 0.95rem;
         font-style: normal;
       }
@@ -180,9 +208,10 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       }
 
       .eyebrow {
+        font-family: var(--fontLabel);
         color: var(--accentDark);
-        font-size: 0.78rem;
-        font-weight: 800;
+        font-size: var(--labelSize);
+        font-weight: var(--weightLabel);
         text-transform: uppercase;
       }
 
@@ -201,7 +230,8 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
         border: 1px solid transparent;
         border-radius: var(--radius);
         padding: 0 18px;
-        font-weight: 800;
+        font-family: var(--fontLabel);
+        font-weight: var(--weightLabel);
         text-decoration: none;
         cursor: pointer;
       }
@@ -268,7 +298,7 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       }
 
       .landing-header {
-        width: min(1180px, calc(100% - 32px));
+        width: min(var(--contentMax), calc(100% - 32px));
         min-height: 76px;
         display: flex;
         align-items: center;
@@ -282,7 +312,7 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       .text-section,
       .contact-section,
       .article-shell {
-        padding-block: 76px;
+        padding-block: var(--sectionY);
       }
 
       .section-heading {
@@ -297,7 +327,7 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       .product-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 22px;
+        gap: var(--contentGap);
       }
 
       .feature-grid article,
@@ -366,12 +396,12 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       .article-shell {
         display: grid;
         gap: 16px;
-        max-width: 72ch;
+        max-width: var(--readingMax);
       }
 
       .content-image { width: 100%; border-radius: var(--radius); object-fit: cover; }
       .hero-section > .content-image { grid-area: visual; }
-      .text-section:not(.text-section--visual) .text-copy { max-width: 72ch; }
+      .text-section:not(.text-section--visual) .text-copy { max-width: var(--readingMax); }
 
       .text-section {
         display: grid;

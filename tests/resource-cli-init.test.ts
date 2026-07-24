@@ -112,6 +112,34 @@ test("[integration] init --no-resources and --minimal prune complete collection 
   }
 });
 
+test("[integration] init distinguishes explicit blank from default prompted design work", async () => {
+  const blankRoot = await runtimeFixture();
+  await run(tsx, [path.join(blankRoot, "scripts/qlander-init.ts"), "--blank", "--profile", "marketing-site", "--in-place", "--name", "Blank fixture", "--skip-install", "--skip-validate"], { cwd: blankRoot });
+  const blank = await json(path.join(blankRoot, "qlander.manifest.json"));
+  assert.equal(blank.creationMode, "blank");
+  assert.equal(blank.design.status, "starter");
+  assert.deepEqual(blank.design.handoffs, []);
+
+  const promptedRoot = await runtimeFixture();
+  await run(tsx, [path.join(promptedRoot, "scripts/qlander-init.ts"), "--profile", "marketing-site", "--in-place", "--name", "Prompted fixture", "--skip-install", "--skip-validate"], { cwd: promptedRoot });
+  const prompted = await json(path.join(promptedRoot, "qlander.manifest.json"));
+  assert.equal(prompted.creationMode, "prompted");
+  assert.equal(prompted.design.status, "required");
+  const { stdout } = await run(tsx, [path.join(promptedRoot, "scripts/qlander-check.ts"), promptedRoot, "--skip-build", "--json"], { cwd: promptedRoot });
+  const check = JSON.parse(stdout);
+  assert.equal(check.status, "warning");
+  assert.ok(check.warnings.some((item: any) => item.code === "visual.design_pending"));
+  let auditOutput = "";
+  try {
+    await run(tsx, [path.join(promptedRoot, "scripts/qlander-check.ts"), promptedRoot, "--skip-build", "--audit", "--json"], { cwd: promptedRoot });
+    assert.fail("prompted starter unexpectedly passed audit completion");
+  } catch (error: any) {
+    auditOutput = error.stdout ?? "";
+  }
+  const audit = JSON.parse(auditOutput);
+  assert.ok(audit.errors.some((item: any) => item.code === "visual.design_incomplete"));
+});
+
 async function cpNames(directory: string) {
   const { readdir } = await import("node:fs/promises");
   return (await readdir(directory)).sort();

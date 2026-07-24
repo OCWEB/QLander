@@ -15,15 +15,15 @@ For routine copy, SEO, navigation, or small section edits, reuse `content/site-b
 
 ## Workflow
 
-1. Read `AGENTS.md`, `docs/qlander-start.md`, current structured content/data, and any existing `content/site-brief.md`. For a fresh detached project, confirm that `qlander.manifest.json.projectType` matches the approved delivery shape; use `pnpm qlander:init` before population when it does not.
+1. Read `AGENTS.md`, `docs/qlander-start.md`, current structured content/data, and any existing `content/site-brief.md`. For a fresh detached project, confirm the profile and creation mode. Use prompted mode by default; use blank mode only when the user explicitly asks for an untouched starter.
 2. Ask for the source mode: official website, named local project context, written brief, or a combination. Do not browse or inspect outside the current repository until the user supplies a URL or local path.
 3. Research using [references/research-and-provenance.md](references/research-and-provenance.md). Use official sources first. Broader web research requires approval.
 4. Create or refresh `content/site-brief.md` using [references/site-brief-template.md](references/site-brief-template.md). Writing the brief with `status: proposed` before the approval gate is sanctioned; it is the one pre-approval content write. Flip it to `status: approved` only after the combined approval. It is repository-internal and non-routed, but not a place for secrets.
 5. Propose the sitemap. For each page, ask for one experience when it materially affects the build: standard, focused landing, image-led scroll story, scoped `scroll-section`, or continuous Scroll World route.
 6. Prepare the media inventory and image plan using [references/media-plan.md](references/media-plan.md). Do not reuse website assets until the user confirms ownership or permission.
 7. Present one compact approval covering key facts, unresolved items, sitemap, page experiences, and image plan. Do not populate the site or generate images before approval.
-8. After approval, when the request includes a finished design, redesign, rebrand, or visual-reference research, run `qlander-design-research` and approve a sourced direction before population or design implementation. Otherwise populate QLander using [references/population-and-handoffs.md](references/population-and-handoffs.md). Preserve exact facts and rewrite source prose rather than copying it.
-9. For an approved finished-design path, populate from the approved site brief and direction, then run `qlander-design` to approve and implement only the visual scope.
+8. Unless creation mode is explicitly blank, treat every business prompt, site brief, source-site migration, redesign, rebrand, or visual instruction as a design trigger: run `qlander-design-research`, approve a sourced direction and shared design system, and define material page/section handoffs before population is considered complete.
+9. Populate from the approved brief and direction, then run `qlander-design` to persist the shared system and replace starter renderers. Content replacement inside the default hero/cards/bands is not a redesign.
 10. Generate only the approved image batch. Use authorized supplied assets first, Codex image generation next, optional Magnific generation/enhancement, then annotated placeholders and prompt documents. For an approved continuous Scroll World page, hand off to the bundled skill; its manual slow queue is the default cinematic generation mode.
 11. Run the repository-required verification and report sources, assumptions, unresolved gaps, generated/reused media, changed routes, and check results.
 

@@ -11,12 +11,13 @@ The starter wireframe is grayscale on purpose. This skill is the sanctioned path
 
 ## Two tiers, one approval
 
-- Data tier: `data/theme.json`, content copy, `public/images/`. Always in scope.
-- Template tier: fonts, motion presets, component variants, gradients. These are developer-mode `src/` edits. They are still part of a design pass, but only after the user approves them by name in the combined approval below. Approval of the design pass is approval of the listed template-tier edits; do not re-ask per file.
+- Data tier: `data/theme.json` owns approved color and radius; `data/design-system.json` owns approved typography, spacing, content widths, component treatment, and motion policy; content copy and `public/images/` remain structured inputs.
+- Layout-handoff tier: `src/layout-handoffs.ts` registers approved project-local page or section renderers. A prompted project must use at least one material handoff; changing only tokens, copy, images, or section order is not a completed design.
+- Template tier: self-hosted font declarations, custom renderers, and approved interaction details are developer-mode `src/` edits covered by the combined approval. Do not re-ask per file.
 
-`ThemeSchema` is strict: exactly `colors.{ink,paper,muted,accent,accentDark}` as hex plus `radius` 0 to 8. Never add fields to `theme.json`.
+`ThemeSchema` is strict: exactly `colors.{ink,paper,muted,accent,accentDark}` as hex plus `radius` 0 to 8. Never add fields to `theme.json`. `DesignSystemSchema` is also strict; update its existing typography, spacing, layout, component, and motion fields rather than scattering page-specific values.
 
-Approved design token invariants stay consistent across research variants and repeated runs. Treat external references as layout, hierarchy, component, and art-direction input; they do not authorize silent palette, radius, typography, or motion changes. Any change to a locked invariant must be named in the combined approval. `data/theme.json` remains authoritative for color and radius after implementation.
+Approved design token invariants stay consistent across research variants and repeated runs. Treat external references as layout, hierarchy, component, and art-direction input; they do not authorize silent palette, radius, typography, spacing, or motion changes. Any change to a locked invariant must be named in the combined approval. `data/theme.json` remains authoritative for color and radius; `data/design-system.json` is authoritative for typography, spacing, layout dimensions, component treatment, and motion across every renderer.
 
 ## Workflow
 
@@ -24,9 +25,9 @@ Approved design token invariants stay consistent across research variants and re
 2. Collect brand inputs: existing logo/colors/fonts if the user has them, otherwise say you will propose a palette from the approved brief and design direction.
 3. At the first design-execution pass in this project, apply the optional Impeccable gate below. Continue natively when it is unavailable or declined.
 4. Derive the palette with the recipe below and verify contrast before proposing: ink on paper at 7:1 or better; accent on paper, and white on accent, at 4.5:1 or better.
-5. Present ONE approval covering all of: selected research direction, palette (each hex with its role), radius, typography plan (marked developer-mode), imagery plan, and motion (marked developer-mode, default "none"). Include what you will NOT do without assets (invent photos, testimonials, claims) and list any Impeccable commands that would be allowed.
-6. After approval: write `theme.json`; make only the approved template-tier edits; populate imagery per the media plan; keep remaining placeholders obvious. If Impeccable is enabled, constrain it to this approved scope and review every diff.
-7. Run `pnpm qlander:check` and report results. In developer mode also run the repository-required build, typecheck, and tests.
+5. Present ONE approval covering all of: selected research direction; palette (each hex with its role); radius; the complete `data/design-system.json` typography, spacing, width, density, component, imagery, and motion decisions; and the named page/section layout handoffs that will replace starter renderers. Include what you will NOT do without assets and list any Impeccable commands that would be allowed.
+6. After approval: write `theme.json` and `design-system.json`; create the approved project-local renderers; register them in `src/layout-handoffs.ts`; update `qlander.manifest.json.design` to `implemented` with the approved direction and matching handoffs; populate imagery; and keep remaining placeholders obvious. Do not mark design implemented when the primary experience still renders entirely through starter components.
+7. Run `pnpm qlander:check` and report results. In developer mode also run the repository-required build, typecheck, and tests. Run audit mode only after committed desktop/phone evidence exists; prompted audit mode must reject a missing research approval, unapproved design system, or absent layout handoff.
 
 ## Optional Impeccable gate
 
