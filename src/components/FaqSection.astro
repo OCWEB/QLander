@@ -6,15 +6,23 @@ const { section } = Astro.props as { section: FaqSection };
 ---
 
 <section class="faq-section" data-pp-edit-id={section.id}>
-  <div class="section-heading">
+  <div class="faq-intro">
     {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
     <h2>{section.headline}</h2>
   </div>
   <div class="faq-list">
     {section.items.map((item) => (
-      <details>
-        <summary><h3>{item.question}</h3></summary>
-        <p>{item.answer}</p>
+      <details class="faq-item">
+        <summary>
+          <span class="faq-question">{item.question}</span>
+          <span class="faq-icon" aria-hidden="true">
+            <span class="faq-icon-closed">+</span>
+            <span class="faq-icon-open">−</span>
+          </span>
+        </summary>
+        <div class="faq-answer">
+          <p>{item.answer}</p>
+        </div>
       </details>
     ))}
   </div>
@@ -26,33 +34,177 @@ const { section } = Astro.props as { section: FaqSection };
     margin-inline: auto;
     padding-block: var(--sectionY);
     display: grid;
-    gap: var(--contentGap);
+    grid-template-columns: minmax(0, 0.72fr) minmax(320px, 1.28fr);
+    align-items: start;
+    gap: clamp(40px, 7vw, 104px);
+  }
+
+  .faq-intro {
+    display: grid;
+    justify-items: start;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .faq-intro h2 {
+    max-width: 12ch;
+    text-wrap: balance;
   }
 
   .faq-list {
+    min-width: 0;
     display: grid;
-    gap: 10px;
-    max-width: var(--readingMax);
+    border-top: 1px solid color-mix(in srgb, var(--ink), transparent 84%);
   }
 
-  details {
-    border: 1px solid color-mix(in srgb, var(--ink), transparent 86%);
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    background: white;
+  .faq-item {
+    min-width: 0;
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink), transparent 84%);
+    border-radius: 0;
+    background: transparent;
   }
 
   summary {
+    min-height: 72px;
+    padding-block: 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px;
+    align-items: center;
+    gap: 20px;
     cursor: pointer;
-    list-style-position: outside;
+    list-style: none;
   }
 
-  summary h3 {
-    display: inline;
-    font-size: 1rem;
+  summary::-webkit-details-marker {
+    display: none;
   }
 
-  details[open] p {
-    margin-top: 10px;
+  summary::marker {
+    content: "";
+  }
+
+  .faq-icon {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    justify-self: end;
+    border: 1px solid color-mix(in srgb, var(--ink), transparent 76%);
+    border-radius: 50%;
+    color: var(--ink);
+    font-family: var(--fontBody);
+    font-size: 1.35rem;
+    font-weight: 400;
+    line-height: 1;
+    transition-property: border-color, background-color, color;
+    transition-duration: 160ms;
+    transition-timing-function: ease;
+  }
+
+  .faq-icon-closed,
+  .faq-icon-open {
+    grid-area: 1 / 1;
+  }
+
+  .faq-icon-open {
+    display: none;
+  }
+
+  details[open] .faq-icon {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--paper);
+  }
+
+  details[open] .faq-icon-closed {
+    display: none;
+  }
+
+  details[open] .faq-icon-open {
+    display: block;
+  }
+
+  summary:hover .faq-icon {
+    border-color: var(--accent);
+  }
+
+  summary:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent), transparent 54%);
+    outline-offset: 4px;
+    border-radius: max(2px, calc(var(--radius) / 2));
+  }
+
+  .faq-question {
+    min-width: 0;
+    color: var(--ink);
+    font-family: var(--fontDisplay);
+    font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+    font-weight: var(--fontDisplayWeight);
+    line-height: 1.3;
+    text-wrap: pretty;
+  }
+
+  .faq-answer {
+    max-width: 62ch;
+    padding: 0 56px 22px 0;
+  }
+
+  .faq-answer p {
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  :global(html[data-surface="flat"]) .faq-list,
+  :global(html[data-surface="flat"]) .faq-item {
+    border-color: transparent;
+  }
+
+  :global(html[data-surface="elevated"]) .faq-list {
+    gap: 12px;
+    border-top-color: transparent;
+  }
+
+  :global(html[data-surface="elevated"]) .faq-item {
+    border-bottom-color: transparent;
+    border-radius: var(--radius);
+    background: var(--paper);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--ink), transparent 88%);
+    padding-inline: clamp(16px, 2.5vw, 28px);
+  }
+
+  @media (max-width: 760px) {
+    .faq-section {
+      grid-template-columns: 1fr;
+      gap: clamp(28px, 8vw, 44px);
+    }
+
+    .faq-intro h2 {
+      max-width: 18ch;
+    }
+
+    summary {
+      min-height: 64px;
+      grid-template-columns: minmax(0, 1fr) 32px;
+      gap: 14px;
+      padding-block: 14px;
+    }
+
+    .faq-icon {
+      width: 32px;
+      height: 32px;
+      font-size: 1.2rem;
+    }
+
+    .faq-answer {
+      padding: 0 46px 18px 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-icon {
+      transition-duration: 0ms;
+    }
   }
 </style>

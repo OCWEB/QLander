@@ -47,6 +47,20 @@ test("[fast] site-wide design system tokens are structured and injection-safe", 
   assert.match(scrollWorld, /var\(--fontDisplay\)/);
 });
 
+test("[fast] core FAQ uses an accessible responsive disclosure layout", async () => {
+  const faq = await readFile(path.join(repo, "src/components/FaqSection.astro"), "utf8");
+  assert.doesNotMatch(faq, /<summary>\s*<h3>/);
+  assert.match(faq, /<summary>[\s\S]*class="faq-question"/);
+  assert.match(faq, /class="faq-icon" aria-hidden="true"/);
+  assert.match(faq, /summary::\-webkit-details-marker/);
+  assert.match(faq, /summary::marker/);
+  assert.match(faq, /grid-template-columns: minmax\(0, 0\.72fr\) minmax\(320px, 1\.28fr\)/);
+  assert.match(faq, /summary:focus-visible/);
+  assert.match(faq, /html\[data-surface="flat"\]/);
+  assert.match(faq, /html\[data-surface="elevated"\]/);
+  assert.match(faq, /@media \(max-width: 760px\)[\s\S]*grid-template-columns: 1fr/);
+});
+
 test("[fast] site contact data supports a URL without inventing email or phone values", () => {
   const urlOnly = { ...site, email: "", phone: "", contactUrl: "https://example.org/contact" };
   assert.equal(SiteDataSchema.safeParse(urlOnly).success, true);
