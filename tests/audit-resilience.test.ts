@@ -228,3 +228,25 @@ test("[integration] empty blog sentinel prevents glob warnings without creating 
   assert.equal(checked.code, 0, checked.output);
   assert.doesNotMatch(checked.output, /qlander-empty-blog-sentinel/i);
 });
+
+test("[fast] audit evidence covers layout-first review at a verified mobile viewport", async () => {
+  const dir = path.resolve(import.meta.dirname, "..");
+  const checklist = await readFile(path.join(dir, "skills/qlander-design/references/layout-review-checklist.md"), "utf8");
+  // Two gates: the skeleton gate is the one that saves a rewrite.
+  assert.match(checklist, /before final copy/i);
+  assert.match(checklist, /fallback baseline|fallback rendering/i);
+  assert.match(checklist, /anti-copy substitution/i);
+  assert.match(checklist, /emulation, not window resize/i);
+  assert.match(checklist, /scrollWidth === window\.innerWidth/);
+  assert.match(checklist, /data-pp-edit-id/);
+  // The checklist must disclaim what it cannot judge.
+  assert.match(checklist, /does not score originality|not a quality or originality score|does not do/i);
+
+  const audit = await readFile(path.join(dir, "skills/qlander-audit/SKILL.md"), "utf8");
+  assert.match(audit, /layout-review-checklist\.md/);
+  assert.match(audit, /emulation/i);
+
+  const feedback = await readFile(path.join(dir, "skills/qlander-audit/references/feedback-template.md"), "utf8");
+  assert.match(feedback, /Structural divergence score/i);
+  assert.match(feedback, /not a quality or originality score/i);
+});

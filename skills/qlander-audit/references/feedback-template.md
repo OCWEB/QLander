@@ -79,3 +79,24 @@ Rules:
 - `Decision` starts as `pending`; maintainers later set `pass`, `implement`, or `done` with a kit commit.
 - Evidence names the file, command, URL, or output.
 - On failure or budget exhaustion, update checkpoint status, resume action, partial scorecard, and friction before committing.
+
+## Layout-first visual review (prompted design)
+
+Complete `skills/qlander-design/references/layout-review-checklist.md` and record the outcome.
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| Skeleton silhouette approved before final copy | pass / warn / fail / not reached | |
+| Silhouette differs from the fallback rendering | | |
+| Reference influence traceable without trade dress | | |
+| Anti-copy substitution actually carried, not deleted | | |
+| Content fits without distortion or invented proof | | |
+| Blueprint revised where copy could not fit | | |
+| Mobile preserves hierarchy at a verified 390px viewport | | |
+| Edit, SEO, route, and accessibility contracts preserved | | |
+
+- Structural divergence score reported by `qlander:check`:
+- Divergence waiver, if any, and its stated reason:
+- Reference manifest run ID and capture count:
+
+Automated divergence answers only "how much of this page did the project compose". It is not a quality or originality score, and a page can score well and still be a poor design. Record that judgement here.

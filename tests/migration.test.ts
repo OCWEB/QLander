@@ -116,3 +116,92 @@ test("[integration] migration rejects unsupported source and target versions", a
     assert.match(`${error.stderr}${error.stdout}`, /Unsupported target version/);
   }
 });
+
+async function designFixture(design: unknown, extra: Record<string, unknown> = {}) {
+  const root = await mkdtemp(path.join(os.tmpdir(), "qlander-design-migrate-"));
+  await writeFile(path.join(root, "qlander.manifest.json"), `${JSON.stringify({
+    siteId: "legacy", name: "Legacy", template: "wireframe-site-kit",
+    templateSource: "https://github.com/OCWEB/QLander", templateVersion: "0.4.0",
+    creationMode: "prompted", design, contentRoot: "content", dataRoot: "data",
+    editMap: "qlander.edit-map.json", routes: ["/"], ...extra
+  }, null, 2)}\n`);
+  return root;
+}
+
+const designMigrate = async (root: string, ...args: string[]) => {
+  try {
+    const result = await run(tsx, [migrate, "--root", root, "--design-contract", "--json", ...args], { cwd: repo });
+    return { code: 0, output: `${result.stdout}${result.stderr}` };
+  } catch (error: any) {
+    return { code: error.code ?? 1, output: `${error.stdout ?? ""}${error.stderr ?? ""}` };
+  }
+};
+
+const readManifest = async (root: string) => JSON.parse(await readFile(path.join(root, "qlander.manifest.json"), "utf8"));
+
+test("[integration] design-contract migration labels legacy handoffs without claiming research", async () => {
+  const root = await designFixture({
+    status: "implemented", direction: "Institutional Modern", system: "data/design-system.json",
+    handoffs: [
+      { kind: "section", id: "home.hero", renderer: "src/design-variants/HeroCentered.astro", routes: ["/"] },
+      { kind: "section", id: "home.cta", renderer: "src/design-variants/CtaPanel.astro", routes: ["/"] }
+    ]
+  });
+  assert.equal((await designMigrate(root)).code, 0);
+  const manifest = await readManifest(root);
+
+  // Existing work is labelled honestly and never upgraded. A src/design-variants/
+  // path proves what the renderer is, so it earns the specific label; anything
+  // else is genuinely unknown and says so.
+  for (const handoff of manifest.design.handoffs) {
+    assert.equal(handoff.provenance, "bundled-variant");
+    assert.equal(handoff.blueprintId, undefined);
+    assert.equal(handoff.referenceIds, undefined);
+  }
+  assert.ok(!JSON.stringify(manifest).includes("research-derived"), "migration must never claim research provenance");
+  // Existing sites keep building: the gate opens at off, not warn.
+  assert.equal(manifest.design.gate, "off");
+  // No evidence is fabricated.
+  assert.equal(manifest.design.blueprintId, undefined);
+});
+
+test("[integration] design-contract migration is idempotent and warns before the next redesign", async () => {
+  const root = await designFixture({
+    status: "implemented", direction: "D", system: "data/design-system.json",
+    handoffs: [
+      { kind: "section", id: "home.hero", renderer: "src/design-variants/HeroCentered.astro", routes: ["/"] },
+      { kind: "page", id: "/", renderer: "src/design/legacy/HomePage.astro", routes: ["/"] }
+    ]
+  });
+  const first = await designMigrate(root);
+  const labelled = await readManifest(root);
+  assert.equal(labelled.design.handoffs[0].provenance, "bundled-variant");
+  // An unrecognised renderer cannot be proven either way, so it stays unknown
+  // rather than being flattered into research-derived.
+  assert.equal(labelled.design.handoffs[1].provenance, "legacy-unknown");
+  const afterFirst = await readManifest(root);
+  const second = await designMigrate(root);
+  assert.equal(second.code, 0);
+  assert.deepEqual(await readManifest(root), afterFirst, "re-running must change nothing");
+  assert.match(first.output, /redesign|research/i, "the report must say what happens at the next prompted redesign");
+});
+
+test("[integration] design-contract migration leaves blank projects and research work alone", async () => {
+  const blank = await designFixture({
+    status: "starter", direction: "QLander starter scaffold", system: "data/design-system.json", handoffs: []
+  }, { creationMode: "blank" });
+  await designMigrate(blank);
+  assert.equal((await readManifest(blank)).design.gate, "off");
+
+  const derived = await designFixture({
+    status: "implemented", direction: "D", system: "data/design-system.json",
+    gate: "warn", blueprintId: "run-1",
+    handoffs: [{
+      kind: "page", id: "/", renderer: "src/design/d/HomePage.astro", routes: ["/"],
+      provenance: "research-derived", blueprintId: "run-1", referenceIds: ["ref-a", "ref-b"]
+    }]
+  });
+  const before = await readManifest(derived);
+  await designMigrate(derived);
+  assert.deepEqual(await readManifest(derived), before, "already-migrated research work must not be downgraded");
+});

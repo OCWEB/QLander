@@ -49,8 +49,12 @@ const target = stringArg(args, "to", CURRENT_VERSION);
 const dryRun = args["dry-run"] === true;
 const acceptCustomRuntime = args["accept-custom-runtime"] === true;
 const json = args.json === true;
+const designContract = args["design-contract"] === true;
 
 try {
+  if (designContract) {
+    await migrateDesignContract();
+  } else {
   if (target !== CURRENT_VERSION) fail(`Unsupported target version ${target}; supported target: ${CURRENT_VERSION}`);
   const manifestFile = path.join(root, "qlander.manifest.json");
   if (!existsSync(manifestFile)) fail(`QLander manifest not found: ${manifestFile}`);
@@ -100,9 +104,56 @@ try {
       });
     }
   }
+  }
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
+}
+
+// Design-contract migration. Deliberately version-independent and idempotent:
+// the research workflow landed inside the 0.4.0 line, and projects already on
+// 0.4.0 need labelling just as much as projects migrating up to it. Bumping the
+// template version instead would orphan the 0.3.0 to 0.4.0 path without a chain.
+//
+// This labels what exists. It never fabricates evidence, blueprints, or reference
+// IDs, and it never claims research provenance for work that had none.
+async function migrateDesignContract() {
+  const manifestFile = path.join(root, "qlander.manifest.json");
+  if (!existsSync(manifestFile)) fail(`No qlander.manifest.json at ${root}`);
+  const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
+  const design = manifest.design;
+  const operations: Operation[] = [];
+
+  if (!design) {
+    print({ status: "already-current", root, from: manifest.templateVersion, to: manifest.templateVersion, dryRun, operations: [], conflicts: [], manualSteps: ["No design contract to migrate."] });
+    return;
+  }
+
+  // Existing sites must keep building exactly as they do today, so the gate opens
+  // at "off". Promoting to "warn" is a deliberate act at the next redesign.
+  if (design.gate === undefined) {
+    design.gate = "off";
+    operations.push({ kind: "set-design-gate", file: "qlander.manifest.json", detail: "Set design.gate to off so existing behaviour is unchanged" });
+  }
+
+  for (const handoff of design.handoffs ?? []) {
+    if (handoff.provenance !== undefined) continue;
+    // "legacy-unknown" is the honest label: this handoff predates provenance
+    // tracking and we cannot know how it was produced.
+    handoff.provenance = handoff.renderer?.startsWith("src/design-variants/") ? "bundled-variant" : "legacy-unknown";
+    operations.push({ kind: "label-handoff-provenance", file: "qlander.manifest.json", detail: `Labelled ${handoff.id} as ${handoff.provenance}` });
+  }
+
+  const manualSteps = operations.length
+    ? [
+        "Existing handoffs are labelled, not upgraded. No evidence, blueprint, or reference IDs were created.",
+        "This project builds and checks exactly as before at design.gate \"off\".",
+        "At the next prompted redesign, capture reference evidence, write a layout blueprint, build a research-derived renderer under src/design/, then set design.gate to \"warn\"."
+      ]
+    : ["Design contract is already labelled; nothing changed."];
+
+  if (!dryRun && operations.length) await writeFile(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
+  print({ status: operations.length ? "complete" : "already-current", root, from: manifest.templateVersion, to: manifest.templateVersion, dryRun, operations, conflicts: [], manualSteps });
 }
 
 async function planMigration(root: string, manifest: any) {
@@ -204,7 +255,7 @@ function parseArgs(values: string[]) {
     const token = values[index];
     if (!token.startsWith("--")) fail(`Unexpected argument: ${token}`);
     const key = token.slice(2);
-    if (["dry-run", "json", "accept-custom-runtime"].includes(key)) parsed[key] = true;
+    if (["dry-run", "json", "accept-custom-runtime", "design-contract"].includes(key)) parsed[key] = true;
     else {
       const value = values[++index];
       if (!value || value.startsWith("--")) fail(`Missing value for --${key}`);

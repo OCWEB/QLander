@@ -62,6 +62,10 @@ Use the returned preview command and URL. Before accepting any browser evidence,
 
 Save PNG screenshots under `docs/screenshots/` and add each to the version 1 `docs/screenshots/manifest.json`. Every entry must contain `route`, `viewport.width`, `viewport.height`, `siteId`, `pageTitle`, `previewPort`, `url`, `filename`, lowercase `sha256`, and ISO `capturedAt`. The filename is a basename relative to `docs/screenshots/`. Commit the manifest and every listed PNG. Record the observed result in feedback.
 
+Set the phone viewport by **emulation**, not window resize: some drivers silently floor a resize near 500px, so a capture labelled 390 can actually be 500 and every mobile conclusion drawn from it is wrong. Assert `window.innerWidth` matches the request before saving the PNG.
+
+For a prompted design pass, the evidence set is four items, not two: the project's own fallback rendering (no handoffs registered), the approved reference board, the layout skeleton at desktop and phone **before** final copy, and the populated page at desktop and phone. Work through `skills/qlander-design/references/layout-review-checklist.md`; its skeleton gate runs before copy is written.
+
 At least one capture must be desktop width (1024px or wider) and one must be phone width (480px or narrower). The checker verifies clean/tracked state, declared site and route, URL route and port, SHA-256, and actual PNG IHDR dimensions. Filename labels are not evidence.
 
 ## Validation semantics
