@@ -44,6 +44,12 @@ Create a fresh but accountable mix on each research run.
 
 These are candidate discovery sources, not mandatory endorsements. Check current accessibility before relying on one. If a source requires login, blocks automated access, is unavailable, or no longer serves the stated purpose, do not bypass it; rotate to another source in the same pool and record the substitution.
 
+### Source-health cache
+
+Maintain a short-lived **per-campaign source-health cache** in campaign working notes or orchestrator state. Cache URL/host, checked time, `healthy | blocked | unavailable`, reason, and selected substitute for at most **24 hours**; do not treat it as permanent source reputation or carry it into an unrelated campaign. Reuse a fresh result to avoid repeatedly calling a known-blocked source. When blocked, choose a brief-relevant substitution from the same candidate pool and record both direct URLs and the reason. Never log in, bypass controls, or weaken the source mix just to retain a randomly selected host.
+
+During a frozen audit, record cache entries and blocked-source substitutions in the case feedback/source ledger only. Do not modify the kit to work around a campaign's blocked source; proposed kit changes remain friction for later maintainer review.
+
 ### Selection method
 
 1. Give the run a unique `researchRunId` and read the source-mix history already recorded in `content/design-research.md` when it exists.

@@ -3,6 +3,7 @@ import type { Seo } from "../lib/types";
 import { site } from "../lib/site";
 import navigation from "../../data/navigation.json";
 import theme from "../../data/theme.json";
+import manifest from "../../qlander.manifest.json";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import SEO from "../components/SEO.astro";
@@ -20,6 +21,7 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="qlander-site-id" content={manifest.siteId} />
     <SEO seo={seo} site={site} structuredData={structuredData} ogType={ogType} />
     <style is:global define:vars={{
       ink: theme.colors.ink,
