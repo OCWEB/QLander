@@ -31,6 +31,7 @@ State what the user authorized: supplied materials, official sites, named local 
 - Component-pattern sources:
 - Typography/editorial sources:
 - Blocked or skipped sources and replacements:
+- Source-health cache checked at (entries expire after 24 hours):
 - Difference from recent runs:
 
 ## Design token invariants

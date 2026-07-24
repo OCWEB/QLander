@@ -265,6 +265,7 @@ async function pruneStandardRoutes(target: string) {
     await rm(path.join(target, directory), { recursive: true, force: true });
     await mkdir(path.join(target, directory), { recursive: true });
   }
+  await cp(path.join(sourceRoot, "content/blog/_empty.md"), path.join(target, "content/blog/_empty.md"));
 }
 
 function createSinglePageEditMap(sections: any[]) {

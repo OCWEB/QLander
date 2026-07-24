@@ -23,6 +23,7 @@ for (const file of await fg("content/products/*.json", { cwd: root })) {
 }
 for (const file of await fg("content/blog/*.md", { cwd: root })) {
   const post = BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data);
+  if (!post.routed) continue;
   if (post.seo.noindex) noindex.add(`/blog/${post.slug}`);
 }
 for (const file of await fg("data/experiences/*.json", { cwd: root })) {

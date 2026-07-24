@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { randomUUID } from "node:crypto";
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { execFileSync, spawn } from "node:child_process";
+import { existsSync, readFileSync, rmSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import fg from "fast-glob";
 import { XMLParser } from "fast-xml-parser";
 import matter from "gray-matter";
@@ -18,10 +18,12 @@ const args = process.argv.slice(2);
 const root = path.resolve(args.find((arg) => !arg.startsWith("--")) ?? ".");
 const json = args.includes("--json");
 const launch = args.includes("--launch");
+const audit = args.includes("--audit");
 const skipBuild = args.includes("--skip-build");
 const checks = Object.fromEntries(names.map((name) => [name, "passed"])) as Record<(typeof names)[number], Status>;
 const errors: Message[] = [];
 const warnings: Message[] = [];
+let browserVisualQa: Status = audit ? "passed" : "skipped";
 const addError = (code: string, message: string, extra: Partial<Message> = {}) => errors.push({ code, message, ...extra });
 const addWarning = (code: string, message: string, extra: Partial<Message> = {}) => warnings.push({ code, message, ...extra });
 const readJson = async (file: string) => JSON.parse(await readFile(path.join(root, file), "utf8"));
@@ -39,6 +41,7 @@ if (model) {
   await validateImagePrompts(model);
   validateExperienceAssets(model);
 }
+if (audit) validateBrowserVisualEvidence();
 
 if (!skipBuild) {
   const built = await runBuild();
@@ -54,15 +57,40 @@ for (const name of ["seo", "links", "accessibility", "sitemap", "robots", "visua
   if (checks[name] !== "skipped" && errors.some((item) => item.code.startsWith(`${name}.`))) checks[name] = "failed";
 }
 for (const name of names) if (checks[name] === "passed" && warnings.some((item) => item.code.startsWith(`${name}.`))) checks[name] = "warning";
-const result = { id: `check_${randomUUID().slice(0, 8)}`, siteId: model?.manifest.siteId ?? "unknown", status: errors.length ? "failed" : warnings.length ? "warning" : "passed", checks, warnings, errors };
+const resultChecks = { ...checks, visualContract: checks.visual, browserVisualQa };
+const result = { id: `check_${randomUUID().slice(0, 8)}`, siteId: model?.manifest.siteId ?? "unknown", mode: audit ? "audit" : "standard", status: errors.length ? "failed" : warnings.length ? "warning" : "passed", checks: resultChecks, warnings, errors };
 if (json) console.log(JSON.stringify(result, null, 2));
 else {
   console.log(`QLander checks: ${result.status.toUpperCase()}`);
-  for (const [name, status] of Object.entries(checks)) console.log(`- ${name}: ${status}`);
+  for (const [name, status] of Object.entries(resultChecks)) {
+    if (name === "visual") continue;
+    const label = name === "visualContract" ? "visual-contract" : name === "browserVisualQa" ? "browser-visual-qa" : name;
+    console.log(`- ${label}: ${status}`);
+  }
   for (const warning of warnings) console.log(`WARN ${warning.code}: ${warning.message}`);
   for (const error of errors) console.error(`ERROR ${error.code}: ${error.message}`);
 }
 if (errors.length) process.exitCode = 1;
+
+function validateBrowserVisualEvidence() {
+  let tracked: string[];
+  try {
+    tracked = execFileSync("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", "docs/screenshots"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).split("\n").filter(Boolean);
+    const dirtyEvidence = execFileSync("git", ["status", "--porcelain", "--", "docs/screenshots"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    if (dirtyEvidence) throw new Error("browser evidence is not committed");
+  } catch {
+    browserVisualQa = "failed";
+    addError("browser_visual_qa.evidence_missing", "Audit mode requires committed desktop and phone screenshots under docs/screenshots");
+    return;
+  }
+  const evidence = tracked.filter((file) => /\.(avif|jpe?g|png|webp)$/i.test(file) && existsSync(path.join(root, file)) && statSync(path.join(root, file)).size > 0);
+  const desktop = evidence.some((file) => /desktop/i.test(path.basename(file)));
+  const phone = evidence.some((file) => /(phone|mobile)/i.test(path.basename(file)));
+  if (!desktop || !phone) {
+    browserVisualQa = "failed";
+    addError("browser_visual_qa.evidence_missing", "Audit mode requires non-empty committed *desktop* and *phone* (or *mobile*) image files under docs/screenshots");
+  }
+}
 
 async function loadModel() {
   const parseFile = async <T extends z.ZodTypeAny>(schema: T, file: string): Promise<z.output<T>> => {
@@ -78,7 +106,7 @@ async function loadModel() {
   const routeSeo = await parseFile(RouteSeoSchema, "data/route-seo.json");
   const pages = await Promise.all((await fg("content/pages/*.json", { cwd: root })).map(async (file) => ({ file, data: PageContentSchema.parse(await readJson(file)) })));
   const products = await Promise.all((await fg("content/products/*.json", { cwd: root })).map(async (file) => ({ file, data: ProductSchema.parse(await readJson(file)) })));
-  const posts = await Promise.all((await fg("content/blog/*.md", { cwd: root })).map(async (file) => ({ file, data: BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data) })));
+  const posts = (await Promise.all((await fg("content/blog/*.md", { cwd: root })).map(async (file) => ({ file, data: BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data) })))).filter((post) => post.data.routed);
   const experiences = await Promise.all((await fg("data/experiences/*.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldExperienceSchema.parse(await readJson(file)) })));
   const queues = await Promise.all((await fg("scroll-world/**/queue.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldQueueSchema.parse(await readJson(file)) })));
   return { manifest, editMap, site, navigation, theme, routeSeo, pages, products, posts, experiences, queues };
@@ -223,6 +251,9 @@ async function validateDist(model: Model) {
   for (const file of files) {
     const route = htmlRoute(file, dist);
     const document = parse(await readFile(file, "utf8"));
+    const renderedSiteId = document.querySelector('meta[name="qlander-site-id"]')?.getAttribute("content");
+    if (renderedSiteId !== model.manifest.siteId) addError("visual.site_id_mismatch", `Rendered site ID on ${route} must be ${model.manifest.siteId}`, { route });
+    if (!document.querySelector("title")?.text.trim()) addError("visual.title_missing", `Rendered page ${route} needs a title`, { route });
     const h1 = document.querySelectorAll("h1").length;
     if (route !== "/404" && h1 !== 1) addError("seo.h1_count", `Expected one H1 on ${route}, found ${h1}`, { route });
     const canonical = document.querySelector('link[rel="canonical"]')?.getAttribute("href");

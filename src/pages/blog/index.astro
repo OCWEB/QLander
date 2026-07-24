@@ -4,7 +4,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 import routeSeo from "../../../data/route-seo.json";
 
-const posts = (await getCollection("blog")).map((entry) => entry.data).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+const posts = (await getCollection("blog"))
+  .filter((entry) => entry.data.routed)
+  .map((entry) => entry.data)
+  .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 ---
 
 <BaseLayout seo={routeSeo.blog}>
