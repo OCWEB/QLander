@@ -30,6 +30,7 @@
     "qlander:init": "tsx scripts/qlander-init.ts",
     "qlander:resource": "tsx scripts/qlander-resource.ts",
     "qlander:audit": "tsx scripts/qlander-audit.ts",
+    "qlander:design:capture": "tsx scripts/qlander-design-capture.ts",
     "qlander:migrate": "tsx scripts/qlander-migrate.ts",
     "qlander:experience": "node skills/scroll-world/references/scripts/register-qlander-experience.mjs",
     "qlander:check": "tsx scripts/qlander-check.ts ."

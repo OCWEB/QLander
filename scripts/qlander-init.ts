@@ -174,8 +174,12 @@ async function configureProfile(target: string, profile: Profile, name: string, 
     status: creationMode === "blank" ? "starter" : "required",
     direction: creationMode === "blank" ? "QLander starter scaffold" : "",
     system: "data/design-system.json",
+    // Blank projects keep the starter and are never gated. Prompted projects start
+    // at "warn": research rules report but never block, until explicitly promoted.
+    gate: creationMode === "blank" ? "off" : "warn",
     handoffs: []
   };
+  if (creationMode === "prompted") await scaffoldDesignResearch(target);
   manifest.name = name;
   manifest.siteId = slugify(name) || "qlander-site";
   site.name = name;
@@ -200,6 +204,17 @@ async function configureProfile(target: string, profile: Profile, name: string, 
     "--project-root", target, "--root", "--prune", "--title", `${name} Experience`,
     "--description", `Explore ${name} through an interactive visual journey.`
   ]);
+}
+
+// Prompted projects get the research directory and the ignore rule up front, so
+// reference screenshots can never reach Git even on the first capture.
+async function scaffoldDesignResearch(target: string) {
+  await mkdir(path.join(target, ".qlander", "design-research"), { recursive: true });
+  const ignoreFile = path.join(target, ".gitignore");
+  const rule = ".qlander/design-research/**/references/";
+  const existing = await readFile(ignoreFile, "utf8").catch(() => "");
+  if (existing.includes(rule)) return;
+  await writeFile(ignoreFile, `${existing}${existing && !existing.endsWith("\n") ? "\n" : ""}${rule}\n`);
 }
 
 async function pruneMarketingRoutes(target: string, exclude: { blog: boolean; products: boolean; resources: boolean }) {
