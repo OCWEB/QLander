@@ -1,0 +1,30 @@
+---
+import { getCollection } from "astro:content";
+import type { Resource } from "../../lib/types";
+import { site } from "../../lib/site";
+import { resourceSchema } from "../../lib/structuredData";
+import routeSeo from "../../../data/route-seo.json";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const resources = await getCollection("resources");
+  return resources.flatMap((entry) => entry.data.destination.kind === "detail" ? [{
+    params: { slug: entry.data.slug },
+    props: { resource: entry.data as Resource }
+  }] : []);
+}
+
+const { resource } = Astro.props as { resource: Resource };
+if (resource.destination.kind !== "detail" || !resource.seo) throw new Error(`Resource ${resource.slug} does not have a detail destination`);
+---
+
+<BaseLayout seo={resource.seo} structuredData={resourceSchema(site, resource)}>
+  <article class="article-shell" data-pp-edit-id={`resource.${resource.slug}`}>
+    {(resource.type || resource.year) && <p class="eyebrow">{[resource.type, resource.year].filter(Boolean).join(" · ")}</p>}
+    <h1>{resource.title}</h1>
+    <p>{resource.summary}</p>
+    <p>{resource.destination.body}</p>
+    {resource.destination.cta && <a class="button primary" href={resource.destination.cta.href}>{resource.destination.cta.label}</a>}
+    <a href="/resources">{routeSeo.resources.detailBackLabel}</a>
+  </article>
+</BaseLayout>

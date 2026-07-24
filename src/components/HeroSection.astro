@@ -15,10 +15,10 @@ const { section, showVisual = false } = Astro.props as {
     {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
     <h1>{section.headline}</h1>
     <p class="hero-subhead">{section.subheadline}</p>
-    <div class="actions">
-      <a class="button primary" href={section.primaryCta.href}>{section.primaryCta.label}</a>
+    {(section.primaryCta || section.secondaryCta) && <div class="actions">
+      {section.primaryCta && <a class="button primary" href={section.primaryCta.href}>{section.primaryCta.label}</a>}
       {section.secondaryCta && <a class="button secondary" href={section.secondaryCta.href}>{section.secondaryCta.label}</a>}
-    </div>
+    </div>}
   </div>
   {section.image ? <img class="content-image" src={section.image.src} alt={section.image.alt} width={section.image.width} height={section.image.height} fetchpriority="high" /> : showVisual && <PlaceholderVisual label="Hero image placeholder" promptId={section.imagePromptId} variant="hero" />}
 </section>

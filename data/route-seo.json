@@ -1,5 +1,6 @@
 {
-  "products": { "title": "Products | QLander Starter", "description": "Placeholder product or service cards for the QLander Starter site.", "noindex": false, "eyebrow": "Packages", "heading": "Starter offers", "itemCtaLabel": "View package", "detailCtaLabel": "Ask about this offer", "detailCtaHref": "/contact" },
+  "products": { "title": "Products | QLander Starter", "description": "Placeholder product, service, or category cards for the QLander Starter site.", "noindex": false, "eyebrow": "Packages", "heading": "Starter offers", "itemCtaLabel": "View package", "detailCtaLabel": "Ask about this offer", "detailCtaHref": "/contact" },
+  "resources": { "title": "Resources | QLander Starter", "description": "Reports, filings, letters, and useful links from the QLander Starter site.", "noindex": false, "eyebrow": "Library", "heading": "Resources", "itemCtaLabel": "View resource", "externalCtaLabel": "Open external resource", "yearFilterLabel": "Year", "typeFilterLabel": "Type", "allYearsLabel": "All years", "allTypesLabel": "All types", "detailBackLabel": "Back to resources" },
   "blog": { "title": "Blog | QLander Starter", "description": "Placeholder posts for the QLander Starter site.", "noindex": false, "eyebrow": "Notes", "heading": "Blog" },
   "notFound": { "title": "Page not found | QLander Starter", "description": "The page you are looking for could not be found.", "noindex": true }
 }

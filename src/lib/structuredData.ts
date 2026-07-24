@@ -1,4 +1,4 @@
-import type { BlogFrontmatter, Product, SiteData } from "./types";
+import type { BlogFrontmatter, Product, Resource, SiteData } from "./types";
 
 export function organizationSchema(site: SiteData) {
   return {
@@ -22,17 +22,29 @@ export function organizationSchema(site: SiteData) {
 }
 
 export function productSchema(site: SiteData, product: Product) {
-  return {
+  const common = {
     "@context": "https://schema.org",
-    "@type": "Product",
     name: product.title,
     description: product.summary,
-    brand: {
-      "@type": "Brand",
-      name: site.name
-    },
     url: `${site.url.replace(/\/$/, "")}/products/${product.slug}`,
     ...(product.image && { image: new URL(product.image.src, site.url).toString() })
+  };
+  if (product.kind === "service") return { ...common, "@type": "Service", provider: { "@type": "Organization", name: site.name, url: site.url } };
+  if (product.kind === "category") return { ...common, "@type": "CollectionPage", isPartOf: { "@type": "WebSite", name: site.name, url: site.url } };
+  return { ...common, "@type": "Product", brand: { "@type": "Brand", name: site.name } };
+}
+
+export function resourceSchema(site: SiteData, resource: Resource) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "DigitalDocument",
+    name: resource.title,
+    description: resource.summary,
+    url: `${site.url.replace(/\/$/, "")}/resources/${resource.slug}`,
+    publisher: { "@type": "Organization", name: site.name, url: site.url },
+    ...(resource.year && { datePublished: String(resource.year) }),
+    ...(resource.type && { genre: resource.type }),
+    ...(resource.image && { image: new URL(resource.image.src, site.url).toString() })
   };
 }
 

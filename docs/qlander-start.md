@@ -35,10 +35,10 @@ Profile meaning:
 
 Route contract notes for `marketing-site`:
 
-- The profile ships demo `/blog` and `/products` routes. Visible labels (navigation, headings, CTAs) are data-tier edits via `data/route-seo.json` and `data/navigation.json`; for a services business, relabel `/products` as "Services" without changing the URL.
+- The profile ships demo `/blog`, `/products`, and `/resources` routes. Visible labels (navigation, headings, CTAs, and resource filters) are data-tier edits via `data/route-seo.json` and `data/navigation.json`; for a services business, relabel `/products` as "Services" without changing the URL and set each entry's semantic `kind` accurately.
 - Changing route URLs, or adding and removing route files under `src/pages/`, is developer mode. If the approved sitemap requires it, follow the developer-mode rules in `AGENTS.md` (minimal edits, keep content contracts, run build, typecheck, test, and `pnpm qlander:check`). The lightest data-tier alternative for an unwanted route is: remove it from navigation, empty its collection, and set it `noindex` in `data/route-seo.json`.
-- Route bookkeeping when adding or removing routes in developer mode: update `qlander.manifest.json` routes, `data/navigation.json`, the matching `data/route-seo.json` keys (removed route keys may be deleted; the schema treats `products` and `blog` as optional), and the affected `qlander.edit-map.json` entries.
-- Keep an emptied collection directory in git with a `.gitkeep` file; deleting `content/blog/` or `content/products/` outright makes Astro's glob loader warn. A "glob() did not match any files" style warning from an intentionally emptied collection is harmless build noise, not an error.
+- Route bookkeeping when adding or removing routes in developer mode: update `qlander.manifest.json` routes, `data/navigation.json`, the matching `data/route-seo.json` keys (removed route keys may be deleted; the schema treats `products`, `resources`, and `blog` as optional), and the affected `qlander.edit-map.json` entries.
+- Keep an emptied collection directory in git with a `.gitkeep` file; deleting `content/blog/`, `content/products/`, or `content/resources/` outright makes Astro's glob loader warn. A "glob() did not match any files" style warning from an intentionally emptied collection is harmless build noise, not an error.
 - Migrating owner-owned copy verbatim (testimonials, taglines): fetch-tool summaries often paraphrase; extract exact text from the raw page HTML and preserve attribution exactly.
 
 ## 1. Choose sources

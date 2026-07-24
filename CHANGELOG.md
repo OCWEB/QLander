@@ -1,5 +1,7 @@
 # Changelog
 
+- Add explicit informational contact mode, semantic product/service/category JSON-LD, and a structured resources collection with progressive year/type filters.
+
 ## 0.2.0 - 2026-07-11
 
 - Harden editable URLs, JSON-LD, theme tokens, and structured image paths.

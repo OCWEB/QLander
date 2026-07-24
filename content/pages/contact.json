@@ -25,8 +25,10 @@
     {
       "id": "contact.form",
       "type": "contact",
+      "mode": "action",
       "headline": "Send a note",
-      "body": "Use this placeholder form area to explain what visitors should include in their message."
+      "body": "Use this placeholder form area to explain what visitors should include in their message.",
+      "actionLabel": "Contact QLander Starter"
     }
   ]
 }
