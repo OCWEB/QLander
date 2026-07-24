@@ -13,7 +13,8 @@ Each case needs a lowercased reference-domain `case id`, a `redesign` or `clone-
 
 ## Directory and freeze contract
 
-- Create a new sibling `qlander_<case id>` only through `pnpm qlander:init`; never reuse or clean an existing directory.
+- Keep disposable audit sites together under the sibling directory `../qlander_tests/`.
+- Create each new case as `../qlander_tests/qlander_<case id>` only through `pnpm qlander:init`; never reuse or clean an existing directory.
 - The case is its own git repository. Do not edit or commit the kit repository during an audit run.
 - Record the kit SHA at initialization. That SHA is the frozen audit subject. If friction reveals a kit fix, log it in feedback; do not modify the kit, replace files from another checkout, or restart against a newer SHA during the frozen audit.
 
@@ -22,7 +23,7 @@ Each case needs a lowercased reference-domain `case id`, a `redesign` or `clone-
 Create `feedback_improve.md` immediately after init, before discovery or web research, with the executable helper. It copies [references/feedback-template.md](references/feedback-template.md), embeds versioned machine-readable JSON state, fills case metadata, marks every scorecard row `not reached`, and commits `Audit: initialize <case id>` by default:
 
 ```bash
-pnpm qlander:audit init --root ../qlander_<case-id> --case <case-id> \
+pnpm qlander:audit init --root ../qlander_tests/qlander_<case-id> --case <case-id> \
   --scenario <redesign|clone-look> --mode <batch|interactive> --sources <url>
 ```
 
@@ -54,7 +55,7 @@ Allocate a deterministic available per-case port from the kit checkout:
 
 ```bash
 pnpm exec tsx skills/qlander-audit/scripts/audit-preview-port.ts \
-  --case <case-id> --root ../qlander_<case-id>
+  --case <case-id> --root ../qlander_tests/qlander_<case-id>
 ```
 
 Use the returned preview command and URL. Before accepting any browser evidence, parse the loaded page's `<title>` and compare its suffix with `expectedTitleSuffix`; parse `<meta name="qlander-site-id">` and compare it with the helper's expected site ID. Also verify the browser URL uses the returned port. A page from another case, title mismatch, site-ID mismatch, error document, or stale server invalidates the capture.
