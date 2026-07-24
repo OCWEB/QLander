@@ -57,12 +57,13 @@ template route, not a structured-data claim; configure its visible labels in
 
 ## Add A Resource
 
-1. Add JSON under `content/resources/` with a filename matching its `slug`.
-2. Use optional `year` and `type` metadata for reports, filings, letters, or other useful groupings.
-3. Choose `destination.kind: "detail"` for an on-site page. Include `body` and `seo`, add `/resources/<slug>` to the manifest, and add a safe edit-map entry rendered on the list and detail routes. An optional structured `cta` may point to a verified document or action.
-4. Choose `destination.kind: "external"` for a direct HTTPS source. Do not add a detail route; the list CTA opens the verified source directly.
-5. Keep `/resources` and its route labels in `data/route-seo.json`. The list renders every entry before JavaScript; year/type controls may filter that complete static list as progressive enhancement.
-6. Run `pnpm qlander:check`.
+1. Run `pnpm qlander:resource -- add --root . --slug <slug> --kind detail|external` with title, summary, and destination arguments. Use optional `--year` and `--type` metadata for useful groupings.
+2. For `detail`, provide `--body`, `--seo-title`, and `--seo-description`; paired `--cta-label`/`--cta-href` and `--noindex` are optional. The command adds `/resources/<slug>` to the manifest and creates the list/detail edit-map contract.
+3. For `external`, provide an HTTPS `--href`; `--label` is optional. The command intentionally does not add a detail route.
+4. The command validates every input before transactionally replacing the content JSON, edit map, and manifest. It refuses an existing slug unless replacement is explicit with `--force`.
+5. Remove an entry with `pnpm qlander:resource -- remove --root . --slug <slug>` so all bookkeeping is cleaned together.
+6. Keep `/resources` and its route labels in `data/route-seo.json`. The list renders every entry before JavaScript; year/type controls may filter that complete static list as progressive enhancement.
+7. Run `pnpm qlander:check`.
 
 ## Add Or Update Navigation
 
