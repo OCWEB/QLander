@@ -147,3 +147,9 @@ Use Git history.
 4. Tell the user exactly what version or file state was restored.
 
 Do not use destructive Git commands unless the user explicitly asks for them.
+
+## Kit Audit Checkpoints And Screenshot Evidence
+
+Kit maintainers start durable audit state with `pnpm qlander:audit init --root <case-repo>` and advance it in order with `checkpoint discovery`, `checkpoint implementation`, and `checkpoint verification`. Each command commits by default; `status` prints the embedded JSON state. The helper refuses dirty feedback and invalid transitions. `--no-commit` is reserved for tests.
+
+Browser QA evidence uses the version 1 `docs/screenshots/manifest.json` scaffold created by `qlander:init`. Each PNG entry records route, viewport dimensions, site ID, page title, preview port, URL, filename, SHA-256, and ISO capture time. `pnpm qlander:check -- --audit` keeps this browser check separate from `visual-contract` and requires clean, committed files, valid PNG IHDR dimensions, and both desktop (at least 1024px) and phone (at most 480px) widths.

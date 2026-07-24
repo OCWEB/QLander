@@ -35,7 +35,7 @@ try {
   await stage("generate-contracts", async () => {
     await generateProfileTest(target, answers.profile, answers.experienceSlug);
     await mkdir(path.join(target, "docs/screenshots"), { recursive: true });
-    await writeFile(path.join(target, "docs/screenshots/.gitkeep"), "");
+    await writeFile(path.join(target, "docs/screenshots/manifest.json"), `${JSON.stringify({ version: 1, screenshots: [] }, null, 2)}\n`);
   });
   await writeRunLog(target, answers, baselineCommit, stages, validationResults);
 
@@ -359,7 +359,7 @@ async function writeRunLog(target: string, answers: Awaited<ReturnType<typeof re
   await mkdir(path.join(target, "docs"), { recursive: true });
   const rows = stageItems.map((item) => `| ${item.name} | ${item.status} | ${item.startedAt} | ${item.completedAt ?? "-"} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| initialization | pending | - | - | - |";
   const validationRows = validations.map((item) => `| \`${item.command}\` | ${item.status} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| Validation | pending | Run after dependencies are installed |";
-  const log = `# QLander run\n\n- Profile: \`${answers.profile}\`\n- Site name: ${answers.name}\n- Source template: ${templateSource}\n- Baseline commit: \`${baseline}\`\n- Draft/noindex: yes\n- Created: ${stageItems[0]?.startedAt ?? new Date().toISOString()}\n\n## Stage timeline\n\n| Stage | Status | Started | Completed | Detail |\n|---|---|---|---|---|\n${rows}\n\n## Validation\n\n| Command | Status | Detail |\n|---|---|---|\n${validationRows}\n\n## Screenshots\n\nSave browser-verified desktop and phone captures under \`docs/screenshots/\`. Screenshot capture remains an agent/browser QA step so the repository does not install a browser runtime or download Chromium by default.\n\n## Discovery and media\n\nRun QLander Discovery before population. Record approved sources, reused facts, repeated questions, safe-zone edits, developer-mode edits, and media handoffs here as work continues. Scroll World profiles keep human \`queue.md\` and machine-readable \`queue.json\` status together.\n`;
+  const log = `# QLander run\n\n- Profile: \`${answers.profile}\`\n- Site name: ${answers.name}\n- Source template: ${templateSource}\n- Baseline commit: \`${baseline}\`\n- Draft/noindex: yes\n- Created: ${stageItems[0]?.startedAt ?? new Date().toISOString()}\n\n## Stage timeline\n\n| Stage | Status | Started | Completed | Detail |\n|---|---|---|---|---|\n${rows}\n\n## Validation\n\n| Command | Status | Detail |\n|---|---|---|\n${validationRows}\n\n## Screenshots\n\nSave browser-verified PNG captures under \`docs/screenshots/\` and describe each one in the versioned \`docs/screenshots/manifest.json\`. Each entry records route, viewport width and height, site ID, page title, preview port, URL, filename, SHA-256, and capture time. Audit verification requires committed, clean manifest and PNG files with at least one desktop-width and one phone-width capture. Screenshot capture remains an agent/browser QA step so the repository does not install a browser runtime or download Chromium by default.\n\n## Discovery and media\n\nRun QLander Discovery before population. Record approved sources, reused facts, repeated questions, safe-zone edits, developer-mode edits, and media handoffs here as work continues. Scroll World profiles keep human \`queue.md\` and machine-readable \`queue.json\` status together.\n`;
   await writeFile(path.join(target, "docs/qlander-run.md"), log);
 }
 

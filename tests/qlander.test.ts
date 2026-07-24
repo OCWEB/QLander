@@ -235,6 +235,8 @@ test("QLander init generates all four detached project profiles", async () => {
     assert.equal(manifest.projectType, profile);
     assert.match(await readFile(path.join(target, "docs/qlander-run.md"), "utf8"), /Baseline commit: `[a-f0-9]+`/);
     assert.match(await readFile(path.join(target, "tests/profile.test.ts"), "utf8"), new RegExp(profile));
+    const screenshotManifest = JSON.parse(await readFile(path.join(target, "docs/screenshots/manifest.json"), "utf8"));
+    assert.deepEqual(screenshotManifest, { version: 1, screenshots: [] });
     assert.deepEqual(await findLegacyNamespace(target), []);
     const { stdout } = await run("git", ["log", "--oneline"], { cwd: target });
     assert.match(stdout, /Start project from QLander baseline/);

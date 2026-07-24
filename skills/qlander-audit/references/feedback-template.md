@@ -2,6 +2,8 @@
 
 Copy this structure into `feedback_improve.md` at the case repo root immediately after initialization. Keep it plain Markdown; no em or en dashes. Preserve it at every checkpoint, even when a run fails.
 
+`pnpm qlander:audit init` prepends a `qlander-audit-state` HTML comment containing versioned JSON. Do not edit or remove that machine-readable block by hand; `checkpoint` updates it and `status` reads it.
+
 ```markdown
 # QLander Audit Feedback: <case id>
 
@@ -49,9 +51,11 @@ Use `not reached` until evidence exists. Never delete grades already reached.
 
 ## Browser evidence ledger
 
-| Route | Viewport | File | Port | Parsed title | Expected site ID | Result |
-|---|---|---|---:|---|---|---|
-|  | desktop/phone | docs/screenshots/... |  |  |  |  |
+Structured capture metadata and hashes live in `docs/screenshots/manifest.json`; this table records the human QA result.
+
+| Route | Viewport | Manifest entry | Result |
+|---|---|---|---|
+|  | width x height | docs/screenshots/manifest.json |  |
 
 ## Friction items
 
