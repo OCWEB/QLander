@@ -9,6 +9,7 @@ import fg from "fast-glob";
 import { DesignSystemSchema, MediaSchema, PageContentSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref, serializeJsonLd } from "../src/lib/schemas";
 import { resolveCanonical } from "../src/lib/seo";
 import { site } from "../src/lib/site";
+import { MAPPING_VERSION, SHAPE_TO_SECTION, TYPE_TO_COMPONENT, TYPE_TO_SAFE_FIELDS, mapVariant } from "../src/lib/prototype-mapping";
 
 const run = promisify(execFile);
 const repo = path.resolve(import.meta.dirname, "..");
@@ -482,3 +483,48 @@ async function findLegacyNamespace(root: string) {
   }
   return [...new Set(findings)].sort();
 }
+
+test("[fast] prototyper mapping keys on content shape and never invents sections", () => {
+  const variant = [
+    { order: 1, referenceId: "c3395", role: "navigation", contentShape: "navigation", patternFamily: "navigation", interaction: "navigation", confidence: 0.9 },
+    { order: 2, referenceId: "c1089", role: "hero", contentShape: "hero", patternFamily: "split", interaction: "static", confidence: 0.9 },
+    { order: 3, referenceId: "c2351", role: "details", contentShape: "item-grid", patternFamily: "grid", interaction: "carousel", confidence: 0.4 },
+    { order: 4, referenceId: "c2438", role: "footer", contentShape: "footer", patternFamily: "footer", interaction: "static", confidence: 0.9 }
+  ];
+  const result = mapVariant(variant, { pageKey: "home" });
+
+  assert.equal(result.mappingVersion, MAPPING_VERSION);
+  assert.deepEqual(result.sections.map((section) => section.id), ["home.hero", "home.details"]);
+  assert.deepEqual(result.sections.map((section) => section.type), ["hero", "featureGrid"]);
+
+  // Chrome is skipped with a reason, not silently dropped.
+  assert.deepEqual(result.skipped.map((entry) => entry.referenceId), ["c3395", "c2438"]);
+  assert(result.skipped.every((entry) => entry.reason === "chrome"));
+
+  // Low confidence is flagged for review, and an unrenderable interaction degrades loudly.
+  const details = result.sections[1];
+  assert.equal(details.needsReview, true);
+  assert(details.notes.some((note) => note.includes("carousel")));
+});
+
+test("[fast] prototyper mapping degrades productGrid without a products collection", () => {
+  const offer = [{ order: 1, referenceId: "c9", role: "offer", contentShape: "offer-grid", patternFamily: "grid", interaction: "static", confidence: 0.9 }];
+  assert.equal(mapVariant(offer, { hasProducts: true }).sections[0].type, "productGrid");
+  const degraded = mapVariant(offer, { hasProducts: false }).sections[0];
+  assert.equal(degraded.type, "featureGrid");
+  assert(degraded.notes.some((note) => note.includes("no products collection")));
+});
+
+test("[fast] every mapped section type has a component and safe fields", () => {
+  for (const mapping of Object.values(SHAPE_TO_SECTION)) {
+    if (!mapping.type) continue;
+    assert(TYPE_TO_COMPONENT[mapping.type], `${mapping.type} has no component`);
+    assert(TYPE_TO_SAFE_FIELDS[mapping.type]?.length, `${mapping.type} has no safe fields`);
+  }
+});
+
+test("[fast] an unknown content shape warns instead of guessing a section type", () => {
+  const result = mapVariant([{ order: 1, referenceId: "cX", role: "details", contentShape: "not-a-shape", patternFamily: "grid", interaction: "static", confidence: 0.9 }]);
+  assert.equal(result.sections.length, 0);
+  assert(result.warnings.some((warning) => warning.includes("not-a-shape")));
+});
