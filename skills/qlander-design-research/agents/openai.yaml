@@ -1,0 +1,4 @@
+interface:
+  display_name: "QLander Design Research"
+  short_description: "Research and compare sourced visual directions"
+  default_prompt: "Use $qlander-design-research to research relevant visual references, compare distinct directions, and prepare the design-direction approval before implementation."

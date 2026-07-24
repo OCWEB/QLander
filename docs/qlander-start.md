@@ -113,9 +113,15 @@ Present one compact review containing:
 
 Do not populate the site, generate images, install tools, or add integrations before this approval.
 
-## 5. Populate and verify
+## 5. Design direction when requested
 
-After approval:
+For a finished design, redesign, rebrand, or prompt asking QLander to find an appropriate style, run `skills/qlander-design-research/SKILL.md` after the site brief approval. With approved public-research scope, compare 3–5 sourced aesthetic families and save the selected direction in non-routed `content/design-research.md`. Then run `skills/qlander-design/SKILL.md` for the palette, typography, imagery, motion, and implementation approval.
+
+Impeccable is optional execution tooling, not a prerequisite. On its first useful design pass, the design skill offers either native QLander execution or an explicitly approved project-local install. Do not install it during discovery or assume redesign approval also authorizes third-party code.
+
+## 6. Populate and verify
+
+After the applicable approvals:
 
 1. Update structured content, site data, navigation, theme, routes, manifest, and edit map as required.
 2. Generate only the approved image batch. If generation is unavailable or declined, keep obvious placeholders and write matching prompt documents.

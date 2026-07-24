@@ -22,9 +22,10 @@ For routine copy, SEO, navigation, or small section edits, reuse `content/site-b
 5. Propose the sitemap. For each page, ask for one experience when it materially affects the build: standard, focused landing, image-led scroll story, scoped `scroll-section`, or continuous Scroll World route.
 6. Prepare the media inventory and image plan using [references/media-plan.md](references/media-plan.md). Do not reuse website assets until the user confirms ownership or permission.
 7. Present one compact approval covering key facts, unresolved items, sitemap, page experiences, and image plan. Do not populate the site or generate images before approval.
-8. After approval, populate QLander using [references/population-and-handoffs.md](references/population-and-handoffs.md). Preserve exact facts and rewrite source prose rather than copying it.
-9. Generate only the approved image batch. Use authorized supplied assets first, Codex image generation next, optional Magnific generation/enhancement, then annotated placeholders and prompt documents. For an approved continuous Scroll World page, hand off to the bundled skill; its manual slow queue is the default cinematic generation mode.
-10. Run the repository-required verification and report sources, assumptions, unresolved gaps, generated/reused media, changed routes, and check results.
+8. After approval, when the request includes a finished design, redesign, rebrand, or visual-reference research, run `qlander-design-research` and approve a sourced direction before population or design implementation. Otherwise populate QLander using [references/population-and-handoffs.md](references/population-and-handoffs.md). Preserve exact facts and rewrite source prose rather than copying it.
+9. For an approved finished-design path, populate from the approved site brief and direction, then run `qlander-design` to approve and implement only the visual scope.
+10. Generate only the approved image batch. Use authorized supplied assets first, Codex image generation next, optional Magnific generation/enhancement, then annotated placeholders and prompt documents. For an approved continuous Scroll World page, hand off to the bundled skill; its manual slow queue is the default cinematic generation mode.
+11. Run the repository-required verification and report sources, assumptions, unresolved gaps, generated/reused media, changed routes, and check results.
 
 ## Initialization profiles
 

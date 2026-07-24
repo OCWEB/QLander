@@ -30,7 +30,7 @@ If the user says `qlander start`, requests a new site/migration/redesign/rebrand
 - Site settings: update `data/site.json`. Email and phone may be empty when an HTTPS `contactUrl` is supplied.
 - Navigation: update `data/navigation.json`, then verify each internal `href` exists.
 - Theme tokens: update `data/theme.json`; keep `radius` at `8` or below.
-- Finished visual design, premium/branded look, or rebrand: use `skills/qlander-design/SKILL.md`. The grayscale wireframe stays until that skill's combined approval; approved template-tier items (fonts, motion, gradients) are the only sanctioned design-driven `src/` edits.
+- Finished visual design, premium/branded look, or rebrand: use `skills/qlander-design-research/SKILL.md` to source and approve a direction, then `skills/qlander-design/SKILL.md` to approve and execute the visual pass. The grayscale wireframe stays until those approvals; approved template-tier items (fonts, motion, gradients) are the only sanctioned design-driven `src/` edits. Impeccable is optional and may be installed only after the design skill's explicit first-use consent gate.
 - Blog posts: add or edit Markdown under `content/blog/`.
 - Product/service entries: add or edit JSON under `content/products/`.
 - Images: add files under `public/images/` and configure structured `image` fields with alt text and intrinsic dimensions.

@@ -18,12 +18,33 @@ The starter wireframe is grayscale on purpose. This skill is the sanctioned path
 
 ## Workflow
 
-1. Read `content/site-brief.md` (run discovery first if missing), `data/theme.json`, and the current pages. Note brand personality words (boutique, clinical, playful, institutional).
-2. Collect brand inputs: existing logo/colors/fonts if the user has them, otherwise say you will propose a palette from the brief.
-3. Derive the palette with the recipe below and verify contrast before proposing: ink on paper at 7:1 or better; accent on paper, and white on accent, at 4.5:1 or better.
-4. Present ONE approval covering all of: palette (each hex with its role), radius, typography plan (marked developer-mode), imagery plan, and motion (marked developer-mode, default "none"). Include what you will NOT do without assets (invent photos, testimonials, claims).
-5. After approval: write `theme.json`; make the approved template-tier edits; populate imagery per the media plan; keep remaining placeholders obvious.
-6. Run `pnpm qlander:check` and report results.
+1. Read `content/site-brief.md`, approved `content/design-research.md` when present, `data/theme.json`, and the current pages. Note brand personality words (boutique, clinical, playful, institutional). For a new site, redesign, rebrand, or request to find a visual direction, run `qlander-design-research` first when its approved artifact is missing; do not substitute an Impeccable pass for reference research.
+2. Collect brand inputs: existing logo/colors/fonts if the user has them, otherwise say you will propose a palette from the approved brief and design direction.
+3. At the first design-execution pass in this project, apply the optional Impeccable gate below. Continue natively when it is unavailable or declined.
+4. Derive the palette with the recipe below and verify contrast before proposing: ink on paper at 7:1 or better; accent on paper, and white on accent, at 4.5:1 or better.
+5. Present ONE approval covering all of: selected research direction, palette (each hex with its role), radius, typography plan (marked developer-mode), imagery plan, and motion (marked developer-mode, default "none"). Include what you will NOT do without assets (invent photos, testimonials, claims) and list any Impeccable commands that would be allowed.
+6. After approval: write `theme.json`; make only the approved template-tier edits; populate imagery per the media plan; keep remaining placeholders obvious. If Impeccable is enabled, constrain it to this approved scope and review every diff.
+7. Run `pnpm qlander:check` and report results. In developer mode also run the repository-required build, typecheck, and tests.
+
+## Optional Impeccable gate
+
+Impeccable is a third-party agent skill for design critique, refinement, and visual iteration. It can improve execution, but QLander remains the source of truth for facts, approved direction, theme contracts, safe edit scope, and verification.
+
+On the first design pass where Impeccable would materially help:
+
+1. Check whether the current harness already exposes the `impeccable` skill or the repository contains an installation for that harness. Do not claim it is installed from a package-cache hit alone.
+2. If it is not installed, offer one compact choice: continue with the native QLander design pass, or install Impeccable in this project. Explain that installation runs third-party code and writes harness-specific skill files.
+3. Never run `npx impeccable install`, enable automatic design hooks, or create Impeccable context files without explicit approval. A general approval to redesign the site is not installation approval.
+4. If approved, run the current official command from the project root:
+
+   ```bash
+   npx impeccable install
+   ```
+
+   Reload the harness if required, verify that the skill is visible, and report the files it added. Automatic hooks require a separate explicit choice.
+5. Impeccable's official setup may create `PRODUCT.md` and `DESIGN.md`. Populate or review them against approved `content/site-brief.md` and `content/design-research.md`; they are mirrors for the tool, not competing specifications. Resolve any conflict in favor of the QLander artifacts or ask the user.
+6. Use read-only critique before mutation where practical. Commands such as critique, typeset, layout, polish, or live iteration may run only after their affected design dimensions are named in QLander's combined approval. Live-mode acceptance and polish output still count as source edits and must obey the data/template tiers.
+7. If the user declines, continue the current pass without Impeccable and do not ask again during that pass. The site must remain fully buildable without this optional tool.
 
 ## Palette recipe
 

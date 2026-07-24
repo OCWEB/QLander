@@ -81,6 +81,28 @@ test("discovery workflow keeps universal source, approval, reuse, media, and han
   assert.match(ppc, /content\/site-brief\.md/);
 });
 
+test("design research separates sourced direction selection from optional Impeccable execution", async () => {
+  const research = await readFile(path.join(repo, "skills/qlander-design-research/SKILL.md"), "utf8");
+  const template = await readFile(path.join(repo, "skills/qlander-design-research/references/design-research-template.md"), "utf8");
+  const design = await readFile(path.join(repo, "skills/qlander-design/SKILL.md"), "utf8");
+  const agents = await readFile(path.join(repo, "AGENTS.md"), "utf8");
+  for (const pattern of [
+    /3 to 5 distinct aesthetic families/i,
+    /content\/design-research\.md/,
+    /reference URL/i,
+    /accessibility/i,
+    /Do not copy/i,
+    /approved public web research/i
+  ]) assert.match(research, pattern);
+  assert.match(template, /status: proposed/);
+  assert.match(template, /## Direction scorecard/);
+  assert.match(design, /npx impeccable install/);
+  assert.match(design, /explicit approval/i);
+  assert.match(design, /optional/i);
+  assert.match(design, /QLander remains the source of truth/i);
+  assert.match(agents, /qlander-design-research/);
+});
+
 test("bundled Scroll World defaults to manual queue without making the page type automatic", async () => {
   const scroll = await readFile(path.join(repo, "skills/scroll-world/SKILL.md"), "utf8");
   const queue = await readFile(path.join(repo, "skills/scroll-world/references/manual-queue.md"), "utf8");

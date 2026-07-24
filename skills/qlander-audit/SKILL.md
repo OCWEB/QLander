@@ -27,7 +27,7 @@ Each case needs:
 
 1. Act as the site owner's coding agent. Follow the kit's own `AGENTS.md`, `docs/qlander-start.md`, and bundled skills exactly as written; do not use maintainer knowledge to shortcut them. Everything confusing, missing, contradictory, or broken goes into the friction log with evidence.
 2. Run discovery to the combined approval gate. In batch mode (the default), self-approve as the owner proxy using [references/owner-proxy-rules.md](references/owner-proxy-rules.md) and record the full approval package in the feedback file. In interactive mode (maintainer says they want to approve), stop and present the package.
-3. After approval: populate, run the `qlander-design` pass only if the case requested finished design, run `pnpm qlander:check`, and commit inside the case repo.
+3. After approval: when the case requested finished design, run `qlander-design-research` before population; then populate, run `qlander-design`, run `pnpm qlander:check`, and commit inside the case repo.
 4. Hard limits: no deploys, no host or DNS config, no image generation (annotated placeholders plus prompt docs only), site stays draft/noindex, no downloads of reference-site assets, and clone-look content never contains the reference site's copy, claims, branding, or name outside brief provenance notes.
 
 ## Grading rubric

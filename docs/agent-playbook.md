@@ -13,8 +13,11 @@ When the user says `qlander start`, use `docs/qlander-start.md` before recommend
 3. Ask whether to use an official website, named local project paths, a written brief, or a combination.
 4. Research official sources first and inspect only the current repository plus paths the user explicitly names.
 5. Create or refresh `content/site-brief.md` with source-backed facts, uncertainties, sitemap, page experiences, and image plan.
-6. Present one compact approval gate. After approval, populate the draft and generate only the approved media.
-7. Run the required verification and report sources, assumptions, routes, media status, and unresolved gaps.
+6. Present one compact discovery approval gate.
+7. If the user requested finished design, redesign, rebrand, or visual research, run `skills/qlander-design-research/SKILL.md`, save the sourced direction comparison in `content/design-research.md`, and get direction approval before `qlander-design`.
+8. During the design pass, offer Impeccable only through its optional first-use consent gate. Never install it or enable hooks from general redesign approval.
+9. After applicable approvals, populate the draft and generate only the approved media.
+10. Run the required verification and report sources, assumptions, routes, media status, and unresolved gaps.
 
 Reuse the brief for routine edits. Offer a refresh for a rebrand, migration, changed official URL, explicit request, or major work when the brief is over 30 days old. Never expose the brief as a public route or store secrets in it.
 
