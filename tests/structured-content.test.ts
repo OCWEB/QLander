@@ -14,7 +14,7 @@ const repo = path.resolve(import.meta.dirname, "..");
 const tsx = path.join(repo, "node_modules/.bin/tsx");
 const checker = path.join(repo, "scripts/qlander-check.ts");
 
-test("contact sections default to action mode and informational mode needs no invented destination", () => {
+test("[fast] contact sections default to action mode and informational mode needs no invented destination", () => {
   const base = {
     title: "Contact",
     slug: "/contact",
@@ -34,7 +34,7 @@ test("contact sections default to action mode and informational mode needs no in
   assert.equal(SiteDataSchema.safeParse({ ...site, email: "", phone: "", contactUrl: undefined }).success, true);
 });
 
-test("explicit informational contact mode passes launch validation without contact coordinates", async () => {
+test("[integration] explicit informational contact mode passes launch validation without contact coordinates", async () => {
   const fixture = await copyFixture(true);
   const siteFile = path.join(fixture, "data/site.json");
   const siteData = JSON.parse(await readFile(siteFile, "utf8"));
@@ -69,7 +69,7 @@ test("explicit informational contact mode passes launch validation without conta
   assert.match(actionResult.output, /schema\.contact_missing/);
 });
 
-test("offering semantics produce Product, Service, and CollectionPage structured data", () => {
+test("[fast] offering semantics produce Product, Service, and CollectionPage structured data", () => {
   const common = {
     title: "Advisory",
     slug: "advisory",
@@ -87,7 +87,7 @@ test("offering semantics produce Product, Service, and CollectionPage structured
   assert.equal(productSchema(site, category)["@type"], "CollectionPage");
 });
 
-test("resources support detail documents and direct external links with progressive filters", async () => {
+test("[integration] resources support detail documents and direct external links with progressive filters", async () => {
   const detail = ResourceSchema.parse({
     title: "2025 report",
     slug: "2025-report",

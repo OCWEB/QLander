@@ -37,6 +37,20 @@ Profiles: `marketing-site`, `single-page-ppc`, `internal-scroll-world`, and
 wizard. For a marketing site, add `--no-blog`, `--no-products`, or `--no-resources`
 to omit an individual demo collection. `--minimal` omits all three collections.
 
+## Versioned migrations
+
+To review an upgrade from a 0.3.0 site to 0.4.0 without changing it:
+
+```bash
+pnpm qlander:migrate -- --root ../my-site --to 0.4.0 --dry-run
+```
+
+Remove `--dry-run` to apply safe structured-data defaults and record the migration
+in `qlander.manifest.json`. The migrator does not replace runtime/template files.
+It reports customized runtime conflicts and manual merge steps so those changes are
+never overwritten silently. Only the explicit 0.3.0 to 0.4.0 path is supported;
+rerunning an applied migration is a no-op.
+
 Before handing work back to a user, run:
 
 ```bash
@@ -228,13 +242,22 @@ pnpm build
 pnpm preview
 pnpm typecheck
 pnpm test
+pnpm test:fast
+pnpm test:integration
 pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Site"
 pnpm qlander:init -- --profile marketing-site --target ../minimal-site --name "Minimal Site" --minimal
 pnpm qlander:resource -- add --root . --slug report --kind external --title "Report" --summary "Official report." --href https://example.org/report
 pnpm qlander:resource -- remove --root . --slug report
+pnpm qlander:migrate -- --root ../my-site --to 0.4.0 --dry-run
 pnpm qlander:experience -- --slug tour --title "Product Tour"
 pnpm qlander:experience -- --section --page home --after home.hero --slug product-story --title "Product Story"
 pnpm qlander:experience -- --root --title "Product Tour"
 pnpm qlander:check
 pnpm qlander:check -- --launch
 ```
+
+`test:fast` runs unit and contract tests in parallel. Tests prefixed with
+`[integration]` build complete temporary fixtures and run serially through
+`test:integration`; `pnpm test` runs both. Vite caches under each fixture's
+`.astro/vite` directory, while serialization remains intentional to
+avoid build-process and shared dependency contention.

@@ -8,6 +8,7 @@ author: "QLander"
 tags:
   - starter
   - placeholder
+routed: true
 seo:
   title: "Welcome to QLander Starter"
   description: "How to customize the placeholder Astro site kit."

@@ -15,17 +15,17 @@ const repo = path.resolve(import.meta.dirname, "..");
 const tsx = path.join(repo, "node_modules/.bin/tsx");
 const checker = path.join(repo, "scripts/qlander-check.ts");
 
-test("repository contains no legacy technical namespace", async () => {
+test("[fast] repository contains no legacy technical namespace", async () => {
   assert.deepEqual(await findLegacyNamespace(repo), []);
 });
 
-test("JSON-LD serialization cannot create a second script", () => {
+test("[fast] JSON-LD serialization cannot create a second script", () => {
   const serialized = serializeJsonLd({ name: "</script><script>alert(1)</script>" });
   assert.equal(serialized.includes("</script>"), false);
   assert.match(serialized, /\\u003c\/script/);
 });
 
-test("editable URLs and theme/media tokens are allowlisted", () => {
+test("[fast] editable URLs and theme/media tokens are allowlisted", () => {
   assert.equal(isSafeHref("/about"), true);
   assert.equal(isSafeHref("https://example.org"), true);
   assert.equal(isSafeHref("javascript:alert(1)"), false);
@@ -34,13 +34,13 @@ test("editable URLs and theme/media tokens are allowlisted", () => {
   assert.equal(MediaSchema.safeParse({ src: "/images/../secret", alt: "x", width: 1, height: 1 }).success, false);
 });
 
-test("site contact data supports a URL without inventing email or phone values", () => {
+test("[fast] site contact data supports a URL without inventing email or phone values", () => {
   const urlOnly = { ...site, email: "", phone: "", contactUrl: "https://example.org/contact" };
   assert.equal(SiteDataSchema.safeParse(urlOnly).success, true);
   assert.equal(SiteDataSchema.safeParse({ ...urlOnly, contactUrl: "http://example.org/contact" }).success, false);
 });
 
-test("PPC layout and image prompt IDs are constrained", () => {
+test("[fast] PPC layout and image prompt IDs are constrained", () => {
   const page = {
     title: "Campaign", slug: "/", layout: "ppc",
     seo: { title: "Campaign", description: "Campaign landing page.", noindex: true },
@@ -54,7 +54,7 @@ test("PPC layout and image prompt IDs are constrained", () => {
   assert.equal(PageContentSchema.safeParse({ ...page, sections: [{ ...page.sections[0], imagePromptId: "Bad Prompt" }] }).success, false);
 });
 
-test("collection headings and CTAs are structured route data", async () => {
+test("[fast] collection headings and CTAs are structured route data", async () => {
   const routeSeo = RouteSeoSchema.parse(JSON.parse(await readFile(path.join(repo, "data/route-seo.json"), "utf8")));
   assert.equal(routeSeo.products?.heading, "Starter offers");
   assert.equal(routeSeo.products?.itemCtaLabel, "View package");
@@ -64,7 +64,7 @@ test("collection headings and CTAs are structured route data", async () => {
   assert.match(pageLayout, /needsProducts \?/);
 });
 
-test("discovery workflow keeps universal source, approval, reuse, media, and handoff contracts", async () => {
+test("[fast] discovery workflow keeps universal source, approval, reuse, media, and handoff contracts", async () => {
   const discovery = await readFile(path.join(repo, "skills/qlander-discovery/SKILL.md"), "utf8");
   const handoffs = await readFile(path.join(repo, "skills/qlander-discovery/references/population-and-handoffs.md"), "utf8");
   const ppc = await readFile(path.join(repo, "skills/ppc-world/SKILL.md"), "utf8");
@@ -81,7 +81,7 @@ test("discovery workflow keeps universal source, approval, reuse, media, and han
   assert.match(ppc, /content\/site-brief\.md/);
 });
 
-test("design research separates sourced direction selection from optional Impeccable execution", async () => {
+test("[fast] design research separates sourced direction selection from optional Impeccable execution", async () => {
   const research = await readFile(path.join(repo, "skills/qlander-design-research/SKILL.md"), "utf8");
   const template = await readFile(path.join(repo, "skills/qlander-design-research/references/design-research-template.md"), "utf8");
   const design = await readFile(path.join(repo, "skills/qlander-design/SKILL.md"), "utf8");
@@ -113,7 +113,7 @@ test("design research separates sourced direction selection from optional Impecc
   assert.match(agents, /qlander-design-research/);
 });
 
-test("bundled Scroll World defaults to manual queue without making the page type automatic", async () => {
+test("[fast] bundled Scroll World defaults to manual queue without making the page type automatic", async () => {
   const scroll = await readFile(path.join(repo, "skills/scroll-world/SKILL.md"), "utf8");
   const queue = await readFile(path.join(repo, "skills/scroll-world/references/manual-queue.md"), "utf8");
   const engine = await readFile(path.join(repo, "skills/scroll-world/references/scrub-engine.js"), "utf8");
@@ -132,7 +132,7 @@ test("bundled Scroll World defaults to manual queue without making the page type
   assert.equal(upstream.tracking, "vendored");
 });
 
-test("Scroll World experience schema supports still-first routes and constrains assets", () => {
+test("[fast] Scroll World experience schema supports still-first routes and constrains assets", () => {
   const experience = {
     kind: "scroll-world", slug: "tour",
     seo: { title: "Product Tour", description: "An interactive product journey.", noindex: true },
@@ -151,7 +151,7 @@ test("Scroll World experience schema supports still-first routes and constrains 
   assert.equal(ScrollWorldQueueSchema.safeParse(queue).success, true);
 });
 
-test("QLander registers Scroll World as an internal route without replacing the site", async () => {
+test("[integration] QLander registers Scroll World as an internal route without replacing the site", async () => {
   const fixture = await copyFixture(true);
   const register = path.join(fixture, "skills/scroll-world/references/scripts/register-qlander-experience.mjs");
   await run(process.execPath, [register, "--root", fixture, "--slug", "tour", "--title", "Product Tour", "--description", "Explore the complete product journey while the normal marketing site remains available."]);
@@ -171,7 +171,7 @@ test("QLander registers Scroll World as an internal route without replacing the 
   await assert.rejects(readFile(path.join(fixture, "src/pages/tour.astro"), "utf8"));
 });
 
-test("QLander registers Scroll World at the root without removing explicit site routes", async () => {
+test("[integration] QLander registers Scroll World at the root without removing explicit site routes", async () => {
   const fixture = await copyFixture(true);
   const register = path.join(fixture, "skills/scroll-world/references/scripts/register-qlander-experience.mjs");
   await run(process.execPath, [register, "--project-root", fixture, "--root", "--title", "Root Tour", "--cta-href", "https://example.org/contact"]);
@@ -186,7 +186,7 @@ test("QLander registers Scroll World at the root without removing explicit site 
   assert.match(rendered, /class="sw-fallback"/);
 });
 
-test("QLander inserts a scoped scroll-section without creating or replacing a route", async () => {
+test("[integration] QLander inserts a scoped scroll-section without creating or replacing a route", async () => {
   const fixture = await copyFixture(true);
   const register = path.join(fixture, "skills/scroll-world/references/scripts/register-qlander-experience.mjs");
   await run(process.execPath, [register, "--project-root", fixture, "--section", "--page", "home", "--after", "home.hero", "--slug", "product-story", "--title", "Product Story"]);
@@ -210,7 +210,7 @@ test("QLander inserts a scoped scroll-section without creating or replacing a ro
   await assert.rejects(readFile(path.join(fixture, "dist/product-story/index.html"), "utf8"));
 });
 
-test("QLander can replace only the hero with an h1 scroll-section", async () => {
+test("[integration] QLander can replace only the hero with an h1 scroll-section", async () => {
   const fixture = await copyFixture(true);
   const register = path.join(fixture, "skills/scroll-world/references/scripts/register-qlander-experience.mjs");
   await run(process.execPath, [register, "--project-root", fixture, "--section", "--page", "home", "--replace", "home.hero", "--slug", "hero-story", "--title", "Hero Story"]);
@@ -226,7 +226,7 @@ test("QLander can replace only the hero with an h1 scroll-section", async () => 
   assert.match(rendered, /class="site-footer"/);
 });
 
-test("QLander init generates all four detached project profiles", async () => {
+test("[integration] QLander init generates all four detached project profiles", async () => {
   const init = path.join(repo, "scripts/qlander-init.ts");
   for (const profile of ["marketing-site", "single-page-ppc", "internal-scroll-world", "root-scroll-world"]) {
     const target = await mkdtemp(path.join(os.tmpdir(), `qlander-init-${profile}-`));
@@ -249,12 +249,12 @@ test("QLander init generates all four detached project profiles", async () => {
   }
 });
 
-test("canonical URLs derive from the site origin and normalized route", () => {
+test("[fast] canonical URLs derive from the site origin and normalized route", () => {
   assert.equal(resolveCanonical("/about/", site), "https://example.com/about");
   assert.equal(resolveCanonical("/", site), "https://example.com/");
 });
 
-test("checker rejects invalid edit-map paths", async () => {
+test("[fast] checker rejects invalid edit-map paths", async () => {
   const fixture = await copyFixture();
   const mapFile = path.join(fixture, "qlander.edit-map.json");
   const editMap = JSON.parse(await readFile(mapFile, "utf8"));
@@ -265,7 +265,7 @@ test("checker rejects invalid edit-map paths", async () => {
   assert.match(result.output, /edit_map\.path_missing/);
 });
 
-test("checker rejects unsafe navigation", async () => {
+test("[fast] checker rejects unsafe navigation", async () => {
   const fixture = await copyFixture();
   const navigationFile = path.join(fixture, "data/navigation.json");
   const navigation = JSON.parse(await readFile(navigationFile, "utf8"));
@@ -276,7 +276,7 @@ test("checker rejects unsafe navigation", async () => {
   assert.match(result.output, /schema\.invalid/);
 });
 
-test("checker rejects manifest routes that do not build", async () => {
+test("[integration] checker rejects manifest routes that do not build", async () => {
   const fixture = await copyFixture(true);
   const manifestFile = path.join(fixture, "qlander.manifest.json");
   const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
@@ -287,7 +287,7 @@ test("checker rejects manifest routes that do not build", async () => {
   assert.match(result.output, /schema\.manifest_route_stale/);
 });
 
-test("a second structured product builds a detail route and listing image", async () => {
+test("[integration] a second structured product builds a detail route and listing image", async () => {
   const fixture = await copyFixture(true);
   const product = {
     title: "Second Offer", slug: "second-offer", summary: "A second fixture offer.", description: "Used to verify collection-driven listings.", priceLabel: "Fixture", featured: false,
@@ -306,7 +306,7 @@ test("a second structured product builds a detail route and listing image", asyn
   assert.match(listing, /Second offer/);
 });
 
-test("checker permits explicitly added client JavaScript", async () => {
+test("[integration] checker permits explicitly added client JavaScript", async () => {
   const fixture = await copyFixture(true);
   const layoutFile = path.join(fixture, "src/layouts/BaseLayout.astro");
   const layout = await readFile(layoutFile, "utf8");
@@ -317,7 +317,7 @@ test("checker permits explicitly added client JavaScript", async () => {
   assert.match(rendered, /<script/);
 });
 
-test("site discovery brief is advisory and never becomes a public route", async () => {
+test("[integration] site discovery brief is advisory and never becomes a public route", async () => {
   const fixture = await copyFixture(true);
   const brief = `---
 kind: qlander-site-brief
@@ -339,7 +339,7 @@ This intentionally stale proposed brief must not block a build or become a route
   assert.equal(manifest.routes.includes("/site-brief"), false);
 });
 
-test("launch mode rejects the draft starter", async () => {
+test("[fast] launch mode rejects the draft starter", async () => {
   const fixture = await copyFixture();
   const result = await runChecker(fixture, ["--skip-build", "--launch", "--json"]);
   assert.notEqual(result.code, 0);
@@ -347,7 +347,7 @@ test("launch mode rejects the draft starter", async () => {
   assert.match(result.output, /seo\.placeholder_domain/);
 });
 
-test("PPC layout removes site chrome and renders a documented prompt annotation", async () => {
+test("[integration] PPC layout removes site chrome and renders a documented prompt annotation", async () => {
   const fixture = await copyFixture(true);
   const homeFile = path.join(fixture, "content/pages/home.json");
   const home = JSON.parse(await readFile(homeFile, "utf8"));
@@ -366,7 +366,7 @@ test("PPC layout removes site chrome and renders a documented prompt annotation"
   assert.match(rendered, /Prompt: campaign\.hero-visual/);
 });
 
-test("checker rejects competing primary PPC destinations", async () => {
+test("[fast] checker rejects competing primary PPC destinations", async () => {
   const fixture = await copyFixture();
   const homeFile = path.join(fixture, "content/pages/home.json");
   const home = JSON.parse(await readFile(homeFile, "utf8"));
@@ -379,7 +379,7 @@ test("checker rejects competing primary PPC destinations", async () => {
   assert.match(result.output, /schema\.ppc_cta_mismatch/);
 });
 
-test("checker rejects an undocumented image prompt ID", async () => {
+test("[fast] checker rejects an undocumented image prompt ID", async () => {
   const fixture = await copyFixture();
   const homeFile = path.join(fixture, "content/pages/home.json");
   const home = JSON.parse(await readFile(homeFile, "utf8"));
