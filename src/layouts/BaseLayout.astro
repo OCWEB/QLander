@@ -546,6 +546,110 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
           flex-direction: column;
         }
       }
+
+      /* Design-system component treatments: these selectors make the approved
+         data/design-system.json enums visible without template edits. */
+      :root[data-surface="flat"] .feature-grid article,
+      :root[data-surface="flat"] .product-card,
+      :root[data-surface="flat"] .blog-list article,
+      :root[data-surface="flat"] .resource-list article {
+        border-color: transparent;
+        background: transparent;
+        padding: 0;
+      }
+
+      :root[data-surface="flat"] .cta-section {
+        border-block-color: transparent;
+      }
+
+      :root[data-surface="elevated"] .feature-grid article,
+      :root[data-surface="elevated"] .product-card,
+      :root[data-surface="elevated"] .blog-list article,
+      :root[data-surface="elevated"] .resource-list article {
+        border-color: transparent;
+        background: white;
+        box-shadow: 0 12px 32px color-mix(in srgb, var(--ink), transparent 88%);
+      }
+
+      :root[data-image-treatment="full-bleed"] .content-image {
+        border-radius: 0;
+      }
+
+      :root[data-image-treatment="soft"] .content-image {
+        border-radius: max(calc(var(--radius) * 3), 20px);
+        box-shadow: 0 16px 38px color-mix(in srgb, var(--ink), transparent 86%);
+      }
+
+      :root[data-image-treatment="editorial"] .content-image {
+        border-radius: 0;
+        border: 1px solid color-mix(in srgb, var(--ink), transparent 78%);
+        padding: 6px;
+        background: white;
+      }
+
+      .button.primary,
+      button {
+        background: var(--accent);
+      }
+
+      .button.primary:hover,
+      button:hover {
+        background: var(--accentDark);
+      }
+
+      :root[data-button-style="solid"] .button.secondary {
+        border-color: transparent;
+        background: color-mix(in srgb, var(--accent), transparent 88%);
+        color: var(--ink);
+      }
+
+      :root[data-button-style="text-forward"] .button.secondary {
+        border-color: transparent;
+        background: transparent;
+        text-decoration: underline;
+        text-underline-offset: 5px;
+        text-decoration-color: color-mix(in srgb, var(--accent), transparent 35%);
+        padding-inline: 6px;
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        :root[data-motion="subtle"] main > *,
+        :root[data-motion="expressive"] main > * {
+          animation: qlander-rise 0.6s ease-out both;
+        }
+
+        :root[data-motion="expressive"] main > * {
+          animation-duration: 0.8s;
+        }
+
+        @supports (animation-timeline: view()) {
+          :root[data-motion="expressive"] main > * {
+            animation-timeline: view();
+            animation-range: entry 0% entry 55%;
+          }
+        }
+
+        :root[data-motion="subtle"] .button,
+        :root[data-motion="expressive"] .button {
+          transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        :root[data-motion="expressive"] .button:hover {
+          transform: translateY(-2px);
+        }
+      }
+
+      @keyframes qlander-rise {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
     </style>
   </head>
   <body>

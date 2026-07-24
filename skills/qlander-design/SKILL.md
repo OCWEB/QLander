@@ -12,7 +12,7 @@ The starter wireframe is grayscale on purpose. This skill is the sanctioned path
 ## Two tiers, one approval
 
 - Data tier: `data/theme.json` owns approved color and radius; `data/design-system.json` owns approved typography, spacing, content widths, component treatment, and motion policy; content copy and `public/images/` remain structured inputs.
-- Layout-handoff tier: `src/layout-handoffs.ts` registers approved project-local page or section renderers. A prompted project must use at least one material handoff; changing only tokens, copy, images, or section order is not a completed design.
+- Layout-handoff tier: `src/layout-handoffs.ts` registers approved project-local page or section renderers. A prompted project must use at least one material handoff; changing only tokens, copy, images, or section order is not a completed design. Author renderers with [references/layout-handoff-recipe.md](references/layout-handoff-recipe.md); it carries the marker, SEO, token, and registration contract.
 - Template tier: self-hosted font declarations, custom renderers, and approved interaction details are developer-mode `src/` edits covered by the combined approval. Do not re-ask per file.
 
 `ThemeSchema` is strict: exactly `colors.{ink,paper,muted,accent,accentDark}` as hex plus `radius` 0 to 8. Never add fields to `theme.json`. `DesignSystemSchema` is also strict; update its existing typography, spacing, layout, component, and motion fields rather than scattering page-specific values.
