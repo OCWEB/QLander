@@ -155,10 +155,11 @@ async function pruneToRootProfile(projectRoot, manifestValue, editMapValue) {
   const files = [
     "src/pages/about.astro", "src/pages/contact.astro", "src/pages/privacy.astro",
     "src/pages/blog/index.astro", "src/pages/blog/[slug].astro",
-    "src/pages/products/index.astro", "src/pages/products/[slug].astro"
+    "src/pages/products/index.astro", "src/pages/products/[slug].astro",
+    "src/pages/resources/index.astro", "src/pages/resources/[slug].astro"
   ];
   for (const file of files) await rm(path.join(projectRoot, file), { force: true });
-  for (const directory of ["content/pages", "content/products", "content/blog"]) {
+  for (const directory of ["content/pages", "content/products", "content/resources", "content/blog"]) {
     await rm(path.join(projectRoot, directory), { recursive: true, force: true });
     await mkdir(path.join(projectRoot, directory), { recursive: true });
   }

@@ -1,0 +1,12 @@
+{
+  "title": "Example external filing",
+  "slug": "external-filing",
+  "summary": "A structured example of a resource that links directly to a trusted external host.",
+  "year": 2024,
+  "type": "Filing",
+  "destination": {
+    "kind": "external",
+    "href": "https://example.org/filing",
+    "label": "View external filing"
+  }
+}

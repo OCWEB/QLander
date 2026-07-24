@@ -1,6 +1,7 @@
 {
   "title": "Starter Offer",
   "slug": "starter-product",
+  "kind": "service",
   "summary": "A placeholder product, package, or service card ready to customize.",
   "description": "Use this page to describe a real offer. Replace the title, summary, price label, and details when the site owner has final copy.",
   "priceLabel": "Placeholder",

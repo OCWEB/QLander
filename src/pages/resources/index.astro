@@ -1,0 +1,14 @@
+---
+import { getCollection } from "astro:content";
+import type { Resource } from "../../lib/types";
+import routeSeo from "../../../data/route-seo.json";
+import ResourceList from "../../components/ResourceList.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const resources = (await getCollection("resources")).map((entry) => entry.data as Resource);
+const sorted = resources.sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.title.localeCompare(b.title));
+---
+
+<BaseLayout seo={routeSeo.resources}>
+  <ResourceList resources={sorted} labels={routeSeo.resources} />
+</BaseLayout>
