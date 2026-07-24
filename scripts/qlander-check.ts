@@ -113,7 +113,10 @@ function validatePpcPages(model: Model) {
 
 function validateLaunch(model: Model) {
   if (model.site.launchStatus === "draft") addWarning("seo.draft", "Draft mode forces every route to noindex and blocks crawling");
-  if (!launch) return;
+  if (!launch) {
+    if (model.site.email.endsWith("@example.com") || (() => { try { return new URL(model.site.url).hostname === "example.com"; } catch { return false; } })()) addWarning("seo.placeholder_contact", "Starter example.com email or URL is still in data/site.json; replace it before going live");
+    return;
+  }
   if (model.site.launchStatus !== "live") addError("seo.launch_status", "Launch mode requires launchStatus=live");
   if (new URL(model.site.url).hostname === "example.com") addError("seo.placeholder_domain", "Launch mode requires a production domain");
   if (model.site.email && model.site.email.endsWith("@example.com")) addError("schema.placeholder_email", "Launch mode requires a real contact email");
