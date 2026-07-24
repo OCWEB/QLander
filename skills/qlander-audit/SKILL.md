@@ -19,7 +19,14 @@ Each case needs a lowercased reference-domain `case id`, a `redesign` or `clone-
 
 ## Immediate durable feedback
 
-Create `feedback_improve.md` immediately after init: as soon as `pnpm qlander:init` returns, before discovery or web research, copy [references/feedback-template.md](references/feedback-template.md). Fill case metadata, mark every scorecard row `not reached`, set the checkpoint status to `initialized`, and commit it as `Audit: initialize <case id>`. If any later phase fails or exhausts its budget, update and commit this partial scorecard instead of losing the run.
+Create `feedback_improve.md` immediately after init, before discovery or web research, with the executable helper. It copies [references/feedback-template.md](references/feedback-template.md), embeds versioned machine-readable JSON state, fills case metadata, marks every scorecard row `not reached`, and commits `Audit: initialize <case id>` by default:
+
+```bash
+pnpm qlander:audit init --root ../qlander_<case-id> --case <case-id> \
+  --scenario <redesign|clone-look> --mode <batch|interactive> --sources <url>
+```
+
+Use `--no-commit` only in automated tests. If any later phase fails or exhausts its budget, preserve and commit the partial scorecard instead of losing the run.
 
 ## Resumable checkpoints and budgets
 
@@ -27,9 +34,13 @@ Run each phase from the last committed checkpoint. To resume, read `feedback_imp
 
 Set a call budget and time budget in the feedback file before work starts. Defaults per case are 30 external research/browser calls and 45 elapsed minutes, with no more than 12 calls or 15 minutes in discovery. Stop at the first exhausted budget, record the incomplete result and next action, preserve the partial scorecard, and commit the checkpoint.
 
-1. **Discovery checkpoint:** follow `AGENTS.md`, `docs/qlander-start.md`, and bundled discovery exactly. Record the approval package and source ledger, update checkpoint status, then make a separate commit `Audit: discovery <case id>`.
-2. **Implementation checkpoint:** after approval, run design research when requested, populate, and run design. Update friction and grades reached so far, then make a separate commit `Audit: implement <case id>`.
-3. **Verification checkpoint:** run the CLI visual-contract and all required checks, perform browser-visual-qa, save evidence, complete the scorecard, then make a separate commit `Audit: verify <case id>`. Never combine these three checkpoint commits.
+Each checkpoint is a separate commit. Follow this sequence:
+
+1. **Discovery checkpoint:** follow `AGENTS.md`, `docs/qlander-start.md`, and bundled discovery exactly. Record and commit the approval package and source ledger, then run `pnpm qlander:audit checkpoint discovery --root <case-repo>` for the separate durable checkpoint commit.
+2. **Implementation checkpoint:** after approval, run design research when requested, populate, run design, and commit the work and current feedback. Then run `pnpm qlander:audit checkpoint implementation --root <case-repo>`.
+3. **Verification checkpoint:** run the CLI visual-contract and all required checks, perform browser-visual-qa, save and commit evidence, and complete and commit the scorecard. Then run `pnpm qlander:audit checkpoint verification --root <case-repo>`. Never combine these three checkpoint commits.
+
+Use `pnpm qlander:audit status --root <case-repo>` to read the embedded state as JSON. The checkpoint helper refuses out-of-order transitions and refuses to overwrite dirty `feedback_improve.md`.
 
 Batch mode self-approves with [references/owner-proxy-rules.md](references/owner-proxy-rules.md); interactive mode stops at the approval gate.
 
@@ -48,12 +59,14 @@ pnpm exec tsx skills/qlander-audit/scripts/audit-preview-port.ts \
 
 Use the returned preview command and URL. Before accepting any browser evidence, parse the loaded page's `<title>` and compare its suffix with `expectedTitleSuffix`; parse `<meta name="qlander-site-id">` and compare it with the helper's expected site ID. Also verify the browser URL uses the returned port. A page from another case, title mismatch, site-ID mismatch, error document, or stale server invalidates the capture.
 
-Save non-empty desktop and phone screenshots with `desktop` and `phone` (or `mobile`) in their filenames under `docs/screenshots/`, commit them, and record route, viewport, title, site ID, port, and observed result in feedback.
+Save PNG screenshots under `docs/screenshots/` and add each to the version 1 `docs/screenshots/manifest.json`. Every entry must contain `route`, `viewport.width`, `viewport.height`, `siteId`, `pageTitle`, `previewPort`, `url`, `filename`, lowercase `sha256`, and ISO `capturedAt`. The filename is a basename relative to `docs/screenshots/`. Commit the manifest and every listed PNG. Record the observed result in feedback.
+
+At least one capture must be desktop width (1024px or wider) and one must be phone width (480px or narrower). The checker verifies clean/tracked state, declared site and route, URL route and port, SHA-256, and actual PNG IHDR dimensions. Filename labels are not evidence.
 
 ## Validation semantics
 
 - `pnpm qlander:check` performs deterministic **visual-contract** checks over built HTML. It does not prove rendering in a browser.
-- `pnpm qlander:check -- --audit` adds **browser-visual-qa** evidence validation. Audit mode requires committed desktop and phone screenshots; missing evidence is a failure, never a pass.
+- `pnpm qlander:check -- --audit` adds separate **browser-visual-qa** evidence validation. Audit mode requires a committed structured manifest and its committed desktop and phone PNGs; missing, dirty, inconsistent, corrupt, or tampered evidence is a failure, never a pass.
 - Run build, typecheck, tests, and audit-mode `qlander:check`. Record exact commands and outputs.
 
 ## Hard limits

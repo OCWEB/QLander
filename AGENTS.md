@@ -75,7 +75,7 @@ Run this before final response:
 pnpm qlander:check
 ```
 
-`qlander:check` reports built-HTML `visual-contract` validation. Kit audit cases additionally run `pnpm qlander:check -- --audit`; its separate `browser-visual-qa` result requires committed desktop and phone images under `docs/screenshots/` and fails when evidence is missing.
+`qlander:check` reports built-HTML `visual-contract` validation. Kit audit cases additionally run `pnpm qlander:check -- --audit`; its separate `browser-visual-qa` result requires a clean, committed versioned `docs/screenshots/manifest.json` and its SHA-256-verified desktop and phone PNG files. Filename labels alone are not evidence.
 
 If checks fail, fix the issue or clearly report the failure and the file involved.
 

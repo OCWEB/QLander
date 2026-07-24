@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { execFileSync, spawn } from "node:child_process";
 import { existsSync, readFileSync, rmSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -41,7 +41,11 @@ if (model) {
   await validateImagePrompts(model);
   validateExperienceAssets(model);
 }
-if (audit) validateBrowserVisualEvidence();
+if (audit && model) validateBrowserVisualEvidence(model);
+else if (audit) {
+  browserVisualQa = "failed";
+  addError("browser_visual_qa.site_unavailable", "Browser evidence cannot be validated until the site manifest loads");
+}
 
 if (!skipBuild) {
   const built = await runBuild();
@@ -72,24 +76,91 @@ else {
 }
 if (errors.length) process.exitCode = 1;
 
-function validateBrowserVisualEvidence() {
-  let tracked: string[];
+function validateBrowserVisualEvidence(model: Model) {
+  const manifestRelative = "docs/screenshots/manifest.json";
+  const manifestFile = path.join(root, manifestRelative);
+  let tracked: Set<string>;
   try {
-    tracked = execFileSync("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", "docs/screenshots"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).split("\n").filter(Boolean);
+    tracked = new Set(execFileSync("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", "docs/screenshots"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).split("\n").filter(Boolean));
     const dirtyEvidence = execFileSync("git", ["status", "--porcelain", "--", "docs/screenshots"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
     if (dirtyEvidence) throw new Error("browser evidence is not committed");
   } catch {
     browserVisualQa = "failed";
-    addError("browser_visual_qa.evidence_missing", "Audit mode requires committed desktop and phone screenshots under docs/screenshots");
+    addError("browser_visual_qa.evidence_uncommitted", "Audit mode requires clean, committed screenshot evidence under docs/screenshots");
     return;
   }
-  const evidence = tracked.filter((file) => /\.(avif|jpe?g|png|webp)$/i.test(file) && existsSync(path.join(root, file)) && statSync(path.join(root, file)).size > 0);
-  const desktop = evidence.some((file) => /desktop/i.test(path.basename(file)));
-  const phone = evidence.some((file) => /(phone|mobile)/i.test(path.basename(file)));
-  if (!desktop || !phone) {
+  if (!tracked.has(manifestRelative) || !existsSync(manifestFile)) {
     browserVisualQa = "failed";
-    addError("browser_visual_qa.evidence_missing", "Audit mode requires non-empty committed *desktop* and *phone* (or *mobile*) image files under docs/screenshots");
+    addError("browser_visual_qa.manifest_missing", "Audit mode requires committed docs/screenshots/manifest.json");
+    return;
   }
+  let manifest: any;
+  try { manifest = JSON.parse(readFileSync(manifestFile, "utf8")); }
+  catch { failEvidence("manifest_invalid", "Screenshot manifest must contain valid JSON"); return; }
+  if (manifest?.version !== 1 || !Array.isArray(manifest.screenshots)) {
+    failEvidence("manifest_invalid", "Screenshot manifest must use version 1 and contain a screenshots array");
+    return;
+  }
+  let desktop = false;
+  let phone = false;
+  const listed = new Set<string>();
+  for (const [index, entry] of manifest.screenshots.entries()) {
+    const label = `Screenshot manifest entry ${index}`;
+    if (!entry || typeof entry !== "object" || typeof entry.route !== "string" || !Number.isInteger(entry.viewport?.width) || entry.viewport.width < 1 || !Number.isInteger(entry.viewport?.height) || entry.viewport.height < 1 || typeof entry.siteId !== "string" || typeof entry.pageTitle !== "string" || !Number.isInteger(entry.previewPort) || typeof entry.url !== "string" || typeof entry.filename !== "string" || typeof entry.sha256 !== "string" || typeof entry.capturedAt !== "string") {
+      failEvidence("manifest_invalid", `${label} is missing required route, viewport, siteId, pageTitle, previewPort, url, filename, sha256, or capturedAt fields`);
+      continue;
+    }
+    if (!model.manifest.routes.includes(entry.route)) failEvidence("route_mismatch", `${label} route ${entry.route} is not declared by qlander.manifest.json`);
+    if (entry.siteId !== model.manifest.siteId) failEvidence("site_id_mismatch", `${label} siteId must be ${model.manifest.siteId}`);
+    if (!entry.pageTitle.trim()) failEvidence("title_invalid", `${label} pageTitle must be non-empty`);
+    if (!Number.isInteger(entry.previewPort) || entry.previewPort < 1 || entry.previewPort > 65535) failEvidence("port_mismatch", `${label} previewPort is invalid`);
+    if (!Number.isFinite(Date.parse(entry.capturedAt)) || new Date(entry.capturedAt).toISOString() !== entry.capturedAt) failEvidence("captured_at_invalid", `${label} capturedAt must be an ISO-8601 timestamp`);
+    let captureUrl: URL | undefined;
+    try { captureUrl = new URL(entry.url); } catch { failEvidence("url_invalid", `${label} URL is invalid`); }
+    if (captureUrl) {
+      if (!(["http:", "https:"] as string[]).includes(captureUrl.protocol)) failEvidence("url_invalid", `${label} URL must use HTTP or HTTPS`);
+      let urlRoute = "";
+      try { urlRoute = normalize(decodeURIComponent(captureUrl.pathname)); } catch { failEvidence("url_invalid", `${label} URL path contains invalid encoding`); }
+      if (urlRoute !== normalize(entry.route)) failEvidence("route_mismatch", `${label} URL path ${captureUrl.pathname} does not match route ${entry.route}`);
+      if (Number(captureUrl.port || (captureUrl.protocol === "https:" ? 443 : 80)) !== entry.previewPort) failEvidence("port_mismatch", `${label} URL port does not match previewPort ${entry.previewPort}`);
+    }
+    if (path.basename(entry.filename) !== entry.filename || !/\.png$/i.test(entry.filename)) {
+      failEvidence("filename_invalid", `${label} filename must be a PNG basename under docs/screenshots`);
+      continue;
+    }
+    const relative = `docs/screenshots/${entry.filename}`;
+    if (listed.has(relative)) failEvidence("manifest_duplicate", `${relative} is listed more than once`);
+    listed.add(relative);
+    const file = path.join(root, relative);
+    if (!tracked.has(relative) || !existsSync(file) || statSync(file).size === 0) {
+      failEvidence("evidence_missing", `${label} requires committed file ${relative}`);
+      continue;
+    }
+    const buffer = readFileSync(file);
+    const dimensions = pngDimensions(buffer);
+    if (!dimensions) { failEvidence("png_invalid", `${relative} is not a real PNG with an IHDR chunk`); continue; }
+    if (dimensions.width !== entry.viewport.width || dimensions.height !== entry.viewport.height) failEvidence("dimensions_mismatch", `${relative} IHDR is ${dimensions.width}x${dimensions.height}, not ${entry.viewport.width}x${entry.viewport.height}`);
+    const digest = createHash("sha256").update(buffer).digest("hex");
+    if (!/^[a-f0-9]{64}$/.test(entry.sha256) || digest !== entry.sha256) failEvidence("sha256_mismatch", `${relative} SHA-256 does not match its manifest entry`);
+    if (entry.viewport.width >= 1024) desktop = true;
+    if (entry.viewport.width <= 480) phone = true;
+  }
+  for (const file of tracked) if (/^docs\/screenshots\/.*\.png$/i.test(file) && !listed.has(file)) failEvidence("manifest_unlisted", `Committed screenshot ${file} is not listed in the manifest`);
+  if (!desktop || !phone) failEvidence("viewport_coverage", "Audit mode requires at least one desktop-width capture (>=1024px) and one phone-width capture (<=480px)");
+
+  function failEvidence(code: string, message: string) {
+    browserVisualQa = "failed";
+    addError(`browser_visual_qa.${code}`, message);
+  }
+}
+
+function pngDimensions(buffer: Buffer) {
+  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  if (buffer.length < 33 || !buffer.subarray(0, 8).equals(signature) || buffer.readUInt32BE(8) !== 13 || buffer.toString("ascii", 12, 16) !== "IHDR") return null;
+  const width = buffer.readUInt32BE(16);
+  const height = buffer.readUInt32BE(20);
+  if (!width || !height || buffer.toString("ascii", buffer.length - 8, buffer.length - 4) !== "IEND") return null;
+  return { width, height };
 }
 
 async function loadModel() {
