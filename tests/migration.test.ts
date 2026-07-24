@@ -65,6 +65,8 @@ test("[integration] 0.3.0 migration applies safe defaults and is idempotent", as
   assert.equal(manifest.templateVersion, "0.4.0");
   assert.equal(manifest.migrations.length, 1);
   assert.equal(manifest.migrations[0].from, "0.3.0");
+  assert.equal(manifest.migrations[0].status, "complete");
+  assert.deepEqual(manifest.migrations[0].runtimePending, []);
   assert.equal(JSON.parse(await readFile(path.join(root, "content/products/starter-product.json"), "utf8")).kind, "product");
   const contact = JSON.parse(await readFile(path.join(root, "content/pages/contact.json"), "utf8"));
   assert.equal(contact.sections.find((section: any) => section.type === "contact").mode, "action");
@@ -75,6 +77,29 @@ test("[integration] 0.3.0 migration applies safe defaults and is idempotent", as
   assert.equal(second.code, 0, second.output);
   assert.equal(JSON.parse(second.output).status, "already-current");
   assert.equal(await readFile(path.join(root, "qlander.manifest.json"), "utf8"), before);
+});
+
+test("[integration] customized runtime remains pending until explicitly accepted", async () => {
+  const root = await fixture();
+  const configFile = path.join(root, "astro.config.mjs");
+  await writeFile(configFile, `${await readFile(configFile, "utf8")}\n// intentional project customization\n`);
+
+  const pending = await invoke(root);
+  assert.notEqual(pending.code, 0, pending.output);
+  const pendingReport = JSON.parse(pending.output);
+  assert.equal(pendingReport.status, "runtime-pending");
+  assert.ok(pendingReport.runtimePending.includes("astro.config.mjs"));
+  let manifest = JSON.parse(await readFile(path.join(root, "qlander.manifest.json"), "utf8"));
+  assert.equal(manifest.templateVersion, "0.3.0");
+  assert.equal(manifest.migrations, undefined);
+  assert.equal(JSON.parse(await readFile(path.join(root, "content/products/starter-product.json"), "utf8")).kind, undefined);
+
+  const accepted = await invoke(root, "--accept-custom-runtime");
+  assert.equal(accepted.code, 0, accepted.output);
+  manifest = JSON.parse(await readFile(path.join(root, "qlander.manifest.json"), "utf8"));
+  assert.equal(manifest.templateVersion, "0.4.0");
+  assert.equal(manifest.migrations.length, 1);
+  assert.equal(manifest.migrations[0].status, "complete");
 });
 
 test("[integration] migration rejects unsupported source and target versions", async () => {
@@ -91,4 +116,3 @@ test("[integration] migration rejects unsupported source and target versions", a
     assert.match(`${error.stderr}${error.stdout}`, /Unsupported target version/);
   }
 });
-

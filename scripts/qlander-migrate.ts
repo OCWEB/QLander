@@ -13,15 +13,15 @@ type Operation = { kind: string; file: string; detail: string };
 type Issue = { file: string; detail: string };
 type PlannedWrite = { file: string; content: string; operation: Operation };
 
-const runtime030Hashes: Record<string, string> = {
-  "package.json": "2b7ac3a2cda4c8d27ff7657e7d22b3b916d4953be130ada047e5a9789dd26f97",
-  "astro.config.mjs": "d70bc0de0993073376108ea6bd057faca3c76e30e53d2de369d5729f901c6a6d",
-  "tsconfig.json": "7d3ba9279b0a3d5bdf3693d939d7000d82eb31dd3a492593dcf7af77a3eb9ad3",
-  "src/lib/schemas.ts": "e1d13a1e69849b7a686345a3abfb52c696b9168d646186ef190f1e1adb77fb16",
-  "src/content.config.ts": "ece884414d600218018e537552b768523784717a0400cdc9965a6df332e0076b",
-  "scripts/qlander-check.ts": "fad8e943f82cb637f8ae363a536593ed50387674b2b321888863eb43772d308f",
-  "scripts/generate-site-files.ts": "50687d98740c067f23646aebf0b54977fc2eb8776de7dd0ae00fccf215b1d8b6"
-};
+const runtimeFiles = [
+  "package.json",
+  "astro.config.mjs",
+  "tsconfig.json",
+  "src/lib/schemas.ts",
+  "src/content.config.ts",
+  "scripts/qlander-check.ts",
+  "scripts/generate-site-files.ts"
+];
 
 const sentinel = `---
 title: "QLander empty blog sentinel"
@@ -47,6 +47,7 @@ const args = parseArgs(argv);
 const root = path.resolve(stringArg(args, "root", "."));
 const target = stringArg(args, "to", CURRENT_VERSION);
 const dryRun = args["dry-run"] === true;
+const acceptCustomRuntime = args["accept-custom-runtime"] === true;
 const json = args.json === true;
 
 try {
@@ -60,28 +61,44 @@ try {
   } else {
     if (manifest.templateVersion !== SUPPORTED_FROM) fail(`Unsupported source version ${String(manifest.templateVersion)}; supported source: ${SUPPORTED_FROM}`);
     const plan = await planMigration(root, manifest);
-    if (!dryRun) {
-      for (const item of plan.writes) await writeFile(item.file, item.content);
-      const record = {
+    if (!dryRun && plan.conflicts.length) fail(`Migration is blocked by ${plan.conflicts.length} unsafe content conflict(s); rerun with --dry-run and resolve them first`);
+    const complete = plan.runtimePending.length === 0 || acceptCustomRuntime;
+    if (!dryRun && !complete) {
+      print({ status: "runtime-pending", root, from: SUPPORTED_FROM, to: CURRENT_VERSION, dryRun, operations: plan.operations, conflicts: plan.conflicts, runtimePending: plan.runtimePending, manualSteps: plan.manualSteps });
+      process.exitCode = 2;
+    } else {
+      if (!dryRun) {
+        for (const item of plan.writes) await writeFile(item.file, item.content);
+        const previous = Array.isArray(manifest.migrations)
+          ? manifest.migrations.find((item: any) => item?.from === SUPPORTED_FROM && item?.to === CURRENT_VERSION)
+          : undefined;
+        const record = {
+          from: SUPPORTED_FROM,
+          to: CURRENT_VERSION,
+          appliedAt: new Date().toISOString(),
+          status: "complete",
+          operations: [...new Set([...(previous?.operations ?? []), ...plan.operations.map((item) => `${item.kind}:${item.file}`)])],
+          runtimePending: []
+        };
+        manifest.templateVersion = CURRENT_VERSION;
+        manifest.migrations = [
+          ...(Array.isArray(manifest.migrations) ? manifest.migrations.filter((item: any) => !(item?.from === SUPPORTED_FROM && item?.to === CURRENT_VERSION)) : []),
+          record
+        ];
+        await writeJson(manifestFile, manifest);
+      }
+      print({
+        status: dryRun ? "planned" : "migrated",
+        root,
         from: SUPPORTED_FROM,
         to: CURRENT_VERSION,
-        appliedAt: new Date().toISOString(),
-        operations: plan.operations.map((item) => `${item.kind}:${item.file}`)
-      };
-      manifest.templateVersion = CURRENT_VERSION;
-      manifest.migrations = [...(Array.isArray(manifest.migrations) ? manifest.migrations : []), record];
-      await writeJson(manifestFile, manifest);
+        dryRun,
+        operations: plan.operations,
+        conflicts: plan.conflicts,
+        runtimePending: plan.runtimePending,
+        manualSteps: plan.manualSteps
+      });
     }
-    print({
-      status: dryRun ? "planned" : "migrated",
-      root,
-      from: SUPPORTED_FROM,
-      to: CURRENT_VERSION,
-      dryRun,
-      operations: plan.operations,
-      conflicts: plan.conflicts,
-      manualSteps: plan.manualSteps
-    });
   }
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
@@ -136,25 +153,24 @@ async function planMigration(root: string, manifest: any) {
     }
   }
 
-  const customizedRuntime: string[] = [];
-  for (const [name, expected] of Object.entries(runtime030Hashes)) {
+  const runtimePending: string[] = [];
+  const kitRoot = path.resolve(import.meta.dirname, "..");
+  for (const name of runtimeFiles) {
     const file = path.join(root, name);
+    const kitFile = path.join(kitRoot, name);
     if (!existsSync(file)) {
-      conflicts.push({ file: name, detail: "Expected 0.3.0 runtime file is missing; restore or update it manually" });
+      runtimePending.push(name);
       continue;
     }
-    const actual = hash(await readFile(file));
-    if (actual !== expected) {
-      customizedRuntime.push(name);
-      conflicts.push({ file: name, detail: "Runtime file differs from the 0.3.0 baseline and was not overwritten" });
-    }
+    if (!existsSync(kitFile) || hash(await readFile(file)) !== hash(await readFile(kitFile))) runtimePending.push(name);
   }
   manualSteps.push("Runtime files are never overwritten by this conservative migration; review and merge the 0.4.0 runtime/template diff separately.");
-  if (customizedRuntime.length) manualSteps.push(`Manually merge customized runtime files: ${customizedRuntime.join(", ")}.`);
+  if (runtimePending.length) manualSteps.push(`Manually merge runtime files, then rerun; if intentional customizations remain, pass --accept-custom-runtime explicitly: ${runtimePending.join(", ")}.`);
   if (conflicts.length) manualSteps.push("Resolve every reported conflict, then run pnpm typecheck, pnpm test, and pnpm qlander:check.");
-  else manualSteps.push("After merging the 0.4.0 runtime/template diff, run pnpm typecheck, pnpm test, and pnpm qlander:check.");
+  else if (runtimePending.length) manualSteps.push("No files are changed and the manifest remains at 0.3.0 until runtime reconciliation is complete.");
+  else manualSteps.push("Run pnpm typecheck, pnpm test, and pnpm qlander:check.");
 
-  return { writes, operations, conflicts, manualSteps };
+  return { writes, operations, conflicts, runtimePending, manualSteps };
 }
 
 async function planJsonDefaults(
@@ -188,7 +204,7 @@ function parseArgs(values: string[]) {
     const token = values[index];
     if (!token.startsWith("--")) fail(`Unexpected argument: ${token}`);
     const key = token.slice(2);
-    if (["dry-run", "json"].includes(key)) parsed[key] = true;
+    if (["dry-run", "json", "accept-custom-runtime"].includes(key)) parsed[key] = true;
     else {
       const value = values[++index];
       if (!value || value.startsWith("--")) fail(`Missing value for --${key}`);

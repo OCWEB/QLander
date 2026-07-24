@@ -41,12 +41,6 @@ if (model) {
   await validateImagePrompts(model);
   validateExperienceAssets(model);
 }
-if (audit && model) validateBrowserVisualEvidence(model);
-else if (audit) {
-  browserVisualQa = "failed";
-  addError("browser_visual_qa.site_unavailable", "Browser evidence cannot be validated until the site manifest loads");
-}
-
 if (!skipBuild) {
   const built = await runBuild();
   if (!built.ok) { checks.build = "failed"; addError("build.failed", built.output || "Build failed"); }
@@ -56,6 +50,11 @@ if (!skipBuild) {
 }
 
 if (!skipBuild && checks.build === "passed" && model) await validateDist(model);
+if (audit && model) validateBrowserVisualEvidence(model);
+else if (audit) {
+  browserVisualQa = "failed";
+  addError("browser_visual_qa.site_unavailable", "Browser evidence cannot be validated until the site manifest loads");
+}
 if (errors.some((item) => item.code.startsWith("schema.") || item.code.startsWith("edit_map."))) checks.schema = "failed";
 for (const name of ["seo", "links", "accessibility", "sitemap", "robots", "visual"] as const) {
   if (checks[name] !== "skipped" && errors.some((item) => item.code.startsWith(`${name}.`))) checks[name] = "failed";
@@ -123,6 +122,18 @@ function validateBrowserVisualEvidence(model: Model) {
       try { urlRoute = normalize(decodeURIComponent(captureUrl.pathname)); } catch { failEvidence("url_invalid", `${label} URL path contains invalid encoding`); }
       if (urlRoute !== normalize(entry.route)) failEvidence("route_mismatch", `${label} URL path ${captureUrl.pathname} does not match route ${entry.route}`);
       if (Number(captureUrl.port || (captureUrl.protocol === "https:" ? 443 : 80)) !== entry.previewPort) failEvidence("port_mismatch", `${label} URL port does not match previewPort ${entry.previewPort}`);
+    }
+    if (checks.build === "passed") {
+      const htmlFile = entry.route === "/"
+        ? path.join(root, "dist/index.html")
+        : entry.route === "/404"
+          ? path.join(root, "dist/404.html")
+          : path.join(root, "dist", entry.route.replace(/^\//, ""), "index.html");
+      if (!existsSync(htmlFile)) failEvidence("title_mismatch", `${label} has no built page available for title verification`);
+      else {
+        const renderedTitle = parse(readFileSync(htmlFile, "utf8")).querySelector("title")?.text.trim() ?? "";
+        if (entry.pageTitle !== renderedTitle) failEvidence("title_mismatch", `${label} pageTitle ${JSON.stringify(entry.pageTitle)} does not match rendered title ${JSON.stringify(renderedTitle)}`);
+      }
     }
     if (path.basename(entry.filename) !== entry.filename || !/\.png$/i.test(entry.filename)) {
       failEvidence("filename_invalid", `${label} filename must be a PNG basename under docs/screenshots`);
@@ -432,5 +443,9 @@ function htmlRoute(file: string, dist: string) { const relative = path.relative(
 function runBuild(): Promise<{ ok: boolean; output: string }> {
   // The Astro content-layer cache keeps deleted collection entries alive and re-emits their routes, so validation always builds from a cleared cache.
   for (const cacheDir of [path.join(root, ".astro"), path.join(root, "node_modules", ".astro")]) rmSync(cacheDir, { recursive: true, force: true });
-  return new Promise((resolve) => { const child = spawn("pnpm", ["run", "build"], { cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"] }); let output = ""; child.stdout.on("data", (chunk) => output += chunk); child.stderr.on("data", (chunk) => output += chunk); child.on("close", (code) => resolve({ ok: code === 0, output: output.trim() })); });
+  // Use npm only as a dependency-neutral package-script runner. pnpm 11 performs an
+  // implicit install when a test fixture symlinks node_modules from the kit, which
+  // can purge that shared fixture dependency tree before the build even starts.
+  const runner = process.platform === "win32" ? "npm.cmd" : "npm";
+  return new Promise((resolve) => { const child = spawn(runner, ["run", "build", "--silent"], { cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"] }); let output = ""; child.stdout.on("data", (chunk) => output += chunk); child.stderr.on("data", (chunk) => output += chunk); child.on("close", (code) => resolve({ ok: code === 0, output: output.trim() })); });
 }

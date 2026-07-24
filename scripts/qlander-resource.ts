@@ -126,7 +126,10 @@ async function atomicUpdate(writes: Map<string, string>, deletes: string[] = [])
       backups.set(file, backup);
     }
     for (const [file, temp] of temporary) await rename(temp, file);
-    for (const backup of backups.values()) await rm(backup, { force: true });
+    // The transaction is committed once every replacement rename succeeds. Backup
+    // cleanup is best-effort so a filesystem cleanup error cannot roll back into a
+    // partially deleted backup set and lose an otherwise valid update.
+    for (const backup of backups.values()) await rm(backup, { force: true }).catch(() => {});
   } catch (error) {
     for (const file of affected) if (existsSync(file) && (temporary.has(file) || backups.has(file))) await rm(file, { force: true }).catch(() => {});
     for (const [file, backup] of backups) if (existsSync(backup)) await rename(backup, file).catch(() => {});

@@ -107,7 +107,7 @@ export const ResourceRouteSeoSchema = SeoSchema.extend({
 }).strict();
 export const RouteSeoSchema = z.object({ products: ProductRouteSeoSchema.optional(), resources: ResourceRouteSeoSchema.optional(), blog: BlogRouteSeoSchema.optional(), notFound: SeoSchema }).strict();
 export const ProjectTypeSchema = z.enum(["marketing-site", "single-page-ppc", "internal-scroll-world", "root-scroll-world"]);
-export const MigrationRecordSchema = z.object({ from: z.string().min(1), to: z.string().min(1), appliedAt: z.iso.datetime(), operations: z.array(z.string()) }).strict();
+export const MigrationRecordSchema = z.object({ from: z.string().min(1), to: z.string().min(1), appliedAt: z.iso.datetime(), status: z.enum(["runtime-pending", "complete"]), operations: z.array(z.string()), runtimePending: z.array(z.string()) }).strict();
 export const ManifestSchema = z.object({ siteId: z.string().min(1), name: z.string().min(1), template: z.string().min(1), templateSource: z.url(), templateVersion: z.string().min(1), projectType: ProjectTypeSchema.optional(), contentRoot: z.string(), dataRoot: z.string(), editMap: z.string(), routes: z.array(z.string()).min(1), migrations: z.array(MigrationRecordSchema).optional() }).strict();
 export const EditMapEntrySchema = z.object({ route: z.string(), label: z.string().min(1), scope: z.string().min(1), contentFile: z.string().min(1), jsonPath: z.string().min(1), component: z.string().min(1), safeFields: z.array(z.string()).min(1), affectedRoutes: z.union([z.array(z.string()), z.literal("all")]) }).strict();
 export const EditMapSchema = z.record(z.string(), EditMapEntrySchema);

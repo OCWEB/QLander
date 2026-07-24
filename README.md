@@ -47,9 +47,11 @@ pnpm qlander:migrate -- --root ../my-site --to 0.4.0 --dry-run
 
 Remove `--dry-run` to apply safe structured-data defaults and record the migration
 in `qlander.manifest.json`. The migrator does not replace runtime/template files.
-It reports customized runtime conflicts and manual merge steps so those changes are
-never overwritten silently. Only the explicit 0.3.0 to 0.4.0 path is supported;
-rerunning an applied migration is a no-op.
+When runtime files differ from this kit, it reports `runtime-pending` without
+changing the project or manifest. Reconcile those files and rerun, or
+pass `--accept-custom-runtime` only after reviewing and intentionally retaining the
+differences. Only the explicit 0.3.0 to 0.4.0 path is supported; completed reruns are
+no-ops.
 
 Before handing work back to a user, run:
 

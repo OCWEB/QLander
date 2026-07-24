@@ -134,7 +134,7 @@ test("[integration] audit checker distinguishes visual contract from required co
     route: "/",
     viewport,
     siteId: "site_123",
-    pageTitle: "QLander Starter Site",
+    pageTitle: "QLander Starter | Website Landing Page",
     previewPort: 4321,
     url: "http://127.0.0.1:4321/",
     filename,
@@ -152,6 +152,20 @@ test("[integration] audit checker distinguishes visual contract from required co
   assert.equal(evidenceJson.checks.visualContract, "passed");
   assert.equal(evidenceJson.checks.browserVisualQa, "passed");
 
+  const evidenceManifestFile = path.join(fixture, "docs/screenshots/manifest.json");
+  const evidenceManifest = JSON.parse(await readFile(evidenceManifestFile, "utf8"));
+  evidenceManifest.screenshots[0].pageTitle = "Unrelated site";
+  await writeFile(evidenceManifestFile, `${JSON.stringify(evidenceManifest, null, 2)}\n`);
+  await run("git", ["add", "docs/screenshots/manifest.json"], { cwd: fixture });
+  await run("git", ["-c", "user.name=QLander Test", "-c", "user.email=test@local.invalid", "commit", "-m", "Record mismatched title"], { cwd: fixture });
+  const wrongTitle = await runChecker(fixture, ["--audit", "--json"]);
+  assert.notEqual(wrongTitle.code, 0);
+  assert.match(wrongTitle.output, /browser_visual_qa\.title_mismatch/);
+  evidenceManifest.screenshots[0].pageTitle = "QLander Starter | Website Landing Page";
+  await writeFile(evidenceManifestFile, `${JSON.stringify(evidenceManifest, null, 2)}\n`);
+  await run("git", ["add", "docs/screenshots/manifest.json"], { cwd: fixture });
+  await run("git", ["-c", "user.name=QLander Test", "-c", "user.email=test@local.invalid", "commit", "-m", "Restore matching title"], { cwd: fixture });
+
   const tampered = Buffer.from(desktop);
   tampered[tampered.length - 1] ^= 1;
   await writeFile(path.join(fixture, "docs/screenshots/audit-desktop.png"), tampered);
@@ -160,7 +174,7 @@ test("[integration] audit checker distinguishes visual contract from required co
   assert.match(dirty.output, /browser_visual_qa\.evidence_uncommitted/);
 });
 
-test("audit CLI initializes durable JSON state and enforces clean ordered checkpoints", async () => {
+test("[fast] audit CLI initializes durable JSON state and enforces clean ordered checkpoints", async () => {
   const fixture = await mkdtemp(path.join(os.tmpdir(), "qlander-audit-cli-"));
   await run("git", ["init", "-b", "main"], { cwd: fixture });
   await writeFile(path.join(fixture, "README.md"), "fixture\n");
@@ -184,7 +198,7 @@ test("audit CLI initializes durable JSON state and enforces clean ordered checkp
   await assert.rejects(run(tsx, [auditCli, "checkpoint", "implementation", "--root", fixture], { cwd: repo }), /uncommitted changes/);
 });
 
-test("audit CLI no-commit mode leaves initialization available to test harnesses", async () => {
+test("[fast] audit CLI no-commit mode leaves initialization available to test harnesses", async () => {
   const fixture = await mkdtemp(path.join(os.tmpdir(), "qlander-audit-no-commit-"));
   await run("git", ["init", "-b", "main"], { cwd: fixture });
   await writeFile(path.join(fixture, "README.md"), "fixture\n");

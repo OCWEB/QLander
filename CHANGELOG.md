@@ -4,7 +4,8 @@
 
 - Add a conservative, idempotent `qlander:migrate` command for the supported
   0.3.0 to 0.4.0 upgrade, including dry-run plans, migration records, safe content
-  defaults, and explicit runtime conflicts/manual steps.
+  defaults, and explicit runtime-pending/manual reconciliation without silently
+  overwriting customized runtime files.
 - Split tests into parallel fast tests and serialized build-heavy integration tests;
   `pnpm test` runs both suites.
 - Add explicit routed blog metadata and version migration records to the manifest contract.

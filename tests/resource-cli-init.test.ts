@@ -38,7 +38,7 @@ async function invoke(args: string[]) {
   }
 }
 
-test("resource CLI registers detail and external resources and removes their bookkeeping", async () => {
+test("[fast] resource CLI registers detail and external resources and removes their bookkeeping", async () => {
   const root = await fixture();
   let result = await invoke(["add", "--root", root, "--slug", "board-letter", "--kind", "detail", "--title", "Board letter", "--summary", "A letter from the board.", "--year", "2026", "--type", "Letter", "--body", "Full letter context.", "--seo-title", "Board letter | Example", "--seo-description", "Read the board letter.", "--cta-label", "Download PDF", "--cta-href", "https://example.org/letter.pdf"]);
   assert.equal(result.code, 0, result.output);
@@ -58,7 +58,7 @@ test("resource CLI registers detail and external resources and removes their boo
   assert.equal((await json(path.join(root, "qlander.manifest.json"))).routes.includes("/resources/board-letter"), false);
 });
 
-test("resource CLI validates before mutation and refuses overwrite without --force", async () => {
+test("[fast] resource CLI validates before mutation and refuses overwrite without --force", async () => {
   const root = await fixture();
   const manifestFile = path.join(root, "qlander.manifest.json");
   const before = await readFile(manifestFile, "utf8");
@@ -72,7 +72,7 @@ test("resource CLI validates before mutation and refuses overwrite without --for
   assert.match(result.output, /--force/);
 });
 
-test("init --no-resources and --minimal prune complete collection contracts safely", async () => {
+test("[integration] init --no-resources and --minimal prune complete collection contracts safely", async () => {
   for (const flags of [["--no-resources"], ["--minimal"]]) {
     const root = await runtimeFixture();
     const homeFile = path.join(root, "content/pages/home.json");
