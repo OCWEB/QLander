@@ -1,25 +1,28 @@
 ---
-import type { SiteData } from "../lib/types";
+import type { PageSection, SiteData } from "../lib/types";
 
-const { headline, body, site, editId } = Astro.props as {
-  headline: string;
-  body: string;
+type ContactSection = Extract<PageSection, { type: "contact" }>;
+const { section, site } = Astro.props as {
+  section: ContactSection;
   site: SiteData;
-  editId?: string;
 };
 const action = site.contactUrl || (site.email ? `mailto:${site.email}` : undefined);
 ---
 
-<section class="contact-section" data-pp-edit-id={editId}>
+<section class="contact-section" data-pp-edit-id={section.id}>
   <div>
-    <p class="eyebrow">Contact</p>
-    <h2>{headline}</h2>
-    <p>{body}</p>
-    {site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}
-    {site.phone && <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>}
+    <p class="eyebrow">{section.eyebrow ?? "Contact"}</p>
+    <h2>{section.headline}</h2>
+    <p>{section.body}</p>
+    {section.mode === "action" && site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}
+    {section.mode === "action" && site.phone && <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>}
   </div>
-  <div class="contact-action">
-    <p>{site.contactUrl ? "Continue to the approved contact destination." : site.email ? "Email is the available contact path." : "Contact details will be added before launch."}</p>
-    {action && <a class="button primary" href={action}>Contact {site.name}</a>}
-  </div>
+  {section.mode === "informational" ? (
+    section.informationalNote && <div class="contact-action"><p>{section.informationalNote}</p></div>
+  ) : (
+    <div class="contact-action">
+      <p>{site.contactUrl ? "Continue to the approved contact destination." : site.email ? "Email is the available contact path." : "Contact details will be added before launch."}</p>
+      {action && <a class="button primary" href={action}>{section.actionLabel ?? `Contact ${site.name}`}</a>}
+    </div>
+  )}
 </section>

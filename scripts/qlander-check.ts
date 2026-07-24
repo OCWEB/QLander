@@ -9,7 +9,7 @@ import { XMLParser } from "fast-xml-parser";
 import matter from "gray-matter";
 import { parse } from "node-html-parser";
 import type { z } from "zod";
-import { BlogFrontmatterSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
+import { BlogFrontmatterSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, ResourceSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
 
 type Status = "passed" | "warning" | "failed" | "skipped";
 type Message = { code: string; message: string; path?: string; route?: string };
@@ -106,10 +106,11 @@ async function loadModel() {
   const routeSeo = await parseFile(RouteSeoSchema, "data/route-seo.json");
   const pages = await Promise.all((await fg("content/pages/*.json", { cwd: root })).map(async (file) => ({ file, data: PageContentSchema.parse(await readJson(file)) })));
   const products = await Promise.all((await fg("content/products/*.json", { cwd: root })).map(async (file) => ({ file, data: ProductSchema.parse(await readJson(file)) })));
+  const resources = await Promise.all((await fg("content/resources/*.json", { cwd: root })).map(async (file) => ({ file, data: ResourceSchema.parse(await readJson(file)) })));
   const posts = (await Promise.all((await fg("content/blog/*.md", { cwd: root })).map(async (file) => ({ file, data: BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data) })))).filter((post) => post.data.routed);
   const experiences = await Promise.all((await fg("data/experiences/*.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldExperienceSchema.parse(await readJson(file)) })));
   const queues = await Promise.all((await fg("scroll-world/**/queue.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldQueueSchema.parse(await readJson(file)) })));
-  return { manifest, editMap, site, navigation, theme, routeSeo, pages, products, posts, experiences, queues };
+  return { manifest, editMap, site, navigation, theme, routeSeo, pages, products, resources, posts, experiences, queues };
 }
 
 function validateProfile(model: Model) {
@@ -133,7 +134,7 @@ function validateProfile(model: Model) {
 
 function validatePpcPages(model: Model) {
   for (const page of model.pages.filter((item) => item.data.layout === "ppc")) {
-    const primary = page.data.sections.flatMap((section) => section.type === "hero" ? [section.primaryCta.href] : section.type === "cta" ? [section.cta.href] : []);
+    const primary = page.data.sections.flatMap((section) => section.type === "hero" && section.primaryCta ? [section.primaryCta.href] : section.type === "cta" ? [section.cta.href] : []);
     if (!primary.length) addError("schema.ppc_cta_missing", `PPC page ${page.data.slug} needs a primary conversion action`, { route: page.data.slug });
     if (new Set(primary).size > 1) addError("schema.ppc_cta_mismatch", `PPC page ${page.data.slug} must reuse one primary CTA destination`, { route: page.data.slug });
   }
@@ -149,7 +150,9 @@ function validateLaunch(model: Model) {
   if (new URL(model.site.url).hostname === "example.com") addError("seo.placeholder_domain", "Launch mode requires a production domain");
   if (model.site.email && model.site.email.endsWith("@example.com")) addError("schema.placeholder_email", "Launch mode requires a real contact email");
   if (model.site.phone && /555/.test(model.site.phone)) addError("schema.placeholder_phone", "Launch mode requires a real phone number");
-  if (!model.site.email && !model.site.phone && !model.site.contactUrl) addError("schema.contact_missing", "Launch mode requires an email, phone number, or HTTPS contact URL");
+  const contactPage = model.pages.find((page) => page.data.slug === "/contact");
+  const informationalContact = contactPage?.data.sections.some((section) => section.type === "contact" && section.mode === "informational") ?? false;
+  if (!informationalContact && !model.site.email && !model.site.phone && !model.site.contactUrl) addError("schema.contact_missing", "Launch mode requires an email, phone number, HTTPS contact URL, or an explicitly informational contact section");
   if (!model.site.socialImage) addError("seo.social_image_missing", "Launch mode requires a default social image");
   if (!model.site.address.street || !model.site.address.postalCode) addError("schema.address_incomplete", "Launch mode requires a complete address");
 }
@@ -195,6 +198,17 @@ function validateEditMap(model: Model) {
   }));
   const sectionIds = new Set(model.pages.filter((page) => !experienceRoutes.has(page.data.slug)).flatMap((page) => page.data.sections.map((section) => section.id)));
   for (const id of sectionIds) if (!model.editMap[id]) addError("edit_map.section_missing", `No edit-map entry for ${id}`);
+  for (const product of model.products) {
+    if (path.basename(product.file, ".json") !== product.data.slug) addError("schema.product_filename", `${product.file} must match slug ${product.data.slug}`);
+    if (!routes.has(`/products/${product.data.slug}`)) addError("schema.manifest_product_missing", `Manifest is missing product/service/category route /products/${product.data.slug}`);
+  }
+  for (const resource of model.resources) {
+    if (path.basename(resource.file, ".json") !== resource.data.slug) addError("schema.resource_filename", `${resource.file} must match slug ${resource.data.slug}`);
+    if (!model.editMap[`resource.${resource.data.slug}`]) addError("edit_map.resource_missing", `No edit-map entry for resource.${resource.data.slug}`);
+    const route = `/resources/${resource.data.slug}`;
+    if (resource.data.destination.kind === "detail" && !routes.has(route)) addError("schema.manifest_resource_missing", `Manifest is missing detail resource route ${route}`);
+    if (resource.data.destination.kind === "external" && routes.has(route)) addError("schema.manifest_external_resource", `External resource ${resource.data.slug} must not claim a detail route`);
+  }
   for (const page of model.pages) for (const section of page.data.sections) if (section.type === "scrollSection") {
     const experience = model.experiences.find((item) => item.data.slug === section.experience);
     if (!experience) addError("schema.scroll_section_experience_missing", `${page.file} references unknown scroll-section experience ${section.experience}`);
@@ -231,12 +245,13 @@ function allowedFields(value: any, jsonPath: string) {
   if (value?.type === "featureGrid") return new Set(["eyebrow", "headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"]);
   if (value?.type === "productGrid") return new Set(["headline", "productSlugs"]);
   if (value?.type === "cta") return new Set(["headline", "body", "cta.label", "cta.href"]);
-  if (value?.type === "contact") return new Set(["headline", "body"]);
+  if (value?.type === "contact") return new Set(["mode", "eyebrow", "headline", "body", "actionLabel", "informationalNote"]);
   if (value?.type === "richText") return new Set(["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);
   if (value?.type === "scrollSection") return new Set(["experience", "headingLevel"]);
   if (value?.kind === "scroll-world") return new Set(["route", "seo.title", "seo.description", "seo.noindex", "seo.socialImage", "brand.name", "brand.href", "cta.label", "cta.href", "hint", "diveScroll", "connScroll", "crossfade", "nav", "atmosphere", "sections[].label", "sections[].accent", "sections[].still", "sections[].stillMobile", "sections[].clip", "sections[].clipMobile", "sections[].scroll", "sections[].linger", "sections[].eyebrow", "sections[].title", "sections[].body", "sections[].tags", "sections[].cta.primary.label", "sections[].cta.primary.href", "sections[].cta.secondary.label", "sections[].cta.secondary.href", "connectors", "connectorsMobile"]);
-  if (value?.slug && value?.summary && value?.title) return new Set(["title", "summary", "description", "priceLabel", "featured", "image.src", "image.alt", "image.width", "image.height", "imagePromptId", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
-  if (value?.title && value?.description && jsonPath !== "$") return new Set(["title", "description", "noindex", "socialImage", "eyebrow", "heading", "itemCtaLabel", "detailCtaLabel", "detailCtaHref"]);
+  if (value?.destination && value?.slug) return new Set(["title", "summary", "year", "type", "destination.body", "destination.cta.label", "destination.cta.href", "destination.href", "destination.label", "image.src", "image.alt", "image.width", "image.height", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
+  if (value?.slug && value?.summary && value?.title) return new Set(["title", "kind", "summary", "description", "priceLabel", "featured", "image.src", "image.alt", "image.width", "image.height", "imagePromptId", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
+  if (value?.title && value?.description && jsonPath !== "$") return new Set(["title", "description", "noindex", "socialImage", "eyebrow", "heading", "itemCtaLabel", "detailCtaLabel", "detailCtaHref", "externalCtaLabel", "yearFilterLabel", "typeFilterLabel", "allYearsLabel", "allTypesLabel", "detailBackLabel"]);
   return new Set(["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "contactUrl", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x", "social.facebook", "social.instagram", "social.youtube"]);
 }
 
@@ -328,9 +343,11 @@ function validateRobots(model: Model) {
 function routeNoindex(route: string, model: Model) {
   if (route === "/404") return true;
   if (route === "/products") return model.routeSeo.products?.noindex ?? false;
+  if (route === "/resources") return model.routeSeo.resources?.noindex ?? false;
   if (route === "/blog") return model.routeSeo.blog?.noindex ?? false;
   const page = model.pages.find((item) => item.data.slug === route); if (page) return page.data.seo.noindex;
   const product = model.products.find((item) => `/products/${item.data.slug}` === route); if (product) return product.data.seo.noindex;
+  const resource = model.resources.find((item) => item.data.destination.kind === "detail" && `/resources/${item.data.slug}` === route); if (resource) return resource.data.seo?.noindex ?? false;
   const post = model.posts.find((item) => `/blog/${item.data.slug}` === route); if (post) return post.data.seo.noindex;
   const experience = model.experiences.find((item) => experienceRoute(item.data) === route); if (experience) return experience.data.seo.noindex;
   return false;

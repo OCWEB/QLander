@@ -259,9 +259,10 @@ async function pruneStandardRoutes(target: string) {
   for (const file of [
     "src/pages/about.astro", "src/pages/contact.astro", "src/pages/privacy.astro",
     "src/pages/blog/index.astro", "src/pages/blog/[slug].astro",
-    "src/pages/products/index.astro", "src/pages/products/[slug].astro"
+    "src/pages/products/index.astro", "src/pages/products/[slug].astro",
+    "src/pages/resources/index.astro", "src/pages/resources/[slug].astro"
   ]) await rm(path.join(target, file), { force: true });
-  for (const directory of ["content/pages", "content/products", "content/blog"]) {
+  for (const directory of ["content/pages", "content/products", "content/resources", "content/blog"]) {
     await rm(path.join(target, directory), { recursive: true, force: true });
     await mkdir(path.join(target, directory), { recursive: true });
   }

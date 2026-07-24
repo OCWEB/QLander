@@ -50,6 +50,20 @@ visible `h1` exists, and normal site chrome does not render.
 3. Add the page purpose, primary action, experience choice, facts, and media plan to the brief approval before building.
 4. Reuse approved context and avoid repeating general site intake.
 
+For an entry under `content/products/`, choose `kind: "product"`, `"service"`, or
+`"category"` from what the entry actually represents. The `/products` URL is a stable
+template route, not a structured-data claim; configure its visible labels in
+`data/route-seo.json` and `data/navigation.json`.
+
+## Add A Resource
+
+1. Add JSON under `content/resources/` with a filename matching its `slug`.
+2. Use optional `year` and `type` metadata for reports, filings, letters, or other useful groupings.
+3. Choose `destination.kind: "detail"` for an on-site page. Include `body` and `seo`, add `/resources/<slug>` to the manifest, and add a safe edit-map entry rendered on the list and detail routes. An optional structured `cta` may point to a verified document or action.
+4. Choose `destination.kind: "external"` for a direct HTTPS source. Do not add a detail route; the list CTA opens the verified source directly.
+5. Keep `/resources` and its route labels in `data/route-seo.json`. The list renders every entry before JavaScript; year/type controls may filter that complete static list as progressive enhancement.
+6. Run `pnpm qlander:check`.
+
 ## Add Or Update Navigation
 
 1. Edit `data/navigation.json`.
@@ -88,7 +102,7 @@ Client JavaScript is allowed in developer mode when an explicitly requested inte
 
 ## Update SEO
 
-1. Edit the relevant content file under `content/pages/`, `content/products/`, or `content/blog/`.
+1. Edit the relevant content file under `content/pages/`, `content/products/`, `content/resources/`, or `content/blog/`.
 2. Keep SEO title, description, social image, and `noindex` intentional; canonical is derived from the route.
 3. Run `pnpm qlander:check` to regenerate and verify sitemap coverage.
 
@@ -103,7 +117,7 @@ Client JavaScript is allowed in developer mode when an explicitly requested inte
 
 1. Edit `data/site.json`.
 2. Keep URL, email, logo path, and social values valid.
-3. Set `launchStatus` to `live` only after the production URL, contact details, address, and social image are ready.
+3. Set `launchStatus` to `live` only after the production URL, address, social image, and contact decision are ready. The default `action` contact mode requires email, phone, or an HTTPS `contactUrl`; an explicitly `informational` contact section may intentionally provide none.
 4. Run `pnpm qlander:check -- --launch` before launch.
 
 ## Update Theme Tokens

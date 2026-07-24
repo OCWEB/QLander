@@ -27,12 +27,13 @@ If the user says `qlander start`, requests a new site/migration/redesign/rebrand
 ## Common Workflows
 
 - Copy or section edits: update the matching file under `content/pages/`.
-- Site settings: update `data/site.json`. Email and phone may be empty when an HTTPS `contactUrl` is supplied.
+- Site settings: update `data/site.json`. Email and phone may be empty when an HTTPS `contactUrl` is supplied, or when the `/contact` page explicitly uses an informational contact section with no response action.
 - Navigation: update `data/navigation.json`, then verify each internal `href` exists.
 - Theme tokens: update `data/theme.json`; keep `radius` at `8` or below.
 - Finished visual design, premium/branded look, or rebrand: use `skills/qlander-design-research/SKILL.md` to source and approve a direction, then `skills/qlander-design/SKILL.md` to approve and execute the visual pass. The grayscale wireframe stays until those approvals; approved template-tier items (fonts, motion, gradients) are the only sanctioned design-driven `src/` edits. Impeccable is optional and may be installed only after the design skill's explicit first-use consent gate.
 - Blog posts: add or edit Markdown under `content/blog/`. If removing every real post, retain the non-routed `content/blog/_empty.md` sentinel; never add its slug to routes or navigation.
-- Product/service entries: add or edit JSON under `content/products/`.
+- Product/service/category entries: add or edit JSON under `content/products/`; set `kind` so JSON-LD does not misrepresent services or catalog categories as products. Labels for the `/products` route remain configurable in `data/route-seo.json` and navigation.
+- Reports, filings, letters, and links: add structured JSON under `content/resources/`. Use a `detail` destination for an on-site page or an `external` destination for a direct HTTPS link; only detail resources add a manifest detail route.
 - Images: add files under `public/images/` and configure structured `image` fields with alt text and intrinsic dimensions.
 - Universal discovery: use `skills/qlander-discovery/SKILL.md`. Research official URLs and only the local paths the user names; save the approved public-safe context in non-routed `content/site-brief.md`.
 - New project initialization: use `pnpm qlander:init` with `marketing-site`, `single-page-ppc`, `internal-scroll-world`, or `root-scroll-world`. Choose the shape before population.
@@ -92,6 +93,8 @@ When in developer mode:
 - run `pnpm typecheck` and `pnpm test`
 
 The template supports an optional `layout: "ppc"` page contract. Placeholder annotations use `imagePromptId`; every referenced ID must have a matching `## <id>` heading under `content/prompts/`.
+
+Contact sections default to `mode: "action"`. Set `mode: "informational"` only when the site intentionally offers no contact action; remove unrelated hero CTAs and use `informationalNote` for the visible explanation. Resource index filters are progressive enhancement: keep every resource rendered in the static list so the complete collection remains available without JavaScript.
 
 The template supports Scroll World through `data/experiences/*.json`. Route experiences
 use `src/pages/[experience].astro` and need a manifest route. A scoped `scrollSection`

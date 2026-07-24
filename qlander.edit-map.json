@@ -159,8 +159,12 @@
     "jsonPath": "sections[1]",
     "component": "ContactForm",
     "safeFields": [
+      "mode",
+      "eyebrow",
       "headline",
-      "body"
+      "body",
+      "actionLabel",
+      "informationalNote"
     ],
     "affectedRoutes": [
       "/contact"
@@ -288,6 +292,84 @@
     ],
     "affectedRoutes": [
       "/products"
+    ]
+  },
+  "route.resources.seo": {
+    "route": "/resources",
+    "label": "Resources route content and SEO",
+    "scope": "route-metadata",
+    "contentFile": "data/route-seo.json",
+    "jsonPath": "resources",
+    "component": "SEO",
+    "safeFields": [
+      "title",
+      "description",
+      "noindex",
+      "socialImage",
+      "eyebrow",
+      "heading",
+      "itemCtaLabel",
+      "externalCtaLabel",
+      "yearFilterLabel",
+      "typeFilterLabel",
+      "allYearsLabel",
+      "allTypesLabel",
+      "detailBackLabel"
+    ],
+    "affectedRoutes": [
+      "/resources"
+    ]
+  },
+  "resource.annual-report": {
+    "route": "/resources/annual-report",
+    "label": "Annual report resource",
+    "scope": "collection-content",
+    "contentFile": "content/resources/annual-report.json",
+    "jsonPath": "$",
+    "component": "ResourceDetail",
+    "safeFields": [
+      "title",
+      "summary",
+      "year",
+      "type",
+      "destination.body",
+      "destination.cta.label",
+      "destination.cta.href",
+      "image.src",
+      "image.alt",
+      "image.width",
+      "image.height",
+      "seo.title",
+      "seo.description",
+      "seo.noindex",
+      "seo.socialImage"
+    ],
+    "affectedRoutes": [
+      "/resources",
+      "/resources/annual-report"
+    ]
+  },
+  "resource.external-filing": {
+    "route": "/resources",
+    "label": "External filing resource",
+    "scope": "collection-content",
+    "contentFile": "content/resources/external-filing.json",
+    "jsonPath": "$",
+    "component": "ResourceList",
+    "safeFields": [
+      "title",
+      "summary",
+      "year",
+      "type",
+      "destination.href",
+      "destination.label",
+      "image.src",
+      "image.alt",
+      "image.width",
+      "image.height"
+    ],
+    "affectedRoutes": [
+      "/resources"
     ]
   },
   "route.blog.seo": {

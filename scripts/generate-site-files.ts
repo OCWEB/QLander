@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import fg from "fast-glob";
 import matter from "gray-matter";
-import { BlogFrontmatterSchema, ManifestSchema, PageContentSchema, ProductSchema, RouteSeoSchema, ScrollWorldExperienceSchema, SiteDataSchema } from "../src/lib/schemas";
+import { BlogFrontmatterSchema, ManifestSchema, PageContentSchema, ProductSchema, ResourceSchema, RouteSeoSchema, ScrollWorldExperienceSchema, SiteDataSchema } from "../src/lib/schemas";
 
 const root = process.cwd();
 const output = path.resolve(root, process.argv[2] ?? "dist");
@@ -21,6 +21,10 @@ for (const file of await fg("content/products/*.json", { cwd: root })) {
   const product = ProductSchema.parse(await readJson(file));
   if (product.seo.noindex) noindex.add(`/products/${product.slug}`);
 }
+for (const file of await fg("content/resources/*.json", { cwd: root })) {
+  const resource = ResourceSchema.parse(await readJson(file));
+  if (resource.destination.kind === "detail" && resource.seo?.noindex) noindex.add(`/resources/${resource.slug}`);
+}
 for (const file of await fg("content/blog/*.md", { cwd: root })) {
   const post = BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data);
   if (!post.routed) continue;
@@ -31,6 +35,7 @@ for (const file of await fg("data/experiences/*.json", { cwd: root })) {
   if (experience.placement === "route" && experience.seo.noindex) noindex.add(experience.route ?? `/${experience.slug}`);
 }
 if (routeSeo.products?.noindex) noindex.add("/products");
+if (routeSeo.resources?.noindex) noindex.add("/resources");
 if (routeSeo.blog?.noindex) noindex.add("/blog");
 
 const routes = site.launchStatus === "live" ? manifest.routes.filter((route) => !noindex.has(route)) : [];

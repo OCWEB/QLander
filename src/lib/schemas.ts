@@ -43,11 +43,11 @@ export const ExperienceStillPathSchema = z.string().regex(experienceStillPattern
 export const ExperienceClipPathSchema = z.string().regex(experienceClipPattern, "Experience clip must be an MP4 under /experiences/").refine((value) => !value.includes(".."), "Experience clip path cannot traverse directories");
 
 export const PageSectionSchema = z.discriminatedUnion("type", [
-  z.object({ id: z.string().min(1), type: z.literal("hero"), eyebrow: z.string().optional(), headline: z.string().min(1), subheadline: z.string().min(1), primaryCta: CtaSchema, secondaryCta: CtaSchema.optional(), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional() }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("hero"), eyebrow: z.string().optional(), headline: z.string().min(1), subheadline: z.string().min(1), primaryCta: CtaSchema.optional(), secondaryCta: CtaSchema.optional(), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional() }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("featureGrid"), eyebrow: z.string().optional(), headline: z.string().min(1), items: z.array(z.object({ title: z.string().min(1), description: z.string().min(1), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional() }).strict()).min(1) }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("cta"), headline: z.string().min(1), body: z.string().min(1), cta: CtaSchema }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("productGrid"), headline: z.string().min(1), productSlugs: z.array(z.string().min(1)).min(1) }).strict(),
-  z.object({ id: z.string().min(1), type: z.literal("contact"), headline: z.string().min(1), body: z.string().min(1) }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("contact"), mode: z.enum(["action", "informational"]).default("action"), eyebrow: z.string().min(1).optional(), headline: z.string().min(1), body: z.string().min(1), actionLabel: z.string().min(1).optional(), informationalNote: z.string().min(1).optional() }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("richText"), headline: z.string().min(1), body: z.string().min(1), visual: z.boolean().optional(), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional() }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("scrollSection"), experience: z.string().regex(experienceSlugPattern), headingLevel: z.enum(["h1", "h2"]).default("h2") }).strict()
 ]);
@@ -73,8 +73,20 @@ export const ScrollWorldExperienceSchema = z.object({
   if (new Set(value.sections.map((section) => section.id)).size !== value.sections.length) context.addIssue({ code: "custom", path: ["sections"], message: "Scene IDs must be unique" });
   if (value.placement === "section" && value.route) context.addIssue({ code: "custom", path: ["route"], message: "Section experiences cannot own a route" });
 });
-export const ProductSchema = z.object({ title: z.string().min(1), slug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), summary: z.string().min(1), description: z.string().min(1), priceLabel: z.string().min(1).optional(), featured: z.boolean().default(false), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional(), seo: SeoSchema }).strict();
-export const BlogFrontmatterSchema = z.object({ title: z.string().min(1), description: z.string().min(1), slug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), publishedAt: z.iso.date(), updatedAt: z.iso.date(), author: z.string().min(1), tags: z.array(z.string()).default([]), routed: z.boolean().default(true), seo: SeoSchema }).strict();
+const ContentSlugSchema = z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+export const ProductSchema = z.object({ title: z.string().min(1), slug: ContentSlugSchema, kind: z.enum(["product", "service", "category"]).default("product"), summary: z.string().min(1), description: z.string().min(1), priceLabel: z.string().min(1).optional(), featured: z.boolean().default(false), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional(), seo: SeoSchema }).strict();
+const ExternalResourceHrefSchema = z.url().refine((value) => new URL(value).protocol === "https:", "External resource URL must use HTTPS");
+const ResourceDestinationSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("detail"), body: z.string().min(1), cta: CtaSchema.optional() }).strict(),
+  z.object({ kind: z.literal("external"), href: ExternalResourceHrefSchema, label: z.string().min(1).optional() }).strict()
+]);
+export const ResourceSchema = z.object({
+  title: z.string().min(1), slug: ContentSlugSchema, summary: z.string().min(1), year: z.number().int().min(1000).max(9999).optional(), type: z.string().min(1).optional(),
+  destination: ResourceDestinationSchema, image: MediaSchema.optional(), seo: SeoSchema.optional()
+}).strict().superRefine((value, context) => {
+  if (value.destination.kind === "detail" && !value.seo) context.addIssue({ code: "custom", path: ["seo"], message: "Detail resources require SEO metadata" });
+});
+export const BlogFrontmatterSchema = z.object({ title: z.string().min(1), description: z.string().min(1), slug: ContentSlugSchema, publishedAt: z.iso.date(), updatedAt: z.iso.date(), author: z.string().min(1), tags: z.array(z.string()).default([]), routed: z.boolean().default(true), seo: SeoSchema }).strict();
 export const NavigationSchema = z.object({ header: z.array(z.object({ label: z.string().min(1), href: SafeHrefSchema }).strict()).min(1), footer: z.array(z.object({ label: z.string().min(1), href: SafeHrefSchema }).strict()).min(1) }).strict();
 export const SiteDataSchema = z.object({
   name: z.string().min(1), description: z.string().min(1), url: z.url().refine((value) => new URL(value).protocol === "https:", "Site URL must use HTTPS"),
@@ -89,7 +101,11 @@ export const ProductRouteSeoSchema = SeoSchema.extend({
   eyebrow: z.string().min(1), heading: z.string().min(1), itemCtaLabel: z.string().min(1), detailCtaLabel: z.string().min(1), detailCtaHref: SafeHrefSchema
 }).strict();
 export const BlogRouteSeoSchema = SeoSchema.extend({ eyebrow: z.string().min(1), heading: z.string().min(1) }).strict();
-export const RouteSeoSchema = z.object({ products: ProductRouteSeoSchema.optional(), blog: BlogRouteSeoSchema.optional(), notFound: SeoSchema }).strict();
+export const ResourceRouteSeoSchema = SeoSchema.extend({
+  eyebrow: z.string().min(1), heading: z.string().min(1), itemCtaLabel: z.string().min(1), externalCtaLabel: z.string().min(1),
+  yearFilterLabel: z.string().min(1), typeFilterLabel: z.string().min(1), allYearsLabel: z.string().min(1), allTypesLabel: z.string().min(1), detailBackLabel: z.string().min(1)
+}).strict();
+export const RouteSeoSchema = z.object({ products: ProductRouteSeoSchema.optional(), resources: ResourceRouteSeoSchema.optional(), blog: BlogRouteSeoSchema.optional(), notFound: SeoSchema }).strict();
 export const ProjectTypeSchema = z.enum(["marketing-site", "single-page-ppc", "internal-scroll-world", "root-scroll-world"]);
 export const ManifestSchema = z.object({ siteId: z.string().min(1), name: z.string().min(1), template: z.string().min(1), templateSource: z.url(), templateVersion: z.string().min(1), projectType: ProjectTypeSchema.optional(), contentRoot: z.string(), dataRoot: z.string(), editMap: z.string(), routes: z.array(z.string()).min(1) }).strict();
 export const EditMapEntrySchema = z.object({ route: z.string(), label: z.string().min(1), scope: z.string().min(1), contentFile: z.string().min(1), jsonPath: z.string().min(1), component: z.string().min(1), safeFields: z.array(z.string()).min(1), affectedRoutes: z.union([z.array(z.string()), z.literal("all")]) }).strict();

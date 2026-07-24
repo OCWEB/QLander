@@ -113,7 +113,8 @@ First run the universal discovery workflow. Use the official website and local p
 content/
   site-brief.md # optional, non-routed discovery record
   pages/       # structured page content
-  products/    # example collection content
+  products/    # product, service, and catalog-category content
+  resources/   # reports, filings, letters, detail pages, and external links
   blog/        # Markdown posts
   prompts/     # optional image prompts for annotated placeholders
 
@@ -136,6 +137,14 @@ public/
 Canonical URLs, `robots.txt`, and `sitemap.xml` are generated into `dist/` from validated site and route data during the build.
 
 Normal site-owner edits should touch only `content/` and `data/`.
+
+Collection contracts are semantic rather than route-name claims. Entries under
+`content/products/` use `kind: "product" | "service" | "category"` (with the
+backwards-compatible default of `product`), while route headings and CTA labels remain
+editable in `data/route-seo.json`. Resources use a structured `destination`: `detail`
+builds `/resources/<slug>` and may include a CTA, while `external` links directly to an
+HTTPS source. Optional `year` and `type` values power progressive index filters; the
+unfiltered complete list is the no-JavaScript fallback.
 
 Changes to `src/` are developer-mode changes and require explicit user intent.
 

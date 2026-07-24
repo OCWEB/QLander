@@ -1,0 +1,73 @@
+---
+import type { Resource } from "../lib/types";
+import type { z } from "zod";
+import type { ResourceRouteSeoSchema } from "../lib/schemas";
+
+const { resources, labels } = Astro.props as {
+  resources: Resource[];
+  labels: z.infer<typeof ResourceRouteSeoSchema>;
+};
+const years = [...new Set(resources.flatMap((resource) => resource.year ? [resource.year] : []))].sort((a, b) => b - a);
+const types = [...new Set(resources.flatMap((resource) => resource.type ? [resource.type] : []))].sort((a, b) => a.localeCompare(b));
+---
+
+<section class="section-band resource-collection" data-resource-collection>
+  <div class="section-heading">
+    <p class="eyebrow">{labels.eyebrow}</p>
+    <h1>{labels.heading}</h1>
+  </div>
+  {(years.length > 0 || types.length > 0) && (
+    <div class="resource-filters" aria-label="Resource filters">
+      {years.length > 0 && <label>{labels.yearFilterLabel}
+        <select data-resource-filter="year">
+          <option value="">{labels.allYearsLabel}</option>
+          {years.map((year) => <option value={String(year)}>{year}</option>)}
+        </select>
+      </label>}
+      {types.length > 0 && <label>{labels.typeFilterLabel}
+        <select data-resource-filter="type">
+          <option value="">{labels.allTypesLabel}</option>
+          {types.map((type) => <option value={type}>{type}</option>)}
+        </select>
+      </label>}
+    </div>
+  )}
+  <noscript><p>Filtering requires JavaScript. The complete resource list is shown below.</p></noscript>
+  <p class="resource-results" aria-live="polite" data-resource-results>{resources.length} resources</p>
+  <div class="resource-list">
+    {resources.map((resource) => {
+      const href = resource.destination.kind === "external" ? resource.destination.href : `/resources/${resource.slug}`;
+      const label = resource.destination.kind === "external" ? (resource.destination.label ?? labels.externalCtaLabel) : labels.itemCtaLabel;
+      return <article data-pp-edit-id={`resource.${resource.slug}`} data-resource-year={resource.year ? String(resource.year) : ""} data-resource-type={resource.type ?? ""}>
+        <div class="resource-meta">
+          {resource.type && <span>{resource.type}</span>}
+          {resource.year && <span>{resource.year}</span>}
+        </div>
+        <h2>{resource.title}</h2>
+        <p>{resource.summary}</p>
+        <a class="button secondary" href={href}>{label}</a>
+      </article>;
+    })}
+  </div>
+</section>
+
+<script>
+  const collection = document.querySelector<HTMLElement>("[data-resource-collection]");
+  if (collection) {
+    const filters = [...collection.querySelectorAll<HTMLSelectElement>("[data-resource-filter]")];
+    const cards = [...collection.querySelectorAll<HTMLElement>("[data-resource-year]")];
+    const output = collection.querySelector<HTMLElement>("[data-resource-results]");
+    const apply = () => {
+      const year = filters.find((filter) => filter.dataset.resourceFilter === "year")?.value ?? "";
+      const type = filters.find((filter) => filter.dataset.resourceFilter === "type")?.value ?? "";
+      let visible = 0;
+      for (const card of cards) {
+        const matches = (!year || card.dataset.resourceYear === year) && (!type || card.dataset.resourceType === type);
+        card.hidden = !matches;
+        if (matches) visible += 1;
+      }
+      if (output) output.textContent = `${visible} ${visible === 1 ? "resource" : "resources"}`;
+    };
+    for (const filter of filters) filter.addEventListener("change", apply);
+  }
+</script>

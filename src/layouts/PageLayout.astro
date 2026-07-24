@@ -37,7 +37,7 @@ const sectionExperience = (slug: string) => {
     section.type === "featureGrid" ? <FeatureGrid section={section} /> :
     section.type === "cta" ? <CTASection section={section} /> :
     section.type === "productGrid" ? <ProductGrid products={products.filter((product) => section.productSlugs.includes(product.slug))} headline={section.headline} headingLevel="h2" editId={section.id} /> :
-    section.type === "contact" ? <ContactForm headline={section.headline} body={section.body} site={site} editId={section.id} /> :
+    section.type === "contact" ? <ContactForm section={section} site={site} /> :
     section.type === "richText" ? <RichTextSection section={section} /> :
     section.type === "scrollSection" ? <ScrollSection experience={sectionExperience(section.experience)} sectionId={section.id} headingLevel={section.headingLevel} /> :
     null

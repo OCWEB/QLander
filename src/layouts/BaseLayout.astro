@@ -302,7 +302,8 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
 
       .feature-grid article,
       .product-card,
-      .blog-list article {
+      .blog-list article,
+      .resource-list article {
         display: grid;
         gap: 12px;
         border: 1px solid color-mix(in srgb, var(--ink), transparent 86%);
@@ -320,6 +321,37 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
         display: grid;
         gap: 14px;
       }
+
+      .resource-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .resource-filters label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      .resource-filters select {
+        min-width: 180px;
+        border: 1px solid color-mix(in srgb, var(--ink), transparent 78%);
+        border-radius: var(--radius);
+        background: white;
+        padding: 10px 32px 10px 12px;
+      }
+
+      .resource-results { margin-bottom: 14px; }
+      .resource-list { display: grid; gap: 14px; }
+      .resource-list article { gap: 14px; }
+      .resource-list article[hidden] { display: none; }
+      .resource-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+      .resource-meta span { border-radius: var(--radius); background: color-mix(in srgb, var(--ink), transparent 94%); padding: 4px 8px; color: var(--muted); font-size: 0.8rem; font-weight: 700; }
+      .resource-list .button { justify-self: start; }
 
       .cta-section {
         display: flex;

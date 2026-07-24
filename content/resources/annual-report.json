@@ -1,0 +1,16 @@
+{
+  "title": "Annual report",
+  "slug": "annual-report",
+  "summary": "A structured example report with an on-site detail page.",
+  "year": 2025,
+  "type": "Report",
+  "destination": {
+    "kind": "detail",
+    "body": "Use this detail page for report context, highlights, filing notes, or a letter introduction. Add an optional structured CTA when a verified document destination is available."
+  },
+  "seo": {
+    "title": "Annual report | QLander Starter",
+    "description": "Example annual report resource for the QLander Starter site.",
+    "noindex": false
+  }
+}

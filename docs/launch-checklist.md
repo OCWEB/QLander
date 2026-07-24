@@ -13,7 +13,7 @@ These are the core launch decisions. Handle them before optional tools.
 3. Set the production URL in `data/site.json`.
 4. Set `launchStatus` to `live` only after all launch requirements are complete.
 5. Confirm generated canonical, sitemap, and robots output uses the production URL.
-6. Confirm the contact path: email link, hosted form, or native static form.
+6. Confirm the contact mode: the default action path (email link, hosted form, or native static form), or an explicitly informational page that intentionally offers no response CTA.
 7. Run `pnpm build` and `pnpm qlander:check -- --launch`.
 
 ## Add Only If Needed
