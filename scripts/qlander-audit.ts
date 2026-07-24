@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const STATE_START = "<!-- qlander-audit-state";
@@ -31,7 +31,8 @@ try {
   if (command === "init") initialize();
   else if (command === "checkpoint") checkpoint();
   else if (command === "status") status();
-  else fail("usage: pnpm qlander:audit <init|checkpoint discovery|implementation|verification|status> --root <case-repo> [--no-commit]");
+  else if (command === "aggregate") aggregate();
+  else fail("usage: pnpm qlander:audit <init|checkpoint discovery|implementation|verification|status|aggregate> --root <case-repo|cases-parent-dir> [--no-commit]");
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
@@ -181,3 +182,36 @@ function parseArgs(values: string[]) {
   return result;
 }
 function fail(message: string): never { throw new Error(message); }
+
+function aggregate() {
+  const parent = root;
+  const cases = readdirSync(parent).filter((entry) => entry.startsWith("qlander_") && existsSync(path.join(parent, entry, "feedback_improve.md")));
+  if (!cases.length) fail(`No qlander_* case directories with feedback_improve.md under ${parent}`);
+  const frictionCounts = new Map<string, { count: number; cases: string[] }>();
+  const rows: string[] = [];
+  for (const caseDir of cases.sort()) {
+    const text = readFileSync(path.join(parent, caseDir, "feedback_improve.md"), "utf8");
+    const grade = (dimension: string) => new RegExp(`\\| ${dimension} \\| ([a-z ]+?) \\|`, "i").exec(text)?.[1]?.trim() ?? "?";
+    const pending = [...text.matchAll(/^### (F\d+): (.+)$/gm)]
+      .filter((match) => new RegExp(`### ${match[1]}:[\\s\\S]*?- Decision: pending`).test(text.slice(match.index)))
+      .map((match) => match[2]);
+    rows.push(`| ${caseDir.replace(/^qlander_/, "")} | ${grade("Approval gate")} | ${grade("Fact integrity")} | ${grade("Copy provenance")} | ${grade("Diff scope")} | ${grade("Validation")} | ${grade("Design contract")} | ${pending.length} |`);
+    for (const title of pending) {
+      const key = title.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(" ").slice(0, 6).join(" ");
+      const entry = frictionCounts.get(key) ?? { count: 0, cases: [] };
+      entry.count += 1;
+      entry.cases.push(caseDir.replace(/^qlander_/, ""));
+      frictionCounts.set(key, entry);
+    }
+  }
+  console.log("| Case | Gate | Facts | Provenance | Diff | Validation | Design | Pending |");
+  console.log("|---|---|---|---|---|---|---|---|");
+  for (const row of rows) console.log(row);
+  const recurring = [...frictionCounts.entries()].filter(([, value]) => value.count > 1).sort((a, b) => b[1].count - a[1].count);
+  if (recurring.length) {
+    console.log("\nRecurring pending friction (strongest implement candidates):");
+    for (const [key, value] of recurring) console.log(`- ${value.count}x "${key}" (${value.cases.join(", ")})`);
+  } else {
+    console.log("\nNo recurring pending friction across cases.");
+  }
+}

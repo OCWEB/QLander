@@ -47,8 +47,14 @@ export const PageSectionSchema = z.discriminatedUnion("type", [
   z.object({ id: z.string().min(1), type: z.literal("featureGrid"), eyebrow: z.string().optional(), headline: z.string().min(1), items: z.array(z.object({ title: z.string().min(1), description: z.string().min(1), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional() }).strict()).min(1) }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("cta"), headline: z.string().min(1), body: z.string().min(1), cta: CtaSchema }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("productGrid"), headline: z.string().min(1), productSlugs: z.array(z.string().min(1)).min(1) }).strict(),
-  z.object({ id: z.string().min(1), type: z.literal("contact"), mode: z.enum(["action", "informational"]).default("action"), eyebrow: z.string().min(1).optional(), headline: z.string().min(1), body: z.string().min(1), actionLabel: z.string().min(1).optional(), informationalNote: z.string().min(1).optional() }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("contact"), mode: z.enum(["action", "informational"]).default("action"), eyebrow: z.string().min(1).optional(), headline: z.string().min(1), body: z.string().min(1), actionLabel: z.string().min(1).optional(), informationalNote: z.string().min(1).optional(), channels: z.array(z.object({ label: z.string().min(1), phone: z.string().optional(), email: z.union([z.literal(""), z.email()]).optional(), hoursNote: z.string().optional() }).strict()).optional() }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("richText"), headline: z.string().min(1), body: z.string().min(1), visual: z.boolean().optional(), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional() }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("stats"), eyebrow: z.string().optional(), headline: z.string().min(1), asOf: z.string().optional(), items: z.array(z.object({ value: z.string().min(1), label: z.string().min(1) }).strict()).min(1) }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("faq"), eyebrow: z.string().optional(), headline: z.string().min(1), items: z.array(z.object({ question: z.string().min(1), answer: z.string().min(1) }).strict()).min(1) }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("testimonial"), eyebrow: z.string().optional(), headline: z.string().optional(), items: z.array(z.object({ quote: z.string().min(1), name: z.string().min(1), role: z.string().optional(), sourceUrl: z.url().refine((value) => new URL(value).protocol === "https:").optional() }).strict()).min(1) }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("logoStrip"), eyebrow: z.string().optional(), headline: z.string().optional(), items: z.array(z.object({ name: z.string().min(1), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional() }).strict()).min(1) }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("steps"), eyebrow: z.string().optional(), headline: z.string().min(1), items: z.array(z.object({ title: z.string().min(1), description: z.string().min(1) }).strict()).min(1) }).strict(),
+  z.object({ id: z.string().min(1), type: z.literal("locations"), eyebrow: z.string().optional(), headline: z.string().min(1), items: z.array(z.object({ name: z.string().min(1), street: z.string().optional(), city: z.string().optional(), region: z.string().optional(), postalCode: z.string().optional(), phone: z.string().optional(), email: z.union([z.literal(""), z.email()]).optional(), hoursNote: z.string().optional() }).strict()).min(1) }).strict(),
   z.object({ id: z.string().min(1), type: z.literal("scrollSection"), experience: z.string().regex(experienceSlugPattern), headingLevel: z.enum(["h1", "h2"]).default("h2") }).strict()
 ]);
 
@@ -74,7 +80,7 @@ export const ScrollWorldExperienceSchema = z.object({
   if (value.placement === "section" && value.route) context.addIssue({ code: "custom", path: ["route"], message: "Section experiences cannot own a route" });
 });
 const ContentSlugSchema = z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-export const ProductSchema = z.object({ title: z.string().min(1), slug: ContentSlugSchema, kind: z.enum(["product", "service", "category"]).default("product"), summary: z.string().min(1), description: z.string().min(1), priceLabel: z.string().min(1).optional(), featured: z.boolean().default(false), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional(), seo: SeoSchema }).strict();
+export const ProductSchema = z.object({ title: z.string().min(1), slug: ContentSlugSchema, kind: z.enum(["product", "service", "category"]).default("product"), summary: z.string().min(1), description: z.string().min(1), priceLabel: z.string().min(1).optional(), ctaLabel: z.string().min(1).optional(), featured: z.boolean().default(false), image: MediaSchema.optional(), imagePromptId: ImagePromptIdSchema.optional(), seo: SeoSchema }).strict();
 const ExternalResourceHrefSchema = z.url().refine((value) => new URL(value).protocol === "https:", "External resource URL must use HTTPS");
 const ResourceDestinationSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("detail"), body: z.string().min(1), cta: CtaSchema.optional() }).strict(),
@@ -93,6 +99,7 @@ export const SiteDataSchema = z.object({
   launchStatus: z.enum(["draft", "live"]), locale: z.string().regex(localePattern), logo: ImagePathSchema, socialImage: ImagePathSchema.optional(),
   email: z.union([z.literal(""), z.email()]), phone: z.string(),
   contactUrl: z.url().refine((value) => new URL(value).protocol === "https:", "Contact URL must use HTTPS").optional(),
+  complianceNote: z.string().optional(),
   address: z.object({ street: z.string(), city: z.string(), region: z.string(), postalCode: z.string(), country: z.string() }).strict(),
   social: z.object({ linkedin: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]), x: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]), facebook: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]).optional(), instagram: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]).optional(), youtube: z.union([z.literal(""), z.url().refine((value) => new URL(value).protocol === "https:")]).optional() }).strict()
 }).strict();

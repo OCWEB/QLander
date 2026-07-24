@@ -16,6 +16,18 @@ const action = site.contactUrl || (site.email ? `mailto:${site.email}` : undefin
     <p>{section.body}</p>
     {section.mode === "action" && site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}
     {section.mode === "action" && site.phone && <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>}
+    {section.channels && section.channels.length > 0 && (
+      <ul class="contact-channels">
+        {section.channels.map((channel) => (
+          <li>
+            <strong>{channel.label}</strong>
+            {channel.phone && <a href={`tel:${channel.phone.replaceAll(" ", "")}`}>{channel.phone}</a>}
+            {channel.email && <a href={`mailto:${channel.email}`}>{channel.email}</a>}
+            {channel.hoursNote && <span>{channel.hoursNote}</span>}
+          </li>
+        ))}
+      </ul>
+    )}
   </div>
   {section.mode === "informational" ? (
     section.informationalNote && <div class="contact-action"><p>{section.informationalNote}</p></div>

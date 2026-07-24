@@ -1,0 +1,62 @@
+---
+import type { PageSection } from "../lib/types";
+
+type StatsSection = Extract<PageSection, { type: "stats" }>;
+const { section } = Astro.props as { section: StatsSection };
+---
+
+<section class="stats-section" data-pp-edit-id={section.id}>
+  <div class="section-heading">
+    {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+    <h2>{section.headline}</h2>
+    {section.asOf && <p class="stats-asof">As of {section.asOf}</p>}
+  </div>
+  <dl class="stats-grid">
+    {section.items.map((item) => (
+      <div class="stats-item">
+        <dd>{item.value}</dd>
+        <dt>{item.label}</dt>
+      </div>
+    ))}
+  </dl>
+</section>
+
+<style>
+  .stats-section {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: var(--sectionY);
+    display: grid;
+    gap: var(--contentGap);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--contentGap);
+    margin: 0;
+  }
+
+  .stats-item {
+    display: grid;
+    gap: 6px;
+  }
+
+  .stats-item dd {
+    margin: 0;
+    font-family: var(--fontDisplay);
+    font-weight: var(--weightDisplay);
+    font-size: clamp(var(--headingMin), 3vw, var(--headingMax));
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stats-item dt {
+    color: var(--muted);
+  }
+
+  .stats-asof {
+    font-size: var(--labelSize);
+    color: var(--muted);
+  }
+</style>

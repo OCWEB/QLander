@@ -27,7 +27,7 @@ const Heading = headingLevel;
           <h2>{product.title}</h2>
           <p>{product.summary}</p>
         </div>
-        <a class="button secondary" href={`/products/${product.slug}`}>{itemCtaLabel}</a>
+        <a class="button secondary" href={`/products/${product.slug}`}>{product.ctaLabel ?? itemCtaLabel}</a>
       </article>
     ))}
   </div>

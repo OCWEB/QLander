@@ -1,0 +1,79 @@
+---
+import type { PageSection } from "../lib/types";
+
+type TestimonialSection = Extract<PageSection, { type: "testimonial" }>;
+const { section } = Astro.props as { section: TestimonialSection };
+---
+
+<section class="testimonial-section" data-pp-edit-id={section.id}>
+  {(section.eyebrow || section.headline) && (
+    <div class="section-heading">
+      {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+      {section.headline && <h2>{section.headline}</h2>}
+    </div>
+  )}
+  <div class="testimonial-grid">
+    {section.items.map((item) => (
+      <figure>
+        <blockquote>{item.quote}</blockquote>
+        <figcaption>
+          <strong>{item.name}</strong>
+          {item.role && <span>{item.role}</span>}
+          {item.sourceUrl && <a href={item.sourceUrl} rel="nofollow noopener">Source</a>}
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+</section>
+
+<style>
+  .testimonial-section {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: var(--sectionY);
+    display: grid;
+    gap: var(--contentGap);
+  }
+
+  .testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--contentGap);
+  }
+
+  figure {
+    margin: 0;
+    display: grid;
+    gap: 14px;
+    border: 1px solid color-mix(in srgb, var(--ink), transparent 86%);
+    border-radius: var(--radius);
+    background: white;
+    padding: 20px;
+  }
+
+  blockquote {
+    margin: 0;
+    font-family: var(--fontDisplay);
+    line-height: var(--bodyLeading);
+  }
+
+  blockquote::before {
+    content: "\201C";
+    color: var(--accent);
+  }
+
+  blockquote::after {
+    content: "\201D";
+    color: var(--accent);
+  }
+
+  figcaption {
+    display: grid;
+    gap: 2px;
+    font-size: var(--labelSize);
+  }
+
+  figcaption span {
+    color: var(--muted);
+  }
+</style>

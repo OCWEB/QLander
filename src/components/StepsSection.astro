@@ -1,0 +1,57 @@
+---
+import type { PageSection } from "../lib/types";
+
+type StepsSection = Extract<PageSection, { type: "steps" }>;
+const { section } = Astro.props as { section: StepsSection };
+---
+
+<section class="steps-section" data-pp-edit-id={section.id}>
+  <div class="section-heading">
+    {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+    <h2>{section.headline}</h2>
+  </div>
+  <ol>
+    {section.items.map((item) => (
+      <li>
+        <h3>{item.title}</h3>
+        <p>{item.description}</p>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .steps-section {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: var(--sectionY);
+    display: grid;
+    gap: var(--contentGap);
+  }
+
+  ol {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--contentGap);
+    counter-reset: qlander-step;
+    list-style: none;
+  }
+
+  li {
+    counter-increment: qlander-step;
+    display: grid;
+    gap: 8px;
+    border-top: 2px solid var(--accent);
+    padding-top: 14px;
+  }
+
+  li::before {
+    content: counter(qlander-step, decimal-leading-zero);
+    font-family: var(--fontLabel);
+    font-weight: var(--weightLabel);
+    font-size: var(--labelSize);
+    color: var(--accent);
+  }
+</style>

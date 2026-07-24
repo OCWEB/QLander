@@ -22,4 +22,5 @@ const { site, navigation } = Astro.props as {
       {site.contactUrl && <a href={site.contactUrl}>Contact</a>}
     </address>
   )}
+  {site.complianceNote && <p class="compliance-note">{site.complianceNote}</p>}
 </footer>

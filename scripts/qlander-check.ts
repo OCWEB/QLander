@@ -369,14 +369,20 @@ function allowedFields(value: any, jsonPath: string) {
   if (value?.type === "featureGrid") return new Set(["eyebrow", "headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"]);
   if (value?.type === "productGrid") return new Set(["headline", "productSlugs"]);
   if (value?.type === "cta") return new Set(["headline", "body", "cta.label", "cta.href"]);
-  if (value?.type === "contact") return new Set(["mode", "eyebrow", "headline", "body", "actionLabel", "informationalNote"]);
+  if (value?.type === "contact") return new Set(["mode", "eyebrow", "headline", "body", "actionLabel", "informationalNote", "channels[].label", "channels[].phone", "channels[].email", "channels[].hoursNote"]);
   if (value?.type === "richText") return new Set(["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);
+  if (value?.type === "stats") return new Set(["eyebrow", "headline", "asOf", "items[].value", "items[].label"]);
+  if (value?.type === "faq") return new Set(["eyebrow", "headline", "items[].question", "items[].answer"]);
+  if (value?.type === "testimonial") return new Set(["eyebrow", "headline", "items[].quote", "items[].name", "items[].role", "items[].sourceUrl"]);
+  if (value?.type === "logoStrip") return new Set(["eyebrow", "headline", "items[].name", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"]);
+  if (value?.type === "steps") return new Set(["eyebrow", "headline", "items[].title", "items[].description"]);
+  if (value?.type === "locations") return new Set(["eyebrow", "headline", "items[].name", "items[].street", "items[].city", "items[].region", "items[].postalCode", "items[].phone", "items[].email", "items[].hoursNote"]);
   if (value?.type === "scrollSection") return new Set(["experience", "headingLevel"]);
   if (value?.kind === "scroll-world") return new Set(["route", "seo.title", "seo.description", "seo.noindex", "seo.socialImage", "brand.name", "brand.href", "cta.label", "cta.href", "hint", "diveScroll", "connScroll", "crossfade", "nav", "atmosphere", "sections[].label", "sections[].accent", "sections[].still", "sections[].stillMobile", "sections[].clip", "sections[].clipMobile", "sections[].scroll", "sections[].linger", "sections[].eyebrow", "sections[].title", "sections[].body", "sections[].tags", "sections[].cta.primary.label", "sections[].cta.primary.href", "sections[].cta.secondary.label", "sections[].cta.secondary.href", "connectors", "connectorsMobile"]);
   if (value?.destination && value?.slug) return new Set(["title", "summary", "year", "type", "destination.body", "destination.cta.label", "destination.cta.href", "destination.href", "destination.label", "image.src", "image.alt", "image.width", "image.height", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
-  if (value?.slug && value?.summary && value?.title) return new Set(["title", "kind", "summary", "description", "priceLabel", "featured", "image.src", "image.alt", "image.width", "image.height", "imagePromptId", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
+  if (value?.slug && value?.summary && value?.title) return new Set(["title", "kind", "summary", "description", "priceLabel", "ctaLabel", "featured", "image.src", "image.alt", "image.width", "image.height", "imagePromptId", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
   if (value?.title && value?.description && jsonPath !== "$") return new Set(["title", "description", "noindex", "socialImage", "eyebrow", "heading", "itemCtaLabel", "detailCtaLabel", "detailCtaHref", "externalCtaLabel", "yearFilterLabel", "typeFilterLabel", "allYearsLabel", "allTypesLabel", "detailBackLabel"]);
-  return new Set(["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "contactUrl", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x", "social.facebook", "social.instagram", "social.youtube"]);
+  return new Set(["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "contactUrl", "complianceNote", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x", "social.facebook", "social.instagram", "social.youtube"]);
 }
 
 async function validateDist(model: Model) {

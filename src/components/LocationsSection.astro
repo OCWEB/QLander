@@ -1,0 +1,65 @@
+---
+import type { PageSection } from "../lib/types";
+
+type LocationsSection = Extract<PageSection, { type: "locations" }>;
+const { section } = Astro.props as { section: LocationsSection };
+---
+
+<section class="locations-section" data-pp-edit-id={section.id}>
+  <div class="section-heading">
+    {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+    <h2>{section.headline}</h2>
+  </div>
+  <div class="locations-grid">
+    {section.items.map((item) => (
+      <article>
+        <h3>{item.name}</h3>
+        {(item.street || item.city || item.region || item.postalCode) && (
+          <p>{[item.street, [item.city, item.region].filter(Boolean).join(", "), item.postalCode].filter(Boolean).join(", ")}</p>
+        )}
+        {item.phone && <a href={`tel:${item.phone.replaceAll(" ", "")}`}>{item.phone}</a>}
+        {item.email && <a href={`mailto:${item.email}`}>{item.email}</a>}
+        {item.hoursNote && <p class="locations-hours">{item.hoursNote}</p>}
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .locations-section {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: var(--sectionY);
+    display: grid;
+    gap: var(--contentGap);
+  }
+
+  .locations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--contentGap);
+  }
+
+  article {
+    display: grid;
+    gap: 8px;
+    border: 1px solid color-mix(in srgb, var(--ink), transparent 86%);
+    border-radius: var(--radius);
+    background: white;
+    padding: 18px;
+    align-content: start;
+  }
+
+  article a {
+    color: var(--accentDark);
+    text-decoration: none;
+  }
+
+  article a:hover {
+    text-decoration: underline;
+  }
+
+  .locations-hours {
+    font-size: var(--labelSize);
+  }
+</style>

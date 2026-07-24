@@ -1,0 +1,58 @@
+---
+import type { PageSection } from "../lib/types";
+
+type FaqSection = Extract<PageSection, { type: "faq" }>;
+const { section } = Astro.props as { section: FaqSection };
+---
+
+<section class="faq-section" data-pp-edit-id={section.id}>
+  <div class="section-heading">
+    {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+    <h2>{section.headline}</h2>
+  </div>
+  <div class="faq-list">
+    {section.items.map((item) => (
+      <details>
+        <summary><h3>{item.question}</h3></summary>
+        <p>{item.answer}</p>
+      </details>
+    ))}
+  </div>
+</section>
+
+<style>
+  .faq-section {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: var(--sectionY);
+    display: grid;
+    gap: var(--contentGap);
+  }
+
+  .faq-list {
+    display: grid;
+    gap: 10px;
+    max-width: var(--readingMax);
+  }
+
+  details {
+    border: 1px solid color-mix(in srgb, var(--ink), transparent 86%);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    background: white;
+  }
+
+  summary {
+    cursor: pointer;
+    list-style-position: outside;
+  }
+
+  summary h3 {
+    display: inline;
+    font-size: 1rem;
+  }
+
+  details[open] p {
+    margin-top: 10px;
+  }
+</style>

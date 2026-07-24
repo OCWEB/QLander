@@ -1,0 +1,69 @@
+---
+import type { PageSection } from "../lib/types";
+import PlaceholderVisual from "./PlaceholderVisual.astro";
+
+type LogoStripSection = Extract<PageSection, { type: "logoStrip" }>;
+const { section } = Astro.props as { section: LogoStripSection };
+---
+
+<section class="logo-strip" data-pp-edit-id={section.id}>
+  {(section.eyebrow || section.headline) && (
+    <div class="section-heading">
+      {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+      {section.headline && <h2>{section.headline}</h2>}
+    </div>
+  )}
+  <ul>
+    {section.items.map((item) => (
+      <li>
+        {item.image ? (
+          <img src={item.image.src} alt={item.image.alt} width={item.image.width} height={item.image.height} loading="lazy" decoding="async" />
+        ) : item.imagePromptId ? (
+          <PlaceholderVisual label={`${item.name} logo placeholder`} promptId={item.imagePromptId} variant="card" />
+        ) : (
+          <span>{item.name}</span>
+        )}
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .logo-strip {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: calc(var(--sectionY) * 0.6);
+    display: grid;
+    gap: var(--contentGap);
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--contentGap);
+  }
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  li img {
+    max-height: 44px;
+    width: auto;
+  }
+
+  li span {
+    font-family: var(--fontLabel);
+    font-weight: var(--weightLabel);
+    font-size: var(--labelSize);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+</style>

@@ -1,0 +1,57 @@
+---
+// Prebuilt handoff variant: accent panel call to action instead of the bordered
+// band. Register under a cta section's edit id.
+import type { PageSection } from "../lib/types";
+
+type CtaSection = Extract<PageSection, { type: "cta" }>;
+const { section } = Astro.props as { section: CtaSection };
+---
+
+<section class="vc-panel-wrap" data-pp-edit-id={section.id}>
+  <div class="vc-panel">
+    <div>
+      <h2>{section.headline}</h2>
+      <p>{section.body}</p>
+    </div>
+    <a class="button vc-button" href={section.cta.href}>{section.cta.label}</a>
+  </div>
+</section>
+
+<style>
+  .vc-panel-wrap {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: var(--sectionY);
+  }
+
+  .vc-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--contentGap);
+    background: linear-gradient(120deg, var(--accent), var(--accentDark));
+    border-radius: calc(var(--radius) * 2);
+    padding: clamp(28px, 5vw, 56px);
+  }
+
+  .vc-panel h2,
+  .vc-panel p {
+    color: white;
+  }
+
+  .vc-panel div {
+    display: grid;
+    gap: 10px;
+    max-width: var(--readingMax);
+  }
+
+  .vc-button {
+    background: white;
+    color: var(--accentDark);
+  }
+
+  .vc-button:hover {
+    background: var(--paper);
+  }
+</style>

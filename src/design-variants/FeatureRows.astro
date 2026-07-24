@@ -1,0 +1,70 @@
+---
+// Prebuilt handoff variant: alternating full-width feature rows instead of the
+// three-column card grid. Register under a featureGrid section's edit id.
+import type { PageSection } from "../lib/types";
+import PlaceholderVisual from "../components/PlaceholderVisual.astro";
+
+type FeatureGridSection = Extract<PageSection, { type: "featureGrid" }>;
+const { section } = Astro.props as { section: FeatureGridSection };
+---
+
+<section class="vf-rows" data-pp-edit-id={section.id}>
+  <div class="section-heading">
+    {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+    <h2>{section.headline}</h2>
+  </div>
+  {section.items.map((item, index) => (
+    <article class:list={["vf-row", { "vf-row--flip": index % 2 === 1 }]}>
+      <div class="vf-copy">
+        <h3>{item.title}</h3>
+        <p>{item.description}</p>
+      </div>
+      {item.image ? (
+        <img class="content-image" src={item.image.src} alt={item.image.alt} width={item.image.width} height={item.image.height} loading="lazy" decoding="async" />
+      ) : (
+        <PlaceholderVisual label={`${item.title} image placeholder`} promptId={item.imagePromptId} variant="card" />
+      )}
+    </article>
+  ))}
+</section>
+
+<style>
+  .vf-rows {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: var(--sectionY);
+    display: grid;
+    gap: calc(var(--contentGap) * 2);
+  }
+
+  .vf-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(24px, 5vw, 72px);
+  }
+
+  .vf-row--flip .vf-copy {
+    order: 2;
+  }
+
+  .vf-copy {
+    display: grid;
+    gap: 12px;
+    max-width: var(--readingMax);
+  }
+
+  .vf-copy h3 {
+    font-size: clamp(var(--headingMin), 2.5vw, calc(var(--headingMax) * 0.75));
+  }
+
+  @media (max-width: 720px) {
+    .vf-row {
+      grid-template-columns: 1fr;
+    }
+
+    .vf-row--flip .vf-copy {
+      order: 0;
+    }
+  }
+</style>

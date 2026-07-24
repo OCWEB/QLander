@@ -12,6 +12,10 @@ How to replace a starter renderer with an approved project-local one. A prompted
 6. Responsive and accessible: usable at 360px and 1280px, honors `prefers-reduced-motion` for any animation, contrast per the design skill minimums.
 7. Static output: no client JavaScript unless the user explicitly approved an interactive behavior.
 
+## Prebuilt variants
+
+Three ready-made renderers live in `src/design-variants/` and already satisfy this contract: `HeroCentered.astro` (centered hero, media below), `FeatureRows.astro` (alternating full-width rows instead of the card grid), and `CtaPanel.astro` (accent gradient panel). Registering one against a section id counts as a material handoff. Use them as-is, or copy one into `src/design/` as the starting point for a bespoke renderer; verify white-on-accent contrast when using `CtaPanel` with a light accent.
+
 ## Registration (both steps required)
 
 1. Import and register in `src/layout-handoffs.ts`:
@@ -31,7 +35,7 @@ A `page` handoff uses the page route as its id (`"/"`); a `section` handoff uses
 
 ## Self-hosted fonts
 
-When the approved typography needs custom faces: place the files under `public/fonts/`, add the `@font-face` rules at the top of the `<style>` block in `src/layouts/BaseLayout.astro` (template tier, covered by the design approval), and reference the family name in `design-system.json`. Never add a font CDN link or `@import`. If no file with a compatible license can be sourced, use an intentional system stack per the design skill and record why.
+Four OFL-licensed variable fonts ship in `public/fonts/` (Fraunces, Newsreader, Space Grotesk, Work Sans; see `public/fonts/README.md` for personalities and the `@font-face` snippet). Prefer these before sourcing new files: add the `@font-face` rules at the top of the `<style>` block in `src/layouts/BaseLayout.astro` (template tier, covered by the design approval) and reference the family in `design-system.json`. Additional faces may be added under `public/fonts/` only with a compatible license recorded next to the file. Never add a font CDN link or `@import`. If nothing suitable can be sourced, use an intentional system stack per the design skill and record why.
 
 ## Minimal example section renderer
 

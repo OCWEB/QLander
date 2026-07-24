@@ -4,11 +4,17 @@ import { getCollection } from "astro:content";
 import { site } from "../lib/site";
 import ContactForm from "../components/ContactForm.astro";
 import CTASection from "../components/CTASection.astro";
+import FaqSection from "../components/FaqSection.astro";
 import FeatureGrid from "../components/FeatureGrid.astro";
 import HeroSection from "../components/HeroSection.astro";
+import LocationsSection from "../components/LocationsSection.astro";
+import LogoStrip from "../components/LogoStrip.astro";
 import ProductGrid from "../components/ProductGrid.astro";
 import RichTextSection from "../components/RichTextSection.astro";
 import ScrollSection from "../components/ScrollSection.astro";
+import StatsSection from "../components/StatsSection.astro";
+import StepsSection from "../components/StepsSection.astro";
+import TestimonialSection from "../components/TestimonialSection.astro";
 import { ScrollWorldExperienceSchema } from "../lib/schemas";
 import { pageHandoffs, sectionHandoffs } from "../layout-handoffs";
 import BaseLayout from "./BaseLayout.astro";
@@ -44,6 +50,12 @@ const sectionExperience = (slug: string) => {
       section.type === "productGrid" ? <ProductGrid products={products.filter((product) => section.productSlugs.includes(product.slug))} headline={section.headline} headingLevel="h2" editId={section.id} /> :
       section.type === "contact" ? <ContactForm section={section} site={site} /> :
       section.type === "richText" ? <RichTextSection section={section} /> :
+      section.type === "stats" ? <StatsSection section={section} /> :
+      section.type === "faq" ? <FaqSection section={section} /> :
+      section.type === "testimonial" ? <TestimonialSection section={section} /> :
+      section.type === "logoStrip" ? <LogoStrip section={section} /> :
+      section.type === "steps" ? <StepsSection section={section} /> :
+      section.type === "locations" ? <LocationsSection section={section} /> :
       section.type === "scrollSection" ? <ScrollSection experience={sectionExperience(section.experience)} sectionId={section.id} headingLevel={section.headingLevel} /> :
       null;
   })}

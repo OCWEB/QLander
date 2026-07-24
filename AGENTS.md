@@ -27,6 +27,7 @@ If the user says `qlander start`, requests a new site/migration/redesign/rebrand
 ## Common Workflows
 
 - Copy or section edits: update the matching file under `content/pages/`.
+- Page section types: `hero`, `featureGrid`, `richText`, `cta`, `productGrid`, `contact`, `stats`, `faq`, `testimonial`, `logoStrip`, `steps`, `locations`, `scrollSection`. Choose the type that matches the content's real shape instead of forcing everything into `featureGrid`/`richText`. Fact rules still apply: `testimonial`, `stats`, and `logoStrip` may only carry verified or user-supplied proof, and time-varying `stats` values need `asOf`.
 - Site settings: update `data/site.json`. Email and phone may be empty when an HTTPS `contactUrl` is supplied, or when the `/contact` page explicitly uses an informational contact section with no response action.
 - Navigation: update `data/navigation.json`, then verify each internal `href` exists.
 - Theme tokens: update `data/theme.json`; keep `radius` at `8` or below.

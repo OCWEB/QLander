@@ -1,0 +1,60 @@
+---
+// Prebuilt handoff variant: centered hero. Register in src/layout-handoffs.ts
+// under the hero section's edit id and record it in qlander.manifest.json.
+import type { PageSection } from "../lib/types";
+import PlaceholderVisual from "../components/PlaceholderVisual.astro";
+
+type Hero = Extract<PageSection, { type: "hero" }>;
+const { section } = Astro.props as { section: Hero };
+---
+
+<section class="vh-centered" data-pp-edit-id={section.id}>
+  {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
+  <h1>{section.headline}</h1>
+  <p class="vh-subhead">{section.subheadline}</p>
+  {(section.primaryCta || section.secondaryCta) && (
+    <div class="vh-actions">
+      {section.primaryCta && <a class="button primary" href={section.primaryCta.href}>{section.primaryCta.label}</a>}
+      {section.secondaryCta && <a class="button secondary" href={section.secondaryCta.href}>{section.secondaryCta.label}</a>}
+    </div>
+  )}
+  {section.image ? (
+    <img class="content-image" src={section.image.src} alt={section.image.alt} width={section.image.width} height={section.image.height} fetchpriority="high" />
+  ) : (
+    <PlaceholderVisual label="Hero image placeholder" promptId={section.imagePromptId} variant="hero" />
+  )}
+</section>
+
+<style>
+  .vh-centered {
+    width: min(var(--contentMax), calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: var(--sectionY);
+    display: grid;
+    gap: var(--contentGap);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .vh-centered h1 {
+    max-width: 18ch;
+  }
+
+  .vh-subhead {
+    max-width: var(--readingMax);
+    font-size: 1.15rem;
+  }
+
+  .vh-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .vh-centered :global(.content-image),
+  .vh-centered :global(.placeholder-visual) {
+    width: min(880px, 100%);
+    margin-top: var(--contentGap);
+  }
+</style>

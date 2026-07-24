@@ -259,6 +259,7 @@
       "email",
       "phone",
       "contactUrl",
+      "complianceNote",
       "address.street",
       "address.city",
       "address.region",
