@@ -26,6 +26,8 @@ Summarize or rewrite source prose. Preserve exact factual values and short produ
 
 Contact emails are often hidden from automated fetches by obfuscation services such as Cloudflare email protection. When an email cannot be read from the official site, mark it `needs-confirmation` and ask the user instead of guessing.
 
+When the official site blocks automated fetches (WAF pages, empty responses, request-rejected errors), do not attempt evasion. Fall back in this order: other pages on the same domain, official subdomains of the same organization, then user-supplied written context. Record the block in the brief and mark everything unrecoverable `needs-confirmation`.
+
 ## Local context
 
 Inspect the current repository and user-named files/directories read-only before drafting. Prefer structured data, current specifications, approved brand files, product data, and recent project notes over stale generated output.

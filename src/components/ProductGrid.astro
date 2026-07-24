@@ -21,9 +21,9 @@ const Heading = headingLevel;
   <div class="product-grid">
     {products.map((product) => (
       <article class="product-card">
-        {product.image ? <img class="content-image" src={product.image.src} alt={product.image.alt} width={product.image.width} height={product.image.height} loading="lazy" decoding="async" /> : <PlaceholderVisual label={`${product.title} image placeholder`} variant="card" />}
+        {product.image ? <img class="content-image" src={product.image.src} alt={product.image.alt} width={product.image.width} height={product.image.height} loading="lazy" decoding="async" /> : <PlaceholderVisual label={`${product.title} image placeholder`} promptId={product.imagePromptId} variant="card" />}
         <div>
-          <p class="eyebrow">{product.priceLabel}</p>
+          {product.priceLabel && <p class="eyebrow">{product.priceLabel}</p>}
           <h2>{product.title}</h2>
           <p>{product.summary}</p>
         </div>

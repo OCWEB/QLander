@@ -58,10 +58,13 @@ try {
     });
   }
   await writeRunLog(target, answers, baselineCommit, stages, validationResults);
+  if (!answers.inPlace && !answers.noGit) {
+    await run(target, "git", ["add", "-A"]);
+    await run(target, "git", ["-c", "user.name=QLander", "-c", "user.email=qlander@local.invalid", "commit", "-m", `Configure ${answers.profile} profile`]);
+  }
   console.log(`QLander ${answers.profile} initialized at ${target}`);
   console.log(`Baseline commit: ${baselineCommit}`);
   console.log("Stage results and validation output: docs/qlander-run.md in the new project.");
-  console.log("Note: profile configuration is left uncommitted on top of the baseline commit on purpose.");
   console.log("Next: run QLander Discovery, approve the brief and media plan, then populate the draft.");
 } catch (error) {
   await writeRunLog(target, answers, baselineCommit, stages, validationResults).catch(() => {});
@@ -131,9 +134,17 @@ async function copyTemplate(target: string) {
       const relative = path.relative(sourceRoot, source);
       if (!relative) return true;
       const first = relative.split(path.sep)[0];
+      if (relative === path.join("skills", "qlander-audit") || relative.startsWith(path.join("skills", "qlander-audit") + path.sep)) return false;
       return !excluded.has(first) && relative !== "content/site-brief.md" && !relative.endsWith(".log") && relative !== "tsconfig.tsbuildinfo";
     }
   });
+}
+
+async function writeWordmarkLogo(target: string, name: string) {
+  const label = name.replace(/[<>&"']/g, "").trim() || "Site";
+  const width = Math.max(120, Math.min(360, 24 + label.length * 10));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} 40" role="img" aria-labelledby="title">\n  <title id="title">${label}</title>\n  <rect width="${width}" height="40" rx="8" fill="#111111"/>\n  <text x="${Math.round(width / 2)}" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#f6f7f8">${label}</text>\n</svg>\n`;
+  await writeFile(path.join(target, "public/images/logo.svg"), svg);
 }
 
 async function createBaselineCommit(target: string) {
@@ -150,9 +161,11 @@ async function configureProfile(target: string, profile: Profile, name: string, 
   manifest.name = name;
   manifest.siteId = slugify(name) || "qlander-site";
   site.name = name;
+  site.description = `${name} draft site pending approved content.`;
   site.launchStatus = "draft";
   await writeJson(path.join(target, "qlander.manifest.json"), manifest);
   await writeJson(path.join(target, "data/site.json"), site);
+  await writeWordmarkLogo(target, name);
 
   if (profile === "single-page-ppc") await configurePpc(target, manifest, name);
   if (profile === "internal-scroll-world") await run(target, process.execPath, [
@@ -213,7 +226,7 @@ function createSinglePageEditMap(sections: any[]) {
   }
   map["global.header"] = { route: "*", label: "404 support header", scope: "global-navigation", contentFile: "data/navigation.json", jsonPath: "header", component: "Header", safeFields: ["[].label", "[].href"], affectedRoutes: ["/404"] };
   map["global.footer"] = { route: "*", label: "404 support footer", scope: "global-navigation", contentFile: "data/navigation.json", jsonPath: "footer", component: "Footer", safeFields: ["[].label", "[].href"], affectedRoutes: ["/404"] };
-  map["site.info"] = { route: "*", label: "Site information", scope: "global-content", contentFile: "data/site.json", jsonPath: "$", component: "SiteData", safeFields: ["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "contactUrl", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x"], affectedRoutes: "all" };
+  map["site.info"] = { route: "*", label: "Site information", scope: "global-content", contentFile: "data/site.json", jsonPath: "$", component: "SiteData", safeFields: ["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "contactUrl", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x", "social.facebook", "social.instagram", "social.youtube"], affectedRoutes: "all" };
   map["route.notFound.seo"] = { route: "/404", label: "404 SEO", scope: "route-metadata", contentFile: "data/route-seo.json", jsonPath: "notFound", component: "SEO", safeFields: ["title", "description", "noindex", "socialImage"], affectedRoutes: ["/404"] };
   return map;
 }

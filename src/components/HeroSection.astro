@@ -12,7 +12,7 @@ const { section, showVisual = false } = Astro.props as {
 
 <section class="hero-section" data-pp-edit-id={section.id}>
   <div class="hero-copy">
-    <p class="eyebrow">Starter wireframe</p>
+    {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
     <h1>{section.headline}</h1>
     <p class="hero-subhead">{section.subheadline}</p>
     <div class="actions">

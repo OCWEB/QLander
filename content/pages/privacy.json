@@ -10,6 +10,7 @@
     {
       "id": "privacy.hero",
       "type": "hero",
+      "eyebrow": "Starter wireframe",
       "headline": "Privacy policy",
       "subheadline": "Replace this placeholder policy with language that matches the real site.",
       "primaryCta": {

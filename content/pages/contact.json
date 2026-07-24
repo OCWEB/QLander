@@ -10,6 +10,7 @@
     {
       "id": "contact.hero",
       "type": "hero",
+      "eyebrow": "Starter wireframe",
       "headline": "Contact headline",
       "subheadline": "Replace this text with the clearest next step for visitors.",
       "primaryCta": {

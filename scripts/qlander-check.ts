@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { randomUUID } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -131,6 +131,7 @@ async function validateImagePrompts(model: Model) {
       if (section.type === "featureGrid") for (const item of section.items) if (item.imagePromptId) promptIds.add(item.imagePromptId);
     }
   }
+  for (const product of model.products) if (product.data.imagePromptId) promptIds.add(product.data.imagePromptId);
   if (!promptIds.size) return;
   const documented = new Set<string>();
   for (const file of await fg("content/prompts/**/*.md", { cwd: root })) {
@@ -195,16 +196,17 @@ function validateEditMap(model: Model) {
 
 function allowedFields(value: any, jsonPath: string) {
   if (Array.isArray(value)) return new Set(["[].label", "[].href"]);
-  if (value?.type === "hero") return new Set(["headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);
-  if (value?.type === "featureGrid") return new Set(["headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"]);
+  if (value?.type === "hero") return new Set(["eyebrow", "headline", "subheadline", "primaryCta.label", "primaryCta.href", "secondaryCta.label", "secondaryCta.href", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);
+  if (value?.type === "featureGrid") return new Set(["eyebrow", "headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"]);
   if (value?.type === "productGrid") return new Set(["headline", "productSlugs"]);
   if (value?.type === "cta") return new Set(["headline", "body", "cta.label", "cta.href"]);
   if (value?.type === "contact") return new Set(["headline", "body"]);
   if (value?.type === "richText") return new Set(["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"]);
   if (value?.type === "scrollSection") return new Set(["experience", "headingLevel"]);
   if (value?.kind === "scroll-world") return new Set(["route", "seo.title", "seo.description", "seo.noindex", "seo.socialImage", "brand.name", "brand.href", "cta.label", "cta.href", "hint", "diveScroll", "connScroll", "crossfade", "nav", "atmosphere", "sections[].label", "sections[].accent", "sections[].still", "sections[].stillMobile", "sections[].clip", "sections[].clipMobile", "sections[].scroll", "sections[].linger", "sections[].eyebrow", "sections[].title", "sections[].body", "sections[].tags", "sections[].cta.primary.label", "sections[].cta.primary.href", "sections[].cta.secondary.label", "sections[].cta.secondary.href", "connectors", "connectorsMobile"]);
+  if (value?.slug && value?.summary && value?.title) return new Set(["title", "summary", "description", "priceLabel", "featured", "image.src", "image.alt", "image.width", "image.height", "imagePromptId", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
   if (value?.title && value?.description && jsonPath !== "$") return new Set(["title", "description", "noindex", "socialImage", "eyebrow", "heading", "itemCtaLabel", "detailCtaLabel", "detailCtaHref"]);
-  return new Set(["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "contactUrl", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x"]);
+  return new Set(["name", "description", "url", "launchStatus", "locale", "logo", "socialImage", "email", "phone", "contactUrl", "address.street", "address.city", "address.region", "address.postalCode", "address.country", "social.linkedin", "social.x", "social.facebook", "social.instagram", "social.youtube"]);
 }
 
 async function validateDist(model: Model) {
@@ -305,4 +307,8 @@ function experienceRoute(experience: { slug: string; placement?: "route" | "sect
 function normalize(route: string) { return route === "/" ? "/" : `/${route.replace(/^\/+|\/+$/g, "")}`; }
 function isAsset(href: string) { return /\.(avif|gif|ico|jpg|jpeg|png|svg|webp|xml|txt)$/i.test(href.split(/[?#]/)[0]); }
 function htmlRoute(file: string, dist: string) { const relative = path.relative(dist, file).replace(/\\/g, "/"); if (relative === "index.html") return "/"; if (relative.endsWith("/index.html")) return `/${relative.replace(/\/index\.html$/, "")}`; return `/${relative.replace(/\.html$/, "")}`; }
-function runBuild(): Promise<{ ok: boolean; output: string }> { return new Promise((resolve) => { const child = spawn("pnpm", ["run", "build"], { cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"] }); let output = ""; child.stdout.on("data", (chunk) => output += chunk); child.stderr.on("data", (chunk) => output += chunk); child.on("close", (code) => resolve({ ok: code === 0, output: output.trim() })); }); }
+function runBuild(): Promise<{ ok: boolean; output: string }> {
+  // The Astro content-layer cache keeps deleted collection entries alive and re-emits their routes, so validation always builds from a cleared cache.
+  for (const cacheDir of [path.join(root, ".astro"), path.join(root, "node_modules", ".astro")]) rmSync(cacheDir, { recursive: true, force: true });
+  return new Promise((resolve) => { const child = spawn("pnpm", ["run", "build"], { cwd: root, env: process.env, stdio: ["ignore", "pipe", "pipe"] }); let output = ""; child.stdout.on("data", (chunk) => output += chunk); child.stderr.on("data", (chunk) => output += chunk); child.on("close", (code) => resolve({ ok: code === 0, output: output.trim() })); });
+}

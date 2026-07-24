@@ -10,6 +10,7 @@
     {
       "id": "home.hero",
       "type": "hero",
+      "eyebrow": "Starter wireframe",
       "headline": "Website landing page",
       "subheadline": "This starter page is intentionally plain, with image placeholders and editable content blocks ready to replace.",
       "primaryCta": {
@@ -24,6 +25,7 @@
     {
       "id": "home.features",
       "type": "featureGrid",
+      "eyebrow": "Replace these blocks",
       "headline": "Advantages",
       "items": [
         {

@@ -11,7 +11,7 @@ const { section } = Astro.props as {
 
 <section class="section-band" data-pp-edit-id={section.id}>
   <div class="section-heading">
-    <p class="eyebrow">Replace these blocks</p>
+    {section.eyebrow && <p class="eyebrow">{section.eyebrow}</p>}
     <h2>{section.headline}</h2>
   </div>
   <div class="feature-grid">

@@ -4,6 +4,7 @@ import { getCollection } from "astro:content";
 import { site } from "../../lib/site";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { productSchema } from "../../lib/structuredData";
+import PlaceholderVisual from "../../components/PlaceholderVisual.astro";
 import routeSeo from "../../../data/route-seo.json";
 
 export async function getStaticPaths() {
@@ -19,11 +20,11 @@ const { product } = Astro.props as { product: Product };
 
 <BaseLayout seo={product.seo} structuredData={productSchema(site, product)}>
   <article class="article-shell">
-    <p class="eyebrow">{product.priceLabel}</p>
+    {product.priceLabel && <p class="eyebrow">{product.priceLabel}</p>}
     <h1>{product.title}</h1>
     <p>{product.summary}</p>
     <p>{product.description}</p>
-    {product.image && <img class="content-image" src={product.image.src} alt={product.image.alt} width={product.image.width} height={product.image.height} />}
+    {product.image ? <img class="content-image" src={product.image.src} alt={product.image.alt} width={product.image.width} height={product.image.height} /> : product.imagePromptId && <PlaceholderVisual label={`${product.title} image placeholder`} promptId={product.imagePromptId} variant="card" />}
     <a class="button primary" href={routeSeo.products.detailCtaHref}>{routeSeo.products.detailCtaLabel}</a>
   </article>
 </BaseLayout>

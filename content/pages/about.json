@@ -10,6 +10,7 @@
     {
       "id": "about.hero",
       "type": "hero",
+      "eyebrow": "Starter wireframe",
       "headline": "About this starter site",
       "subheadline": "Use this page to describe the organization, product, service, or project once the real content is ready.",
       "primaryCta": {
