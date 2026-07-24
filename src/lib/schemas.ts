@@ -130,13 +130,136 @@ export const ResourceRouteSeoSchema = SeoSchema.extend({
 export const RouteSeoSchema = z.object({ products: ProductRouteSeoSchema.optional(), resources: ResourceRouteSeoSchema.optional(), blog: BlogRouteSeoSchema.optional(), notFound: SeoSchema }).strict();
 export const ProjectTypeSchema = z.enum(["marketing-site", "single-page-ppc", "internal-scroll-world", "root-scroll-world"]);
 export const CreationModeSchema = z.enum(["blank", "prompted"]);
+// --- Research-led layout workflow ---------------------------------------------
+// Evidence and blueprint contracts for prompted design work. Field set is derived
+// from the 2026-07-24-institutional-modern pilot, not guessed; see
+// todo_research-led-layout-workflow.md sections 3, 4, and 6.
+
+const researchPathPattern = /^references\/[A-Za-z0-9][A-Za-z0-9._-]*\.(png|jpg|jpeg|webp)$/;
+const sha256Pattern = /^[a-f0-9]{64}$/;
+const researchIdPattern = /^[a-z0-9][a-z0-9-]*$/;
+
+// captured-obstructed is a success with a consent overlay present. It never
+// triggers rotation: the pilot found two obstructed captures that were both good
+// references, and rotating on them would have discarded them.
+export const ResearchAttemptOutcomeSchema = z.enum([
+  "captured", "captured-obstructed", "http-error", "timeout", "bot-challenge", "blank-render", "identity-mismatch"
+]);
+// skipped-satisfied (target met) and skipped-budget (attempts exhausted) stay
+// distinct so run health is not misreported.
+export const ResearchReferenceStatusSchema = z.enum([
+  "candidate", "captured", "user-supplied", "blocked", "unavailable", "skipped-satisfied", "skipped-budget"
+]);
+export const ResearchAttemptSchema = z.object({
+  at: z.iso.datetime(),
+  outcome: ResearchAttemptOutcomeSchema,
+  note: z.string().min(1).optional()
+}).strict();
+export const ResearchCaptureSchema = z.object({
+  breakpoint: z.enum(["desktop", "mobile"]),
+  localPath: z.string().regex(researchPathPattern, "Capture must be an image inside the run's references/ directory").refine((value) => !value.includes(".."), "Capture path cannot traverse directories"),
+  sha256: z.string().regex(sha256Pattern, "Capture hash must be a lowercase sha256 hex digest")
+}).strict();
+export const ResearchReferenceSchema = z.object({
+  id: z.string().regex(researchIdPattern, "Reference ID must be lowercase letters, numbers, or hyphens"),
+  rank: z.number().int().min(1),
+  sourceUrl: z.url().refine((value) => value.startsWith("https://"), "Reference sources must be HTTPS"),
+  status: ResearchReferenceStatusSchema,
+  rights: z.enum(["inspiration-only", "user-supplied", "authorized"]),
+  attempts: z.array(ResearchAttemptSchema),
+  captures: z.array(ResearchCaptureSchema),
+  reviewedAt: z.iso.datetime().optional(),
+  viewport: z.object({ width: z.number().int().positive(), height: z.number().int().positive() }).strict().optional(),
+  surface: z.string().min(1).optional(),
+  observations: z.array(z.string().min(1)).optional()
+}).strict().refine(
+  (value) => !["captured", "user-supplied"].includes(value.status) || value.captures.length > 0,
+  "A captured or user-supplied reference must carry at least one capture"
+);
+export const ResearchExceptionSchema = z.object({
+  approvedBy: z.string().min(1),
+  approvedAt: z.iso.datetime(),
+  reason: z.string().min(1)
+}).strict();
+export const ResearchManifestSchema = z.object({
+  version: z.literal(1),
+  researchRunId: z.string().min(1),
+  direction: z.string().min(1),
+  attemptBudget: z.number().int().positive(),
+  attemptsUsed: z.number().int().min(0),
+  targetSuccesses: z.number().int().min(2),
+  maxSuccesses: z.number().int().min(2),
+  references: z.array(ResearchReferenceSchema).min(1),
+  captureTool: z.string().min(1).optional(),
+  successes: z.number().int().min(0).optional(),
+  researchException: ResearchExceptionSchema.nullable().optional()
+}).strict();
+
+// Blueprint v1 is deliberately small: only what a machine can validate. Prose
+// belongs in content/design-research.md. proof-band came from the pilot; it was
+// the one research-derived move no v1 enum could describe.
+export const BlueprintRoleSchema = z.enum(["hero", "index", "proof", "guidance", "detail", "faq", "cta"]);
+export const BlueprintPrimitiveSchema = z.enum([
+  "full-bleed-centered", "split-media-left", "split-media-right", "offset-editorial",
+  "grid-cards", "stacked-rows", "list-disclosure", "proof-band", "banded-cta"
+]);
+export const BlueprintResponsiveSchema = z.enum(["stack-copy-first", "stack-media-first", "reflow-grid", "collapse-to-list", "unchanged"]);
+// factList is intentionally absent. The pilot tried to populate one by splitting a
+// licensing paragraph on a sentence regex; it mangled the source into fragments
+// that read as false statements. Renderers must never parse prose into structure.
+export const BlueprintSlotKindSchema = z.enum(["eyebrow", "headline", "body", "microcopy", "action", "cardList", "stepList", "qaList"]);
+export const BlueprintSlotSchema = z.object({
+  id: z.string().min(1),
+  kind: BlueprintSlotKindSchema,
+  // Editing guidance only. These never gate: the pilot's 3-line headline target
+  // rendered as 5, and the correct response was to revise the blueprint.
+  targetLines: z.number().int().positive().optional(),
+  targetCharacters: z.number().int().positive().optional(),
+  note: z.string().min(1).optional()
+}).strict();
+export const BlueprintSectionSchema = z.object({
+  id: z.string().min(1),
+  role: BlueprintRoleSchema,
+  primitive: BlueprintPrimitiveSchema,
+  responsive: BlueprintResponsiveSchema,
+  slots: z.array(BlueprintSlotSchema).min(1)
+}).strict();
+export const BlueprintPageSchema = z.object({
+  route: z.string().startsWith("/"),
+  renderer: z.string().regex(/^src\/design\/[A-Za-z0-9._/-]+\.astro$/, "Blueprint renderers live under src/design/").refine((value) => !value.split("/").includes(".."), "renderer may not traverse directories"),
+  referenceIds: z.array(z.string().regex(researchIdPattern)).min(2, "A blueprint page needs at least two independent references"),
+  sections: z.array(BlueprintSectionSchema).min(1)
+}).strict().refine(
+  // Section IDs are the join key for the divergence comparison and for edit IDs.
+  (value) => new Set(value.sections.map((section) => section.id)).size === value.sections.length,
+  "Blueprint section IDs must be unique"
+);
+export const LayoutBlueprintSchema = z.object({
+  version: z.literal(1),
+  researchRunId: z.string().min(1),
+  direction: z.string().min(1),
+  pages: z.array(BlueprintPageSchema).min(1)
+}).strict();
+
+export const LayoutProvenanceSchema = z.enum(["core-fallback", "bundled-variant", "research-derived", "legacy-unknown"]);
 export const LayoutHandoffSchema = z.object({
   kind: z.enum(["page", "section"]),
   id: z.string().regex(/^(\/[A-Za-z0-9/_-]*|[A-Za-z0-9][A-Za-z0-9._-]*)$/),
   renderer: z.string().regex(/^src\/[A-Za-z0-9._/-]+\.astro$/).refine((value) => !value.split("/").includes(".."), "renderer may not traverse directories"),
-  routes: z.array(z.string().startsWith("/")).min(1)
-}).strict();
-export const DesignManifestSchema = z.object({ status: z.enum(["starter", "required", "implemented"]), direction: z.string(), system: z.literal("data/design-system.json"), handoffs: z.array(LayoutHandoffSchema) }).strict();
+  routes: z.array(z.string().startsWith("/")).min(1),
+  // Optional so existing manifests keep parsing. Migration labels them
+  // legacy-unknown rather than claiming they are research-derived.
+  provenance: LayoutProvenanceSchema.optional(),
+  blueprintId: z.string().min(1).optional(),
+  referenceIds: z.array(z.string().regex(researchIdPattern)).optional()
+}).strict().superRefine((value, ctx) => {
+  if (value.provenance !== "research-derived") return;
+  if (!value.blueprintId) ctx.addIssue({ code: "custom", message: "research-derived handoffs must cite a blueprintId" });
+  if ((value.referenceIds?.length ?? 0) < 2) ctx.addIssue({ code: "custom", message: "research-derived handoffs must cite at least two independent reference IDs" });
+  if (!value.renderer.startsWith("src/design/")) ctx.addIssue({ code: "custom", message: "research-derived renderers live under src/design/, not src/design-variants/" });
+});
+export const DesignGateSchema = z.enum(["off", "warn", "enforce"]);
+export const DesignManifestSchema = z.object({ status: z.enum(["starter", "required", "implemented"]), direction: z.string(), system: z.literal("data/design-system.json"), gate: DesignGateSchema.optional(), blueprintId: z.string().min(1).optional(), divergenceWaiver: z.string().min(1).optional(), handoffs: z.array(LayoutHandoffSchema) }).strict();
 export const MigrationRecordSchema = z.object({ from: z.string().min(1), to: z.string().min(1), appliedAt: z.iso.datetime(), status: z.enum(["runtime-pending", "complete"]), operations: z.array(z.string()), runtimePending: z.array(z.string()) }).strict();
 export const ManifestSchema = z.object({ siteId: z.string().min(1), name: z.string().min(1), template: z.string().min(1), templateSource: z.url(), templateVersion: z.string().min(1), projectType: ProjectTypeSchema.optional(), creationMode: CreationModeSchema.optional(), design: DesignManifestSchema.optional(), contentRoot: z.string(), dataRoot: z.string(), editMap: z.string(), routes: z.array(z.string()).min(1), migrations: z.array(MigrationRecordSchema).optional() }).strict();
 export const EditMapEntrySchema = z.object({ route: z.string(), label: z.string().min(1), scope: z.string().min(1), contentFile: z.string().min(1), jsonPath: z.string().min(1), component: z.string().min(1), safeFields: z.array(z.string()).min(1), affectedRoutes: z.union([z.array(z.string()), z.literal("all")]) }).strict();

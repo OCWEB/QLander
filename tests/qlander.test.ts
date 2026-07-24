@@ -6,7 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 import fg from "fast-glob";
-import { DesignSystemSchema, MediaSchema, PageContentSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref, serializeJsonLd } from "../src/lib/schemas";
+import { DesignManifestSchema, DesignSystemSchema, LayoutBlueprintSchema, LayoutHandoffSchema, MediaSchema, PageContentSchema, ResearchManifestSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref, serializeJsonLd } from "../src/lib/schemas";
 import { resolveCanonical } from "../src/lib/seo";
 import { site } from "../src/lib/site";
 
@@ -482,3 +482,185 @@ async function findLegacyNamespace(root: string) {
   }
   return [...new Set(findings)].sort();
 }
+
+// --- Research-led layout workflow: evidence and blueprint schemas (Task B1) ---
+
+test("[fast] research manifest records every capture attempt with an auditable outcome", () => {
+  const base = {
+    version: 1,
+    researchRunId: "2026-07-24-institutional-modern",
+    direction: "Institutional Modern",
+    attemptBudget: 8,
+    attemptsUsed: 2,
+    targetSuccesses: 2,
+    maxSuccesses: 4,
+    references: [
+      {
+        id: "ref-a",
+        rank: 1,
+        sourceUrl: "https://example.com/",
+        status: "captured",
+        rights: "inspiration-only",
+        attempts: [{ at: "2026-07-24T12:02:00.000Z", outcome: "captured" }],
+        captures: [{ breakpoint: "desktop", localPath: "references/ref-a-desktop.png", sha256: "a".repeat(64) }]
+      },
+      {
+        id: "ref-b",
+        rank: 2,
+        sourceUrl: "https://example.org/",
+        status: "skipped-satisfied",
+        rights: "inspiration-only",
+        attempts: [],
+        captures: []
+      }
+    ]
+  };
+  assert.equal(ResearchManifestSchema.parse(base).references.length, 2);
+
+  // A consent wall is a capture-quality outcome, never a rotation trigger.
+  const obstructed = structuredClone(base);
+  obstructed.references[0].attempts = [{ at: "2026-07-24T12:02:00.000Z", outcome: "captured-obstructed" }];
+  assert.equal(ResearchManifestSchema.safeParse(obstructed).success, true);
+
+  // skipped-satisfied and skipped-budget must stay distinguishable.
+  const exhausted = structuredClone(base);
+  exhausted.references[1].status = "skipped-budget";
+  assert.equal(ResearchManifestSchema.safeParse(exhausted).success, true);
+
+  // Fabricated outcomes and unsafe capture paths are rejected.
+  const invented = structuredClone(base);
+  invented.references[0].attempts = [{ at: "2026-07-24T12:02:00.000Z", outcome: "assumed" }];
+  assert.equal(ResearchManifestSchema.safeParse(invented).success, false);
+
+  const traversal = structuredClone(base);
+  traversal.references[0].captures[0].localPath = "../../../etc/passwd";
+  assert.equal(ResearchManifestSchema.safeParse(traversal).success, false);
+
+  const badHash = structuredClone(base);
+  badHash.references[0].captures[0].sha256 = "nope";
+  assert.equal(ResearchManifestSchema.safeParse(badHash).success, false);
+
+  const insecure = structuredClone(base);
+  insecure.references[0].sourceUrl = "http://example.com/";
+  assert.equal(ResearchManifestSchema.safeParse(insecure).success, false);
+
+  // A captured reference must actually carry a capture.
+  const empty = structuredClone(base);
+  empty.references[0].captures = [];
+  assert.equal(ResearchManifestSchema.safeParse(empty).success, false);
+});
+
+test("[fast] layout blueprint validates composition without accepting prose or prose-derived slots", () => {
+  const base = {
+    version: 1,
+    researchRunId: "2026-07-24-institutional-modern",
+    direction: "Institutional Modern",
+    pages: [
+      {
+        route: "/",
+        renderer: "src/design/institutional-modern/HomePage.astro",
+        referenceIds: ["ref-a", "ref-b"],
+        sections: [
+          {
+            id: "home.hero",
+            role: "hero",
+            primitive: "split-media-right",
+            responsive: "stack-copy-first",
+            slots: [{ id: "home.hero.headline", kind: "headline", targetLines: 5 }]
+          },
+          {
+            id: "home.licensing",
+            role: "proof",
+            primitive: "proof-band",
+            responsive: "collapse-to-list",
+            slots: [{ id: "home.licensing.body", kind: "body", targetCharacters: 240 }]
+          }
+        ]
+      }
+    ]
+  };
+  const parsed = LayoutBlueprintSchema.parse(base);
+  assert.equal(parsed.pages[0].sections[1].primitive, "proof-band");
+
+  // factList was removed in v1: renderers must never parse prose into structure.
+  const factList = structuredClone(base) as any;
+  factList.pages[0].sections[1].slots = [{ id: "home.licensing.items", kind: "factList" }];
+  assert.equal(LayoutBlueprintSchema.safeParse(factList).success, false);
+
+  // Unvalidatable prose fields stay out of the blueprint.
+  const prose = structuredClone(base) as any;
+  prose.pages[0].sections[0].silhouette = "asymmetric editorial funnel";
+  assert.equal(LayoutBlueprintSchema.safeParse(prose).success, false);
+
+  const unknownPrimitive = structuredClone(base);
+  unknownPrimitive.pages[0].sections[0].primitive = "hero-thing";
+  assert.equal(LayoutBlueprintSchema.safeParse(unknownPrimitive).success, false);
+
+  // A blueprint page needs at least two independent references.
+  const thin = structuredClone(base);
+  thin.pages[0].referenceIds = ["ref-a"];
+  assert.equal(LayoutBlueprintSchema.safeParse(thin).success, false);
+
+  // Section IDs must be unique; the divergence comparison depends on stable IDs.
+  const duplicate = structuredClone(base);
+  duplicate.pages[0].sections[1].id = "home.hero";
+  assert.equal(LayoutBlueprintSchema.safeParse(duplicate).success, false);
+
+  const unsafeRenderer = structuredClone(base);
+  unsafeRenderer.pages[0].renderer = "src/../../evil.astro";
+  assert.equal(LayoutBlueprintSchema.safeParse(unsafeRenderer).success, false);
+});
+
+test("[fast] research-derived handoffs must cite a blueprint and independent references", () => {
+  const derived = {
+    kind: "page",
+    id: "/",
+    renderer: "src/design/institutional-modern/HomePage.astro",
+    routes: ["/"],
+    provenance: "research-derived",
+    blueprintId: "2026-07-24-institutional-modern",
+    referenceIds: ["ref-a", "ref-b"]
+  };
+  assert.equal(LayoutHandoffSchema.parse(derived).provenance, "research-derived");
+
+  const noBlueprint = structuredClone(derived) as any;
+  delete noBlueprint.blueprintId;
+  assert.equal(LayoutHandoffSchema.safeParse(noBlueprint).success, false);
+
+  const oneReference = structuredClone(derived);
+  oneReference.referenceIds = ["ref-a"];
+  assert.equal(LayoutHandoffSchema.safeParse(oneReference).success, false);
+
+  const unknownProvenance = structuredClone(derived);
+  unknownProvenance.provenance = "hand-wavy";
+  assert.equal(LayoutHandoffSchema.safeParse(unknownProvenance).success, false);
+
+  // A bundled variant may not claim research provenance.
+  const bundled = structuredClone(derived);
+  bundled.renderer = "src/design-variants/HeroCentered.astro";
+  assert.equal(LayoutHandoffSchema.safeParse(bundled).success, false);
+
+  // Legacy handoffs stay parseable and are never silently upgraded.
+  const legacy = { kind: "section", id: "home.hero", renderer: "src/design-variants/HeroCentered.astro", routes: ["/"] };
+  assert.equal(LayoutHandoffSchema.parse(legacy).provenance, undefined);
+  assert.equal(LayoutHandoffSchema.parse({ ...legacy, provenance: "legacy-unknown" }).provenance, "legacy-unknown");
+});
+
+test("[fast] design manifest carries a rollout gate and stays backward compatible", () => {
+  const legacy = {
+    status: "implemented",
+    direction: "Institutional Modern",
+    system: "data/design-system.json",
+    handoffs: [{ kind: "section", id: "home.hero", renderer: "src/design-variants/HeroCentered.astro", routes: ["/"] }]
+  };
+  const parsedLegacy = DesignManifestSchema.parse(legacy);
+  assert.equal(parsedLegacy.gate, undefined, "existing manifests must not gain an implied gate");
+
+  const gated = { ...legacy, gate: "warn", blueprintId: "2026-07-24-institutional-modern" };
+  assert.equal(DesignManifestSchema.parse(gated).gate, "warn");
+  assert.equal(DesignManifestSchema.safeParse({ ...legacy, gate: "off" }).success, true);
+  assert.equal(DesignManifestSchema.safeParse({ ...legacy, gate: "enforce" }).success, true);
+  assert.equal(DesignManifestSchema.safeParse({ ...legacy, gate: "yolo" }).success, false);
+  assert.equal(DesignManifestSchema.safeParse({ ...legacy, divergenceWaiver: "sticky rail is intentional" }).success, true);
+  assert.equal(DesignManifestSchema.safeParse({ ...legacy, divergenceWaiver: "" }).success, false);
+});
