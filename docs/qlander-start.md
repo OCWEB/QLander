@@ -118,7 +118,7 @@ Do not populate the site, generate images, install tools, or add integrations be
 
 ## 5. Design direction when requested
 
-For a finished design, redesign, rebrand, or prompt asking QLander to find an appropriate style, run `skills/qlander-design-research/SKILL.md` after the site brief approval. With approved public-research scope, compare 3–5 sourced aesthetic families and save the selected direction in non-routed `content/design-research.md`. Then run `skills/qlander-design/SKILL.md` for the palette, typography, imagery, motion, and implementation approval.
+For a finished design, redesign, rebrand, or prompt asking QLander to find an appropriate style, run `skills/qlander-design-research/SKILL.md` after the site brief approval. With approved public-research scope, compare 3 to 5 sourced aesthetic families and save the selected direction in non-routed `content/design-research.md`. Each run records a varied mix of relevant shipped sites, visual galleries, component libraries, and typography sources while keeping approved design-token invariants fixed. Then run `skills/qlander-design/SKILL.md` for the palette, typography, imagery, motion, and implementation approval.
 
 Impeccable is optional execution tooling, not a prerequisite. On its first useful design pass, the design skill offers either native QLander execution or an explicitly approved project-local install. Do not install it during discovery or assume redesign approval also authorizes third-party code.
 

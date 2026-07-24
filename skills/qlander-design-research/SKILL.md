@@ -22,12 +22,42 @@ Turn a product brief or redesign prompt into a small set of evidence-backed visu
 3. If that permission is absent, ask once in the combined source-scope gate; do not browse first and apologize later.
 4. Never log into private services, bypass access controls, or inspect unrelated local projects.
 
+## Design token invariants
+
+Variation changes where QLander looks for inspiration, not the approved brand system.
+
+1. Before selecting external sources, record the design token invariants from the approved site brief, `data/theme.json`, supplied brand assets, and any previously approved design research. Include semantic color roles, locked hex values when approved, radius, typography commitments, spacing or density character, motion policy, and imagery character.
+2. Mark each invariant `locked` or `provisional`. Existing approved tokens are locked. Starter-wireframe values may remain provisional until the first `qlander-design` approval.
+3. All aesthetic families in one run must demonstrate different layout, hierarchy, component, or art-direction ideas through the same locked invariants. Do not create variation by silently swapping brand colors, radius personality, or type commitments.
+4. The QLander file `data/theme.json` remains authoritative for color and radius tokens; in other words, theme.json remains authoritative after implementation. External references and Impeccable cannot overwrite it. A repeated research run may recommend a token change only as an explicit rebrand hypothesis requiring a new `qlander-design` approval.
+
+## Source mix and repeat variation
+
+Create a fresh but accountable mix on each research run.
+
+### Candidate pools
+
+- **Relevant shipped sites:** at least two public sites serving a comparable audience, offer, content shape, or interaction problem. Choose these for relevance rather than fame.
+- **Visual discovery:** [Pinterest](https://www.pinterest.com/), [Dribbble](https://dribbble.com/), [Awwwards](https://www.awwwards.com/), [One Page Love](https://onepagelove.com/), [SiteInspire](https://www.siteinspire.com/), [Land-book](https://land-book.com/), and [Lapa Ninja](https://www.lapa.ninja/).
+- **Components and interaction patterns:** [21st.dev](https://21st.dev/), [Mobbin](https://mobbin.com/), and [UIverse](https://uiverse.io/).
+- **Typography and editorial systems:** [Typewolf](https://www.typewolf.com/) and [Fonts In Use](https://fontsinuse.com/).
+
+These are candidate discovery sources, not mandatory endorsements. Check current accessibility before relying on one. If a source requires login, blocks automated access, is unavailable, or no longer serves the stated purpose, do not bypass it; rotate to another source in the same pool and record the substitution.
+
+### Selection method
+
+1. Give the run a unique `researchRunId` and read the source-mix history already recorded in `content/design-research.md` when it exists.
+2. Shortlist sources that fit the brief, then choose **randomized without replacement** from that relevant shortlist: normally two shipped sites, two visual-discovery sources, one component source, and one typography source when typography is material.
+3. On repeated runs, do not repeat the exact source mix used by any of the previous three recorded runs when another relevant combination is available. Rotate at least one visual-discovery source and one component or typography source.
+4. Randomization controls discovery breadth, not recommendation quality. Keep only references that survive evidence, accessibility, feasibility, and brand-fit review.
+5. Record selected, skipped, blocked, and replacement sources. Preserve a compact run history before replacing a prior proposed or approved result.
+
 ## Research workflow
 
-1. Read `AGENTS.md`, the approved `content/site-brief.md`, current pages, `data/theme.json`, existing brand assets, and [references/design-research-template.md](references/design-research-template.md).
-2. Restate the design problem: audience, primary action, brand personality, content density, accessibility needs, implementation constraints, and explicit likes/dislikes.
+1. Read `AGENTS.md`, the approved `content/site-brief.md`, current pages, `data/theme.json`, existing brand assets, the prior `content/design-research.md` when present, and [references/design-research-template.md](references/design-research-template.md).
+2. Restate the design problem and design token invariants: audience, primary action, brand personality, content density, accessibility needs, implementation constraints, and explicit likes/dislikes.
 3. For a redesign, evaluate the existing site before external references. Record what should be preserved, repaired, or removed.
-4. Research the whole page, not only the hero. Cover relevant examples of navigation, hero composition, body rhythm, content modules, typography, calls to action, imagery, responsive behavior, and purposeful motion.
+4. Create and record the run's varied source mix, then research the whole page, not only the hero. Cover relevant examples of navigation, hero composition, body rhythm, content modules, typography, calls to action, imagery, responsive behavior, and purposeful motion.
 5. Build **3 to 5 distinct aesthetic families**. Each must differ in structure and visual logic, not merely color. Avoid presenting five near-identical fashionable landing pages.
 6. For every reference, record the reference URL, review date, exact page or component observed, transferable principles, fit to the brief, accessibility or usability risks, and asset-rights status. A screenshot without a source URL is supporting evidence, not provenance.
 7. Score each direction from 1 to 5 for audience fit, brand distinctiveness, conversion clarity, content fit, accessibility, responsive feasibility, performance, and QLander implementation cost. Explain material trade-offs; do not hide them inside a total.
@@ -48,7 +78,9 @@ Turn a product brief or redesign prompt into a small set of evidence-backed visu
 
 `content/design-research.md` must include:
 
-- source scope and direct URLs
+- source scope, `researchRunId`, selected source mix, substitutions, and direct URLs
+- the latest three source-mix history entries for repeat variation
+- locked and provisional design token invariants
 - existing-site findings for redesigns
 - 3 to 5 aesthetic families with concise vocabulary
 - whole-page and component observations

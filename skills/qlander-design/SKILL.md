@@ -16,6 +16,8 @@ The starter wireframe is grayscale on purpose. This skill is the sanctioned path
 
 `ThemeSchema` is strict: exactly `colors.{ink,paper,muted,accent,accentDark}` as hex plus `radius` 0 to 8. Never add fields to `theme.json`.
 
+Approved design token invariants stay consistent across research variants and repeated runs. Treat external references as layout, hierarchy, component, and art-direction input; they do not authorize silent palette, radius, typography, or motion changes. Any change to a locked invariant must be named in the combined approval. `data/theme.json` remains authoritative for color and radius after implementation.
+
 ## Workflow
 
 1. Read `content/site-brief.md`, approved `content/design-research.md` when present, `data/theme.json`, and the current pages. Note brand personality words (boutique, clinical, playful, institutional). For a new site, redesign, rebrand, or request to find a visual direction, run `qlander-design-research` first when its approved artifact is missing; do not substitute an Impeccable pass for reference research.

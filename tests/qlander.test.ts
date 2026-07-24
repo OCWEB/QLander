@@ -92,9 +92,19 @@ test("design research separates sourced direction selection from optional Impecc
     /reference URL/i,
     /accessibility/i,
     /Do not copy/i,
-    /approved public web research/i
+    /approved public web research/i,
+    /Pinterest/i,
+    /21st\.dev/i,
+    /researchRunId/i,
+    /randomized without replacement/i,
+    /do not repeat the exact source mix/i,
+    /design token invariants/i,
+    /theme\.json remains authoritative/i
   ]) assert.match(research, pattern);
   assert.match(template, /status: proposed/);
+  assert.match(template, /researchRunId/);
+  assert.match(template, /## Source mix/);
+  assert.match(template, /## Design token invariants/);
   assert.match(template, /## Direction scorecard/);
   assert.match(design, /npx impeccable install/);
   assert.match(design, /explicit approval/i);

@@ -1,6 +1,8 @@
 ---
 status: proposed
 lastReviewed: YYYY-MM-DD
+researchRunId: YYYY-MM-DDTHH-MM-SSZ
+sourceMix: []
 siteBrief: content/site-brief.md
 selectedDirection: ""
 approvedAt: ""
@@ -20,6 +22,30 @@ approvedAt: ""
 ## Source scope
 
 State what the user authorized: supplied materials, official sites, named local paths, and/or broader public design research.
+
+## Source mix
+
+- Research run ID:
+- Relevant shipped sites:
+- Visual-discovery sources:
+- Component-pattern sources:
+- Typography/editorial sources:
+- Blocked or skipped sources and replacements:
+- Difference from recent runs:
+
+## Design token invariants
+
+Mark each item `locked` or `provisional`.
+
+- Color roles and approved hex values:
+- Radius and shape language:
+- Typography commitments:
+- Spacing and density character:
+- Motion policy:
+- Imagery character:
+- Explicitly approved rebrand hypotheses, if any:
+
+All directions below must use the same locked invariants. Variation belongs in layout, hierarchy, components, and art direction rather than silent token changes.
 
 ## Existing-site findings
 
@@ -78,6 +104,14 @@ Score 1–5 and explain important differences.
 - Avoid:
 - Preserve:
 - Do not copy or reuse without authorization:
+
+## Run history
+
+Keep the latest three prior runs so repeated research can avoid the same mix.
+
+| Research run ID | Source mix summary | Selected direction | Outcome |
+| --- | --- | --- | --- |
+|  |  |  |  |
 
 ## Approval
 
