@@ -86,7 +86,7 @@ export const ResourceSchema = z.object({
 }).strict().superRefine((value, context) => {
   if (value.destination.kind === "detail" && !value.seo) context.addIssue({ code: "custom", path: ["seo"], message: "Detail resources require SEO metadata" });
 });
-export const BlogFrontmatterSchema = z.object({ title: z.string().min(1), description: z.string().min(1), slug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), publishedAt: z.iso.date(), updatedAt: z.iso.date(), author: z.string().min(1), tags: z.array(z.string()).default([]), seo: SeoSchema }).strict();
+export const BlogFrontmatterSchema = z.object({ title: z.string().min(1), description: z.string().min(1), slug: ContentSlugSchema, publishedAt: z.iso.date(), updatedAt: z.iso.date(), author: z.string().min(1), tags: z.array(z.string()).default([]), routed: z.boolean().default(true), seo: SeoSchema }).strict();
 export const NavigationSchema = z.object({ header: z.array(z.object({ label: z.string().min(1), href: SafeHrefSchema }).strict()).min(1), footer: z.array(z.object({ label: z.string().min(1), href: SafeHrefSchema }).strict()).min(1) }).strict();
 export const SiteDataSchema = z.object({
   name: z.string().min(1), description: z.string().min(1), url: z.url().refine((value) => new URL(value).protocol === "https:", "Site URL must use HTTPS"),

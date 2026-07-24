@@ -3,6 +3,7 @@ import type { ScrollWorldExperience } from "../lib/types";
 import { serializeJsonLd } from "../lib/schemas";
 import { site } from "../lib/site";
 import theme from "../../data/theme.json";
+import manifest from "../../qlander.manifest.json";
 import SEO from "./SEO.astro";
 import scrubEngine from "../../skills/scroll-world/references/scrub-engine.js?raw";
 
@@ -15,6 +16,7 @@ const serialized = serializeJsonLd(experience);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="qlander-site-id" content={manifest.siteId} />
     <SEO seo={experience.seo} site={site} />
     <style define:vars={{
       ink: theme.colors.ink,
