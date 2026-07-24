@@ -28,6 +28,12 @@ Contact emails are often hidden from automated fetches by obfuscation services s
 
 When the official site blocks automated fetches (WAF pages, empty responses, request-rejected errors), do not attempt evasion. Fall back in this order: other pages on the same domain, official subdomains of the same organization, then user-supplied written context. Record the block in the brief and mark everything unrecoverable `needs-confirmation`.
 
+Some sites inject contact facts, hours, or menus through client-side JavaScript or per-partial includes that summarizing fetch tools drop. When key facts are missing from a summary, pull the raw page HTML (and any linked booking or location subpages) before concluding a fact is absent.
+
+Migrate owner-owned verbatim copy (testimonials, taglines, hours) from the raw HTML rather than a paraphrased summary, and preserve attribution exactly. Never strengthen or round a claim while rewriting.
+
+Verified figures that change over time (impact counters, "years in business", live totals) must carry an "as of <date>" qualifier in the brief and on the page, or be omitted. Do not present a snapshot as a standing fact.
+
 ## Local context
 
 Inspect the current repository and user-named files/directories read-only before drafting. Prefer structured data, current specifications, approved brand files, product data, and recent project notes over stale generated output.

@@ -29,6 +29,8 @@ Each case needs:
 2. Run discovery to the combined approval gate. In batch mode (the default), self-approve as the owner proxy using [references/owner-proxy-rules.md](references/owner-proxy-rules.md) and record the full approval package in the feedback file. In interactive mode (maintainer says they want to approve), stop and present the package.
 3. After approval: when the case requested finished design, run `qlander-design-research` before population; then populate, run `qlander-design`, run `pnpm qlander:check`, and commit inside the case repo.
 4. Hard limits: no deploys, no host or DNS config, no image generation (annotated placeholders plus prompt docs only), no third-party tooling installs (decline the design pass's optional Impeccable offer and use native execution), site stays draft/noindex, no downloads of reference-site assets, and clone-look content never contains the reference site's copy, claims, branding, or name outside brief provenance notes.
+5. Environment noise is not a finding: a globally installed hook (for example an Impeccable design hook) may fire on the case repo's edits and suggest commands. Ignore its suggestions in batch mode and note it only if it blocks progress.
+6. `pnpm qlander:init` writes only inside the target directory. If the kit working tree appears dirty during a run, it is a concurrent maintainer session, not your run; never revert or commit kit files to "clean up".
 
 ## Grading rubric
 

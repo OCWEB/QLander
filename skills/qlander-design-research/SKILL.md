@@ -51,6 +51,7 @@ These are candidate discovery sources, not mandatory endorsements. Check current
 3. On repeated runs, do not repeat the exact source mix used by any of the previous three recorded runs when another relevant combination is available. Rotate at least one visual-discovery source and one component or typography source.
 4. Randomization controls discovery breadth, not recommendation quality. Keep only references that survive evidence, accessibility, feasibility, and brand-fit review.
 5. Record selected, skipped, blocked, and replacement sources. Preserve a compact run history before replacing a prior proposed or approved result.
+6. When most of the shortlist is blocked or unavailable and rotation cannot fill the normal mix, a reduced mix is acceptable: proceed with the sources you can reach (at minimum two independent relevant references), and record the blocked sources and the reduced count in the run history. Do not stall the pass or fabricate observations for a source you could not open.
 
 ## Research workflow
 

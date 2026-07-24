@@ -40,6 +40,8 @@ Route contract notes for `marketing-site`:
 - Route bookkeeping when adding or removing routes in developer mode: update `qlander.manifest.json` routes, `data/navigation.json`, the matching `data/route-seo.json` keys (removed route keys may be deleted; the schema treats `products` and `blog` as optional), and the affected `qlander.edit-map.json` entries.
 - Keep an emptied collection directory in git with a `.gitkeep` file; deleting `content/blog/` or `content/products/` outright makes Astro's glob loader warn. A "glob() did not match any files" style warning from an intentionally emptied collection is harmless build noise, not an error.
 - Migrating owner-owned copy verbatim (testimonials, taglines): fetch-tool summaries often paraphrase; extract exact text from the raw page HTML and preserve attribution exactly.
+- `imagePromptId` is not PPC-only. Hero, `featureGrid` items, `richText`, and product entries on any page may carry it to document an annotated placeholder; add a matching `## <id>` heading under `content/prompts/`.
+- External CTA hrefs (a donate link-out, an OpenTable or ordering link, a booking system) are allowed when the destination is the owner's real action target. Point CTAs off-site only to owner-approved destinations; the checker accepts absolute HTTPS links, it does not vouch for them.
 
 ## 1. Choose sources
 

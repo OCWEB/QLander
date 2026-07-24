@@ -203,6 +203,11 @@ async function configurePpc(target: string, manifest: any, name: string) {
   manifest.routes = ["/", "/404"];
   manifest.projectType = "single-page-ppc";
   await writeJson(path.join(target, "qlander.manifest.json"), manifest);
+  const routeSeoPath = path.join(target, "data/route-seo.json");
+  const routeSeo = await readJson(routeSeoPath);
+  delete routeSeo.products;
+  delete routeSeo.blog;
+  await writeJson(routeSeoPath, routeSeo);
   await writeJson(path.join(target, "data/navigation.json"), { header: [{ label: "Campaign", href: "/" }], footer: [{ label: "Campaign", href: "/" }] });
   await writeJson(path.join(target, "qlander.edit-map.json"), createSinglePageEditMap(home.sections));
 }
