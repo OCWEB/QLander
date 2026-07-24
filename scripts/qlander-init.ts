@@ -31,7 +31,7 @@ try {
     await stage("copy-template", async () => copyTemplate(target));
     if (!answers.noGit) baselineCommit = await stage("baseline-commit", async () => createBaselineCommit(target));
   }
-  await stage("configure-profile", async () => configureProfile(target, answers.profile, answers.name, answers.experienceSlug));
+  await stage("configure-profile", async () => configureProfile(target, answers.profile, answers.name, answers.experienceSlug, { blog: answers.noBlog, products: answers.noProducts }));
   await stage("generate-contracts", async () => {
     await generateProfileTest(target, answers.profile, answers.experienceSlug);
     await mkdir(path.join(target, "docs/screenshots"), { recursive: true });
@@ -112,7 +112,9 @@ async function resolveAnswers(values: Record<string, string | boolean>, canAsk: 
     experienceSlug: typeof values.slug === "string" ? values.slug : "tour",
     noGit: values["no-git"] === true,
     skipInstall: values["skip-install"] === true,
-    skipValidate: values["skip-validate"] === true
+    skipValidate: values["skip-validate"] === true,
+    noBlog: values["no-blog"] === true || values["minimal"] === true,
+    noProducts: values["no-products"] === true || values["minimal"] === true
   };
 }
 
@@ -156,7 +158,7 @@ async function createBaselineCommit(target: string) {
   return (await run(target, "git", ["rev-parse", "--short", "HEAD"])).trim();
 }
 
-async function configureProfile(target: string, profile: Profile, name: string, experienceSlug: string) {
+async function configureProfile(target: string, profile: Profile, name: string, experienceSlug: string, exclude: { blog: boolean; products: boolean } = { blog: false, products: false }) {
   const manifest = await readJson(path.join(target, "qlander.manifest.json"));
   const site = await readJson(path.join(target, "data/site.json"));
   manifest.projectType = profile;
@@ -169,6 +171,7 @@ async function configureProfile(target: string, profile: Profile, name: string, 
   await writeJson(path.join(target, "data/site.json"), site);
   await writeWordmarkLogo(target, name);
 
+  if (profile === "marketing-site" && (exclude.blog || exclude.products)) await pruneMarketingRoutes(target, exclude);
   if (profile === "single-page-ppc") await configurePpc(target, manifest, name);
   if (profile === "internal-scroll-world") await run(target, process.execPath, [
     "skills/scroll-world/references/scripts/register-qlander-experience.mjs",
@@ -180,6 +183,46 @@ async function configureProfile(target: string, profile: Profile, name: string, 
     "--project-root", target, "--root", "--prune", "--title", `${name} Experience`,
     "--description", `Explore ${name} through an interactive visual journey.`
   ]);
+}
+
+async function pruneMarketingRoutes(target: string, exclude: { blog: boolean; products: boolean }) {
+  const collections: Array<{ key: "blog" | "products"; routePrefix: string; pages: string[]; content: string; editKey: string }> = [];
+  if (exclude.blog) collections.push({ key: "blog", routePrefix: "/blog", pages: ["src/pages/blog/index.astro", "src/pages/blog/[slug].astro"], content: "content/blog", editKey: "route.blog.seo" });
+  if (exclude.products) collections.push({ key: "products", routePrefix: "/products", pages: ["src/pages/products/index.astro", "src/pages/products/[slug].astro"], content: "content/products", editKey: "route.products.seo" });
+
+  const manifest = await readJson(path.join(target, "qlander.manifest.json"));
+  const navigation = await readJson(path.join(target, "data/navigation.json"));
+  const routeSeo = await readJson(path.join(target, "data/route-seo.json"));
+  const editMap = await readJson(path.join(target, "qlander.edit-map.json"));
+
+  for (const collection of collections) {
+    for (const file of collection.pages) await rm(path.join(target, file), { force: true });
+    await rm(path.join(target, collection.content), { recursive: true, force: true });
+    await mkdir(path.join(target, collection.content), { recursive: true });
+    await writeFile(path.join(target, collection.content, ".gitkeep"), "");
+    manifest.routes = manifest.routes.filter((route: string) => route !== collection.routePrefix && !route.startsWith(`${collection.routePrefix}/`));
+    navigation.header = navigation.header.filter((item: any) => item.href !== collection.routePrefix && !item.href.startsWith(`${collection.routePrefix}/`));
+    navigation.footer = navigation.footer.filter((item: any) => item.href !== collection.routePrefix && !item.href.startsWith(`${collection.routePrefix}/`));
+    delete routeSeo[collection.key];
+    delete editMap[collection.editKey];
+  }
+
+  await writeJson(path.join(target, "qlander.manifest.json"), manifest);
+  await writeJson(path.join(target, "data/navigation.json"), navigation);
+  await writeJson(path.join(target, "data/route-seo.json"), routeSeo);
+  await writeJson(path.join(target, "qlander.edit-map.json"), editMap);
+
+  const prunedPrefixes = collections.map((collection) => collection.routePrefix);
+  const links = (href: unknown) => typeof href === "string" && prunedPrefixes.some((prefix) => href === prefix || href.startsWith(`${prefix}/`));
+  const pagesDir = path.join(target, "content/pages");
+  for (const entry of readdirSync(pagesDir).filter((file) => file.endsWith(".json"))) {
+    const file = path.join(pagesDir, entry);
+    const page = await readJson(file);
+    for (const section of page.sections ?? []) {
+      if (section.secondaryCta && links(section.secondaryCta.href)) delete section.secondaryCta;
+    }
+    await writeJson(file, page);
+  }
 }
 
 async function configurePpc(target: string, manifest: any, name: string) {
@@ -328,7 +371,7 @@ async function writeJson(file: string, value: unknown) { await mkdir(path.dirnam
 
 function parseArgs(values: string[]) {
   const result: Record<string, string | boolean> = {};
-  const booleans = new Set(["in-place", "no-git", "skip-install", "skip-validate"]);
+  const booleans = new Set(["in-place", "no-git", "skip-install", "skip-validate", "no-blog", "no-products", "minimal"]);
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
     if (value === "--") continue;

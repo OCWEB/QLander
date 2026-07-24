@@ -34,7 +34,8 @@ pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Sit
 
 Profiles: `marketing-site`, `single-page-ppc`, `internal-scroll-world`, and
 `root-scroll-world`. Run `pnpm qlander:init` without arguments for the interactive
-wizard.
+wizard. For a marketing site, add `--no-blog`, `--no-products`, or `--minimal` to
+start without the demo blog or products routes.
 
 Before handing work back to a user, run:
 

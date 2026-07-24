@@ -10,6 +10,7 @@ For a fresh project, choose the delivery shape before population:
 
 ```bash
 pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Site"
+pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Site" --minimal
 pnpm qlander:init -- --profile single-page-ppc --target ../my-campaign --name "My Campaign"
 pnpm qlander:init -- --profile internal-scroll-world --target ../my-site-tour --name "My Site"
 pnpm qlander:init -- --profile root-scroll-world --target ../my-tour --name "My Tour"
@@ -35,7 +36,8 @@ Profile meaning:
 
 Route contract notes for `marketing-site`:
 
-- The profile ships demo `/blog` and `/products` routes. Visible labels (navigation, headings, CTAs) are data-tier edits via `data/route-seo.json` and `data/navigation.json`; for a services business, relabel `/products` as "Services" without changing the URL.
+- The profile ships demo `/blog` and `/products` routes. To start without them, pass `--no-blog`, `--no-products`, or `--minimal` (both) to `pnpm qlander:init`; init then removes the route files, empties the collection (kept with `.gitkeep`), and cleans navigation, manifest, route-seo, edit-map, and any content-page links to the dropped routes. This is the preferred way to exclude a demo route, done once at creation rather than as a later developer-mode edit.
+- Visible labels (navigation, headings, CTAs) are data-tier edits via `data/route-seo.json` and `data/navigation.json`; for a services business, relabel `/products` as "Services" without changing the URL.
 - Changing route URLs, or adding and removing route files under `src/pages/`, is developer mode. If the approved sitemap requires it, follow the developer-mode rules in `AGENTS.md` (minimal edits, keep content contracts, run build, typecheck, test, and `pnpm qlander:check`). The lightest data-tier alternative for an unwanted route is: remove it from navigation, empty its collection, and set it `noindex` in `data/route-seo.json`.
 - Route bookkeeping when adding or removing routes in developer mode: update `qlander.manifest.json` routes, `data/navigation.json`, the matching `data/route-seo.json` keys (removed route keys may be deleted; the schema treats `products` and `blog` as optional), and the affected `qlander.edit-map.json` entries.
 - Keep an emptied collection directory in git with a `.gitkeep` file; deleting `content/blog/` or `content/products/` outright makes Astro's glob loader warn. A "glob() did not match any files" style warning from an intentionally emptied collection is harmless build noise, not an error.
