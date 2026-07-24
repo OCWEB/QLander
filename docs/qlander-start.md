@@ -21,7 +21,7 @@ pnpm qlander:init -- --mode prompted --profile internal-scroll-world --target ..
 pnpm qlander:init -- --mode prompted --profile root-scroll-world --target ../my-tour --name "My Tour"
 ```
 
-With no mode flag, `qlander:init` records `creationMode: prompted`; `--blank` is the explicit exception. Initialization may still copy the starter internally, but a prompted project remains `design.status: required` until approved research, an approved `data/design-system.json`, and at least one registered page/section layout handoff are implemented. Standard checks warn while work is pending; audit completion fails.
+With no mode flag, `qlander:init` records `creationMode: prompted`; `--blank` is the explicit exception. Initialization may still copy the starter internally, but a prompted project remains `design.status: required` until approved research, an approved `data/design-system.json`, and at least one registered page/section layout handoff are implemented. Prompted init also scaffolds `.qlander/design-research/`, ignores captured screenshots, and records `design.gate: "warn"`; blank init records `design.gate: "off"` and is never gated. Standard checks warn while work is pending; audit completion fails.
 
 With no arguments in an interactive terminal, `qlander:init` asks for the profile,
 site name, and new project directory. It copies a detached repository, creates a
@@ -129,7 +129,7 @@ Do not populate the site, generate images, install tools, or add integrations be
 
 ## 5. Design direction when requested
 
-For a finished design, redesign, rebrand, or prompt asking QLander to find an appropriate style, run `skills/qlander-design-research/SKILL.md` after the site brief approval. With approved public-research scope, compare 3 to 5 sourced aesthetic families and save the selected direction in non-routed `content/design-research.md`. Each run records a varied mix of relevant shipped sites, visual galleries, component libraries, and typography sources while keeping approved design-token invariants fixed. Then run `skills/qlander-design/SKILL.md` for the palette, typography, imagery, motion, and implementation approval.
+For a finished design, redesign, rebrand, or prompt asking QLander to find an appropriate style, run `skills/qlander-design-research/SKILL.md` after the site brief approval. With approved public-research scope, compare 3 to 5 sourced aesthetic families and save the selected direction in non-routed `content/design-research.md`. Each run records a varied mix of relevant shipped sites, visual galleries, component libraries, and typography sources while keeping approved design-token invariants fixed. Research is screenshot-backed: plan a ranked candidate pool, capture through a browser context with `pnpm qlander:design:capture`, and record every attempt in `.qlander/design-research/<run-id>/reference-manifest.json`. Then run `skills/qlander-design/SKILL.md`, which writes `layout-blueprint.json`, builds the primary `/` renderer under `src/design/<direction-slug>/`, gets the static silhouette approved before final copy, and then handles palette, typography, imagery, motion, and implementation approval.
 
 Impeccable is optional execution tooling, not a prerequisite. On its first useful design pass, the design skill offers either native QLander execution or an explicitly approved project-local install. Do not install it during discovery or assume redesign approval also authorizes third-party code.
 

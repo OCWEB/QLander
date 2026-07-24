@@ -59,6 +59,36 @@ During a frozen audit, record cache entries and blocked-source substitutions in 
 5. Record selected, skipped, blocked, and replacement sources. Preserve a compact run history before replacing a prior proposed or approved result.
 6. When most of the shortlist is blocked or unavailable and rotation cannot fill the normal mix, a reduced mix is acceptable: proceed with the sources you can reach (at minimum two independent relevant references), and record the blocked sources and the reduced count in the run history. Do not stall the pass or fabricate observations for a source you could not open.
 
+## Screenshot-backed evidence
+
+Text-only research is incomplete. A direction is not researchable from prose about a page; it is researchable from the page's rendered geometry.
+
+1. **Capture through a browser context, never a fetch.** Earlier QLander runs recorded sofi.com, land-book.com, lapa.ninja, and uiverse.io as 403 blocked. A later run captured sofi.com on the first attempt through a real browser. The sites did not change; the access method did. Before recording any source as blocked, retry it in a browser.
+2. **Plan the pool before capturing.** Write 5 to 8 ranked candidates, then run `pnpm qlander:design:capture -- plan --root . --run <run-id> --pool pool.json`. The manifest records every candidate before any navigation, so the run cannot be quietly narrowed to whatever happened to work.
+3. **Walk the pool with the ledger.** `next` returns the next candidate or the reason to stop. `record` appends the attempt outcome. `ingest` hashes each image into the run directory. Never write the manifest by hand.
+4. **Target 2 successful captures, cap at 4, budget 8 attempts.** Stopping at the target marks the remainder `skipped-satisfied`, which is a healthy run. Exhausting the budget marks them `skipped-budget`, which is not.
+5. **A consent banner is not a block.** Attempt one dismissal, then record `captured-obstructed` and keep the reference. Rotating on consent walls discards good evidence.
+6. **Rotate on:** HTTP errors, timeouts, bot challenges, blank renders, and identity mismatches. Record the real outcome. Never fabricate a screenshot or an observation for a source you could not open.
+7. **Capture desktop and mobile.** Set the mobile viewport by **emulation**, not window resize. Some drivers silently floor a resize near 500px, so a capture labelled 390 is actually 500 and every mobile conclusion drawn from it is wrong. `ingest` will reject a mobile capture whose realized width missed the request.
+
+### When capture is not possible
+
+Fall back in this order and record which rung you used:
+
+1. **Ask the user for screenshots.** Do this as soon as 3 consecutive rotations fail, not after exhausting the pool. Ingest them with `--supplied`.
+2. **Partial evidence:** one capture plus one user-supplied image. The direction proceeds.
+3. **Text-only, with explicit user approval.** Record `researchException` with approver, timestamp, and reason. This produces a permanent warning on every later check and is never silently upgraded to a pass.
+4. **Abort the direction** and propose another.
+
+Rungs 3 and 4 need the user. Rungs 1 and 2 do not.
+
+### Evidence handling
+
+- Reference screenshots are evidence, not site assets. They stay in `.qlander/design-research/<run-id>/references/`, which is gitignored by default.
+- Commit manifests, URLs, hashes, and observations. Commit an image only when the user supplied it or explicitly authorized it.
+- Never place captures in `public/` or `dist/`, where the build would publish them.
+- Build a compact `reference-board.html` per direction from the local evidence. It is a review aid and must never be published.
+
 ## Research workflow
 
 1. Read `AGENTS.md`, the approved `content/site-brief.md`, current pages, `data/theme.json`, `data/design-system.json`, existing brand assets, prior `content/design-research.md`, and the research template.
@@ -67,6 +97,7 @@ During a frozen audit, record cache entries and blocked-source substitutions in 
 4. Create and record the run's varied source mix, then research the whole page, not only the hero. Cover relevant examples of navigation, hero composition, body rhythm, content modules, typography, calls to action, imagery, responsive behavior, and purposeful motion.
 5. Build **3 to 5 distinct aesthetic families**. Each must differ in structure and visual logic, not merely color. Avoid presenting five near-identical fashionable landing pages.
 6. For every reference, record the reference URL, review date, exact page or component observed, transferable principles, fit to the brief, accessibility or usability risks, and asset-rights status. A screenshot without a source URL is supporting evidence, not provenance.
+6b. Complete the layout-extraction table in `references/layout-extraction-template.md` for every direction you propose. Prose about a reference is not layout extraction; the table is what `qlander-design` turns into a blueprint.
 7. Score each direction from 1 to 5 for audience fit, brand distinctiveness, conversion clarity, content fit, accessibility, responsive feasibility, performance, and QLander implementation cost. Explain material trade-offs; do not hide them inside a total.
 8. Name anti-goals and recurring AI-design tells to avoid. Guardrails must be specific to this project rather than a universal ban on a particular aesthetic.
 9. Write `content/design-research.md` with `status: proposed`. Include a design-system handoff and at least one material page/section layout-handoff plan for every prompted project. Present one compact approval covering the direction, fallback, shared tokens, structural handoffs, anti-goals, and unresolved rights or feasibility questions.
@@ -86,6 +117,9 @@ During a frozen audit, record cache entries and blocked-source substitutions in 
 `content/design-research.md` must include:
 
 - source scope, `researchRunId`, selected source mix, substitutions, and direct URLs
+- a reference manifest path, with capture counts and the full attempt outcome tally
+- a completed layout-extraction table per proposed direction
+- the fallback rung used, when captures were not possible
 - the latest three source-mix history entries for repeat variation
 - locked and provisional design token invariants
 - existing-site findings for redesigns
@@ -101,4 +135,4 @@ The artifact is design evidence, not a mood-board dump. Every recommendation sho
 
 ## Handoff to qlander-design
 
-Pass the approved direction, scorecard, source URLs, transferable principles, anti-goals, media implications, the complete shared design-system decisions, and named page/section handoffs. `qlander-design` owns contrast checks, final token persistence, renderer registration, optional tool consent, implementation, and verification. Prompted work may not conclude with all primary content still using starter renderers.
+Pass the approved direction, scorecard, source URLs, transferable principles, anti-goals, media implications, the complete shared design-system decisions, the reference manifest path with its run ID, the completed layout-extraction table, and named page/section handoffs. `qlander-design` owns contrast checks, final token persistence, renderer registration, optional tool consent, implementation, and verification. Prompted work may not conclude with all primary content still using starter renderers.

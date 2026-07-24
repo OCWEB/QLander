@@ -664,3 +664,69 @@ test("[fast] design manifest carries a rollout gate and stays backward compatibl
   assert.equal(DesignManifestSchema.safeParse({ ...legacy, divergenceWaiver: "sticky rail is intentional" }).success, true);
   assert.equal(DesignManifestSchema.safeParse({ ...legacy, divergenceWaiver: "" }).success, false);
 });
+
+test("[fast] design research requires browser-backed capture evidence and layout extraction", async () => {
+  const skill = await readFile(path.join(repo, "skills/qlander-design-research/SKILL.md"), "utf8");
+  // Capture method matters: the fetch path reports false blocks.
+  assert.match(skill, /browser context, never a fetch/i);
+  assert.match(skill, /qlander:design:capture/);
+  // A consent wall must not discard a good reference.
+  assert.match(skill, /consent banner is not a block/i);
+  assert.match(skill, /captured-obstructed/);
+  // Mobile evidence taken after a window resize is not evidence.
+  assert.match(skill, /emulation/i);
+  // Text-only research is a recorded exception, never a silent pass.
+  assert.match(skill, /researchException/);
+  assert.match(skill, /never silently upgraded/i);
+  // Evidence stays out of anything the build publishes.
+  assert.match(skill, /gitignored/i);
+  assert.match(skill, /public\/`? or `?dist\//i);
+
+  const extraction = await readFile(path.join(repo, "skills/qlander-design-research/references/layout-extraction-template.md"), "utf8");
+  for (const dimension of ["Page silhouette", "Alignment and grid", "Section anatomy", "Media geometry", "Hierarchy", "Density and whitespace", "Responsive transformation", "Interaction", "Anti-copy adaptation"]) {
+    assert.match(extraction, new RegExp(dimension, "i"), `layout extraction must cover ${dimension}`);
+  }
+  assert.match(extraction, /proof-band/);
+  assert.match(extraction, /no `?factList/i, "the prose-parsing anti-pattern must be named");
+
+  const template = await readFile(path.join(repo, "skills/qlander-design-research/references/design-research-template.md"), "utf8");
+  assert.match(template, /reference-manifest\.json/);
+  assert.match(template, /skipped-satisfied/);
+  assert.match(template, /skipped-budget/);
+  assert.match(template, /layout-extraction-template\.md/);
+});
+
+test("[fast] prompted design approves a layout blueprint before content population", async () => {
+  const design = await readFile(path.join(repo, "skills/qlander-design/SKILL.md"), "utf8");
+  assert.match(design, /layout-blueprint\.json/);
+  assert.match(design, /src\/design\//);
+  // Layout is approved before copy is written into it.
+  assert.match(design, /before .*(final )?(copy|content)|approve.*silhouette/i);
+  // Bundled variants cannot finish a prompted design.
+  assert.match(design, /design-variants/);
+  assert.match(design, /do not satisfy|does not satisfy|cannot satisfy/i);
+  // The two rules the pilot proved necessary.
+  assert.match(design, /parse prose|parsing prose/i);
+  assert.match(design, /edit ID|edit id/i);
+
+  const playbook = await readFile(path.join(repo, "docs/agent-playbook.md"), "utf8");
+  assert.match(playbook, /layout-blueprint\.json/);
+  const agents = await readFile(path.join(repo, "AGENTS.md"), "utf8");
+  assert.match(agents, /layout-blueprint\.json/);
+});
+
+test("[fast] bundled variants are documented as prototyping aids, not completion", async () => {
+  const recipe = await readFile(path.join(repo, "skills/qlander-design/references/layout-handoff-recipe.md"), "utf8");
+  assert.match(recipe, /src\/design\/<direction-slug>\/HomePage\.astro/);
+  assert.match(recipe, /provenance/);
+  assert.match(recipe, /do not satisfy prompted completion/i);
+  assert.match(recipe, /alignment seam/i);
+  assert.match(recipe, /never parse prose into structure/i);
+
+  const registry = await readFile(path.join(repo, "src/layout-handoffs.ts"), "utf8");
+  assert.match(registry, /design-variants/);
+  assert.match(registry, /research-derived/);
+  // A shipped kit must never register a design handoff of its own.
+  assert.match(registry, /export const pageHandoffs: Record<string, LayoutHandoff> = \{\};/);
+  assert.match(registry, /export const sectionHandoffs: Record<string, LayoutHandoff> = \{\};/);
+});

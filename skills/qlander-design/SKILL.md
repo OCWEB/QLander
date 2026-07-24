@@ -19,6 +19,25 @@ The starter wireframe is grayscale on purpose. This skill is the sanctioned path
 
 Approved design token invariants stay consistent across research variants and repeated runs. Treat external references as layout, hierarchy, component, and art-direction input; they do not authorize silent palette, radius, typography, spacing, or motion changes. Any change to a locked invariant must be named in the combined approval. `data/theme.json` remains authoritative for color and radius; `data/design-system.json` is authoritative for typography, spacing, layout dimensions, component treatment, and motion across every renderer.
 
+## Layout before content (prompted mode)
+
+Prompted design does not begin by styling a populated starter page. It begins by deciding the page's shape, proving that shape, and only then writing copy into it.
+
+1. **Blueprint.** Turn the approved layout-extraction table into `.qlander/design-research/<run-id>/layout-blueprint.json`. Blueprint v1 is deliberately small: per section an `id`, `role`, `primitive`, `responsive`, and `slots`. Descriptive prose stays in `content/design-research.md`.
+2. **Skeleton.** Build the project-local renderer under `src/design/<direction-slug>/` from the blueprint, with placeholder slot content that is visibly marked non-final. Register it in `src/layout-handoffs.ts`.
+3. **Approve the silhouette.** Capture desktop and phone screenshots of the skeleton and get human approval of the composition **before** final copy is written. Set the phone viewport by emulation, not window resize.
+4. **Populate.** Write verified content into the approved slots. Copy may be shortened, grouped, or reprioritized to fit; facts may never be invented to fill a slot.
+5. **Complete.** Tokens, imagery, responsive behavior, QA.
+6. **Defer motion.** Record candidates in `todo_motion-polish.md` after static approval. Do not add motion during the first layout synthesis pass.
+
+### Rules the pilot proved necessary
+
+- **The primary `/` renderer must live under `src/design/<direction-slug>/`.** Bundled `src/design-variants/*` renderers are prototyping aids and do not satisfy prompted completion on their own. A design whose handoffs all point at `src/design-variants/*` or core fallbacks is not finished.
+- **The renderer owns composition; it may delegate leaf rendering.** Page silhouette, section order, section relationships, media geometry, and responsive transformations belong to the renderer. FAQ lists, product grids, and similar primitives can stay shared. Watch the alignment seam: shared components like `ProductGrid` center their heading, which reads as a defect inside a left-aligned page. Override it in the design layer.
+- **Preserve edit IDs when reordering sections.** Reordering while keeping `data-pp-edit-id` stable is the core research-derived operation, and the structural divergence check depends on it entirely.
+- **Never parse prose into structure.** Deriving a list by splitting a paragraph on sentence boundaries mangles abbreviations into fragments that read as false statements. If a section needs structured facts, the content must supply structure. There is no `factList` slot kind.
+- **Revise the blueprint, do not distort content.** When approved copy cannot fit a slot target accessibly, change the target. Slot targets are guidance and never gate a check.
+
 ## Workflow
 
 1. Read `content/site-brief.md`, approved `content/design-research.md` when present, `data/theme.json`, and the current pages. Note brand personality words (boutique, clinical, playful, institutional). For a new site, redesign, rebrand, or request to find a visual direction, run `qlander-design-research` first when its approved artifact is missing; do not substitute an Impeccable pass for reference research.
@@ -26,7 +45,7 @@ Approved design token invariants stay consistent across research variants and re
 3. At the first design-execution pass in this project, apply the optional Impeccable gate below. Continue natively when it is unavailable or declined.
 4. Derive the palette with the recipe below and verify contrast before proposing: ink on paper at 7:1 or better; accent on paper, and white on accent, at 4.5:1 or better.
 5. Present ONE approval covering all of: selected research direction; palette (each hex with its role); radius; the complete `data/design-system.json` typography, spacing, width, density, component, imagery, and motion decisions; and the named page/section layout handoffs that will replace starter renderers. Include what you will NOT do without assets and list any Impeccable commands that would be allowed.
-6. After approval: write `theme.json` and `design-system.json`; create the approved project-local renderers; register them in `src/layout-handoffs.ts`; update `qlander.manifest.json.design` to `implemented` with the approved direction and matching handoffs; populate imagery; and keep remaining placeholders obvious. The manifest `design.direction` string must equal the research file's `selectedDirection` exactly; the checker compares them verbatim. Do not mark design implemented when the primary experience still renders entirely through starter components.
+6. After approval: write `theme.json` and `design-system.json`; create the approved project-local renderers under `src/design/<direction-slug>/`; register them in `src/layout-handoffs.ts`; update `qlander.manifest.json.design` to `implemented` with the approved direction and matching handoffs, each research-derived handoff carrying `provenance`, `blueprintId`, and at least two `referenceIds`; populate imagery; and keep remaining placeholders obvious. The manifest `design.direction` string must equal the research file's `selectedDirection` exactly; the checker compares them verbatim. Do not mark design implemented when the primary experience still renders entirely through starter components.
 7. Run `pnpm qlander:check` and report results. In developer mode also run the repository-required build, typecheck, and tests. Run audit mode only after committed desktop/phone evidence exists; prompted audit mode must reject a missing research approval, unapproved design system, or absent layout handoff.
 
 ## Optional Impeccable gate

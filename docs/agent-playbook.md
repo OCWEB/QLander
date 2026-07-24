@@ -14,7 +14,8 @@ When the user says `qlander start`, use `docs/qlander-start.md` before recommend
 4. Research official sources first and inspect only the current repository plus paths the user explicitly names.
 5. Create or refresh `content/site-brief.md` with source-backed facts, uncertainties, sitemap, page experiences, and image plan.
 6. Present one compact discovery approval gate.
-7. If the user requested finished design, redesign, rebrand, or visual research, run `skills/qlander-design-research/SKILL.md`, record a varied cross-site source mix under stable design-token invariants, save the sourced direction comparison in `content/design-research.md`, and get direction approval before `qlander-design`.
+7. If the user requested finished design, redesign, rebrand, or visual research, run `skills/qlander-design-research/SKILL.md`. Plan a ranked candidate pool, capture desktop and phone screenshots through a browser context with `pnpm qlander:design:capture`, record every attempt in `reference-manifest.json`, complete a layout-extraction table, and save the sourced direction comparison in `content/design-research.md`. Get direction approval before `qlander-design`.
+8. In prompted mode, `qlander-design` writes `layout-blueprint.json`, builds the renderer under `src/design/<direction-slug>/` with visibly non-final placeholders, and gets the static silhouette approved at desktop and phone widths **before** final copy is written into the slots. Copy may be shortened or regrouped to fit; facts may not be invented, and when copy cannot fit accessibly the blueprint changes instead.
 8. During the design pass, offer Impeccable only through its optional first-use consent gate. Never install it or enable hooks from general redesign approval.
 9. After applicable approvals, populate the draft and generate only the approved media.
 10. Run the required verification and report sources, assumptions, routes, media status, and unresolved gaps.

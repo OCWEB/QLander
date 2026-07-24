@@ -34,6 +34,18 @@ State what the user authorized: supplied materials, official sites, named local 
 - Source-health cache checked at (entries expire after 24 hours):
 - Difference from recent runs:
 
+## Capture evidence
+
+- Reference manifest: `.qlander/design-research/<run-id>/reference-manifest.json`
+- Candidates planned / attempts used / budget:  /  / 
+- Successful captures (target 2, max 4):
+- Attempt outcome tally (captured, captured-obstructed, http-error, timeout, bot-challenge, blank-render, identity-mismatch):
+- Remainder status (`skipped-satisfied` is a healthy stop, `skipped-budget` is exhaustion):
+- Fallback rung used, if any (user-supplied / partial / approved text-only exception / direction aborted):
+- Text-only exception approver, timestamp, and reason (leave blank unless rung 3 was used):
+
+Captures live under `references/` in the run directory and are gitignored. Commit an image only when the user supplied or authorized it.
+
 ## Design token invariants
 
 Mark each item `locked` or `provisional`.
@@ -69,6 +81,8 @@ Repeat for each source:
 - Fit to brief:
 - Accessibility/responsive/performance risks:
 - Asset rights: inspiration-only | license-needs-review | user-authorized
+- Capture status: captured | captured-obstructed | user-supplied | blocked | unavailable | skipped-satisfied | skipped-budget
+- Evidence files and hashes (desktop / mobile), or the recorded reason there are none:
 
 ## Aesthetic families
 
@@ -110,9 +124,13 @@ Translate the selected direction into one consistent site-wide contract before i
 - Approved changes from provisional research:
 - Cross-page rules that every custom renderer must consume:
 
+## Layout extraction
+
+Complete the table in `references/layout-extraction-template.md` for each proposed direction and paste it here, including the mandatory anti-copy row. A direction without a layout-extraction table is not ready for approval.
+
 ## Layout handoff plan
 
-Prompted work must materially replace starter composition. List at least one meaningful primary-page or section renderer; token, copy, image, or section-order changes alone do not qualify.
+Prompted work must materially replace starter composition. The primary `/` renderer must be a project-local, research-derived page renderer under `src/design/<direction-slug>/`. A bundled `src/design-variants/*` renderer is a prototyping aid and does not satisfy completion on its own; token, copy, image, or section-order changes alone do not qualify.
 
 | Kind | Page route or section edit ID | Project-local renderer | Structural difference from starter | Preserved content/edit contracts |
 | --- | --- | --- | --- | --- |

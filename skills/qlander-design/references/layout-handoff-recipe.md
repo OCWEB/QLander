@@ -12,9 +12,43 @@ How to replace a starter renderer with an approved project-local one. A prompted
 6. Responsive and accessible: usable at 360px and 1280px, honors `prefers-reduced-motion` for any animation, contrast per the design skill minimums.
 7. Static output: no client JavaScript unless the user explicitly approved an interactive behavior.
 
-## Prebuilt variants
+## The primary page renderer
 
-Three ready-made renderers live in `src/design-variants/` and already satisfy this contract: `HeroCentered.astro` (centered hero, media below), `FeatureRows.astro` (alternating full-width rows instead of the card grid), and `CtaPanel.astro` (accent gradient panel). Registering one against a section id counts as a material handoff. Use them as-is, or copy one into `src/design/` as the starting point for a bespoke renderer; verify white-on-accent contrast when using `CtaPanel` with a light accent.
+A prompted project's `/` must be served by a **research-derived page renderer** at `src/design/<direction-slug>/HomePage.astro`, registered as a `page` handoff. This is the deliverable, not an optional upgrade.
+
+Record its provenance in the manifest:
+
+```json
+{
+  "kind": "page",
+  "id": "/",
+  "renderer": "src/design/institutional-modern/HomePage.astro",
+  "routes": ["/"],
+  "provenance": "research-derived",
+  "blueprintId": "2026-07-24-institutional-modern",
+  "referenceIds": ["ref-sofi", "ref-wealthfront"]
+}
+```
+
+`provenance: "research-derived"` requires a `blueprintId`, at least two independent `referenceIds`, and a renderer under `src/design/`. The schema rejects a `src/design-variants/*` renderer claiming research provenance.
+
+### What the renderer owns, and what it may delegate
+
+Own: page silhouette, section order, section relationships, band and ground decisions, media geometry, responsive transformations.
+
+Delegate: leaf rendering of shared primitives such as `FaqSection` and `ProductGrid`. A pilot page delegated both and still produced a materially different composition in roughly 380 lines.
+
+**Watch the alignment seam.** Shared components carry their own alignment: `ProductGrid` centers its heading, which reads as a defect inside a left-aligned research-derived page. Override it in the design layer rather than leaving it to be rediscovered on every project.
+
+**Preserve edit IDs when reordering.** Reordering sections while keeping each `data-pp-edit-id` stable is the core operation, and the structural divergence check joins on those IDs.
+
+**Never parse prose into structure.** Do not derive a list by splitting a paragraph on sentence boundaries; it mangles abbreviations ("Futura Financial Inc.", "3230 E. Imperial Hwy") into fragments that read as false statements. If a section needs structured facts, the content must supply structure.
+
+## Prebuilt variants are prototyping aids
+
+Three ready-made renderers live in `src/design-variants/`: `HeroCentered.astro` (centered hero, media below), `FeatureRows.astro` (alternating full-width rows instead of the card grid), and `CtaPanel.astro` (accent gradient panel).
+
+**They do not satisfy prompted completion on their own.** Measured against a project's own fallback rendering, a bundled-variant design scores 0.048 structural divergence versus 0.343 for a research-derived one: bundled variants are structurally near-identical to the core fallback. Use them to prototype quickly, or copy one into `src/design/<direction-slug>/` as a starting point, but the primary page must end up research-derived. Verify white-on-accent contrast when using `CtaPanel` with a light accent.
 
 ## Registration (both steps required)
 
