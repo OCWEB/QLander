@@ -244,7 +244,7 @@ async function validateDesignContract(model: Model) {
   }
 
   const sectionIds = new Set(model.pages.flatMap((page) => page.data.sections.map((section) => section.id)));
-  const pageRoutes = new Set(model.pages.map((page) => page.data.slug === "home" ? "/" : `/${page.data.slug}`));
+  const pageRoutes = new Set(model.pages.map((page) => page.data.slug.startsWith("/") ? page.data.slug : page.data.slug === "home" ? "/" : `/${page.data.slug}`));
   const registryFile = path.join(root, "src/layout-handoffs.ts");
   const registry = existsSync(registryFile) ? await readFile(registryFile, "utf8") : "";
   for (const handoff of design.handoffs) {

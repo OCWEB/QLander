@@ -320,7 +320,10 @@ function safeFieldsFor(type: string) {
 }
 
 async function generateProfileTest(target: string, profile: Profile, experienceSlug: string) {
-  await rm(path.join(target, "tests/qlander.test.ts"), { force: true });
+  // Kit-infrastructure suites stay in the kit repo only: audit-resilience imports the
+  // excluded audit skill, and the migration/resource suites build fixtures from starter
+  // content that population legitimately replaces.
+  for (const kitOnlyTest of ["tests/qlander.test.ts", "tests/audit-resilience.test.ts", "tests/migration.test.ts", "tests/resource-cli-init.test.ts"]) await rm(path.join(target, kitOnlyTest), { force: true });
   const schemaImports = ["ManifestSchema"];
   if (profile === "single-page-ppc") schemaImports.push("PageContentSchema");
   if (profile.includes("scroll-world")) schemaImports.push("ScrollWorldExperienceSchema");

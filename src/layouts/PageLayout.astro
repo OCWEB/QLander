@@ -24,7 +24,7 @@ const { page, showHeroVisual = true, products: suppliedProducts } = Astro.props 
   showHeroVisual?: boolean;
   products?: Product[];
 };
-const pageRoute = page.slug === "home" ? "/" : `/${page.slug}`;
+const pageRoute = page.slug.startsWith("/") ? page.slug : page.slug === "home" ? "/" : `/${page.slug}`;
 const PageHandoff = pageHandoffs[pageRoute];
 const needsProducts = page.sections.some((section) => section.type === "productGrid" || Boolean(sectionHandoffs[section.id])) || Boolean(PageHandoff);
 const products = suppliedProducts ?? (needsProducts ? (await getCollection("products")).map((entry) => entry.data as Product) : []);

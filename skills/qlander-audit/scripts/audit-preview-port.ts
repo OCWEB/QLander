@@ -54,7 +54,7 @@ async function main() {
     url: `http://${host}:${port}/`,
     expectedSiteId: manifest.siteId,
     expectedTitleSuffix: site.name,
-    command: `pnpm preview -- --port ${port}`
+    command: `pnpm preview --port ${port}`
   }, null, 2));
 }
 
