@@ -44,6 +44,7 @@ If the user says `qlander start`, requests a new site/migration/redesign/rebrand
 - Launch tasks: follow `docs/launch-checklist.md`; do not suggest or add cookie consent, accessibility/ADA services, analytics tracking, or deploy-specific config unless the user explicitly asks.
 - Going live, hosting, or deploy requests: follow `docs/deploy.md`, recommending hosts in its listed order (Cloudflare, GitHub Pages, Netlify, Vercel). Hosting stays opt-in: add no deploy workflow or host files until the user picks a host.
 - Guided launch planning: use `docs/qlander-start.md`; do not present every optional launch item at once.
+- Kit maintainers only: if `skills/qlander-audit/` exists in this repository (it is excluded from site copies), use it for kit field tests against realistic site requests. Never use it to build a real site.
 
 ## SEO Rules
 
