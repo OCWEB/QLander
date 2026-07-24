@@ -730,3 +730,27 @@ test("[fast] bundled variants are documented as prototyping aids, not completion
   assert.match(registry, /export const pageHandoffs: Record<string, LayoutHandoff> = \{\};/);
   assert.match(registry, /export const sectionHandoffs: Record<string, LayoutHandoff> = \{\};/);
 });
+
+test("[fast] the design gate routes research findings by tier and defaults safely", async () => {
+  const checker = await readFile(path.join(repo, "scripts/qlander-check.ts"), "utf8");
+  // Notices exist and are inert.
+  assert.match(checker, /const notices: Message\[\] = \[\]/);
+  assert.match(checker, /notices, warnings, errors/, "notices must appear in JSON output");
+  assert.match(checker, /NOTE \$\{notice\.code\}/);
+  // Gate resolution: blank is never gated, legacy defaults to off.
+  assert.match(checker, /QLANDER_DESIGN_GATE/);
+  assert.match(checker, /creationMode === "blank"\) return "off"/);
+  assert.match(checker, /\?\? "off"/);
+  // Safety rules bypass the gate entirely.
+  assert.match(checker, /addError\("visual\.research_evidence_published"/);
+  assert.match(checker, /addError\("visual\.research_manifest_invalid"/);
+  // Policy rules route through the gate.
+  for (const code of ["research_evidence_thin", "primary_renderer_not_research_derived", "bundled_variants_only", "research_hash_mismatch"]) {
+    assert.match(checker, new RegExp(`addGated\\(gate, "visual\\.${code}"`), `${code} must be gated, not hard-coded`);
+  }
+  // A recorded text-only exception warns permanently rather than passing.
+  assert.match(checker, /addWarning\("visual\.research_text_only_exception"/);
+  // Divergence never blocks yet, and a waiver stays visible.
+  assert.match(checker, /addNotice\("visual\.structure_matches_fallback"/);
+  assert.match(checker, /addNotice\("visual\.structure_divergence_waived"/);
+});

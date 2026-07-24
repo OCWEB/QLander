@@ -9,7 +9,8 @@ import { XMLParser } from "fast-xml-parser";
 import matter from "gray-matter";
 import { parse } from "node-html-parser";
 import type { z } from "zod";
-import { BlogFrontmatterSchema, DesignSystemSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, ResourceSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
+import { BlogFrontmatterSchema, DesignSystemSchema, EditMapSchema, LayoutBlueprintSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, ResearchManifestSchema, ResourceSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
+import { DIVERGENCE_MIN, divergence, fingerprint } from "../src/lib/structure-fingerprint";
 
 type Status = "passed" | "warning" | "failed" | "skipped";
 type Message = { code: string; message: string; path?: string; route?: string };
@@ -23,9 +24,32 @@ const skipBuild = args.includes("--skip-build");
 const checks = Object.fromEntries(names.map((name) => [name, "passed"])) as Record<(typeof names)[number], Status>;
 const errors: Message[] = [];
 const warnings: Message[] = [];
+// Notices are informational only. They never change the exit code or a check
+// status, which is what lets a new rule ship before it is trusted to block.
+const notices: Message[] = [];
 let browserVisualQa: Status = audit ? "passed" : "skipped";
 const addError = (code: string, message: string, extra: Partial<Message> = {}) => errors.push({ code, message, ...extra });
 const addWarning = (code: string, message: string, extra: Partial<Message> = {}) => warnings.push({ code, message, ...extra });
+const addNotice = (code: string, message: string, extra: Partial<Message> = {}) => notices.push({ code, message, ...extra });
+
+// Research rules roll out behind a gate so they can be observed before they block.
+//   off      notices only; reproduces pre-research-workflow behaviour exactly
+//   warn     warnings; check still exits 0
+//   enforce  errors
+// Blank projects are never gated. Legacy manifests with no gate default to off so
+// existing sites keep building.
+type Gate = "off" | "warn" | "enforce";
+const gateOverride = process.env.QLANDER_DESIGN_GATE as Gate | undefined;
+const resolveGate = (model: Model | undefined): Gate => {
+  if (gateOverride === "off" || gateOverride === "warn" || gateOverride === "enforce") return gateOverride;
+  if (model?.manifest.creationMode === "blank") return "off";
+  return (model?.manifest.design?.gate as Gate | undefined) ?? "off";
+};
+const addGated = (gate: Gate, code: string, message: string, extra: Partial<Message> = {}) => {
+  if (gate === "enforce") addError(code, message, extra);
+  else if (gate === "warn") addWarning(code, message, extra);
+  else addNotice(code, message, extra);
+};
 const readJson = async (file: string) => JSON.parse(await readFile(path.join(root, file), "utf8"));
 
 type Model = Awaited<ReturnType<typeof loadModel>>;
@@ -62,7 +86,7 @@ for (const name of ["seo", "links", "accessibility", "sitemap", "robots", "visua
 }
 for (const name of names) if (checks[name] === "passed" && warnings.some((item) => item.code.startsWith(`${name}.`))) checks[name] = "warning";
 const resultChecks = { ...checks, visualContract: checks.visual, browserVisualQa };
-const result = { id: `check_${randomUUID().slice(0, 8)}`, siteId: model?.manifest.siteId ?? "unknown", mode: audit ? "audit" : "standard", status: errors.length ? "failed" : warnings.length ? "warning" : "passed", checks: resultChecks, warnings, errors };
+const result = { id: `check_${randomUUID().slice(0, 8)}`, siteId: model?.manifest.siteId ?? "unknown", mode: audit ? "audit" : "standard", status: errors.length ? "failed" : warnings.length ? "warning" : "passed", checks: resultChecks, notices, warnings, errors };
 if (json) console.log(JSON.stringify(result, null, 2));
 else {
   console.log(`QLander checks: ${result.status.toUpperCase()}`);
@@ -71,6 +95,7 @@ else {
     const label = name === "visualContract" ? "visual-contract" : name === "browserVisualQa" ? "browser-visual-qa" : name;
     console.log(`- ${label}: ${status}`);
   }
+  for (const notice of notices) console.log(`NOTE ${notice.code}: ${notice.message}`);
   for (const warning of warnings) console.log(`WARN ${warning.code}: ${warning.message}`);
   for (const error of errors) console.error(`ERROR ${error.code}: ${error.message}`);
 }
@@ -254,6 +279,107 @@ async function validateDesignContract(model: Model) {
     if (handoff.kind === "section" && !sectionIds.has(handoff.id)) addError("visual.layout_section_missing", `Section handoff ${handoff.id} does not match an edit ID`);
     if (!registry.includes(JSON.stringify(handoff.id))) addError("visual.layout_registry_missing", `Register ${handoff.id} in src/layout-handoffs.ts`);
   }
+
+  if (mode === "prompted") await validateResearchEvidence(model, design);
+}
+
+// Research-led layout gates. Contracts and provenance only. This never claims to
+// score originality or visual quality; human screenshot review stays a separate
+// gate. See todo_research-led-layout-workflow.md sections 5 and 6.
+async function validateResearchEvidence(model: Model, design: NonNullable<Model["manifest"]["design"]>) {
+  const gate = resolveGate(model);
+  const researchRoot = path.join(root, ".qlander/design-research");
+
+  // Always an error regardless of gate: evidence inside anything the build
+  // publishes is a rights problem, not a workflow preference.
+  for (const published of ["public", "dist"]) {
+    const stray = await fg("**/design-research/**/references/**", { cwd: path.join(root, published), dot: true, onlyFiles: true }).catch(() => [] as string[]);
+    if (stray.length) addError("visual.research_evidence_published", `Reference screenshots must never sit under ${published}/ (${stray.length} file(s))`);
+  }
+
+  const blueprintId = design.blueprintId;
+  const runDir = blueprintId ? path.join(researchRoot, blueprintId) : undefined;
+  const manifestFile = runDir ? path.join(runDir, "reference-manifest.json") : undefined;
+  const blueprintFile = runDir ? path.join(runDir, "layout-blueprint.json") : undefined;
+
+  if (!blueprintId || !manifestFile || !existsSync(manifestFile)) {
+    addGated(gate, "visual.research_manifest_missing", "Prompted design requires a reference manifest at .qlander/design-research/<blueprintId>/reference-manifest.json");
+    return;
+  }
+  if (!blueprintFile || !existsSync(blueprintFile)) {
+    addGated(gate, "visual.research_blueprint_missing", `Prompted design requires ${path.relative(root, blueprintFile ?? "")}`);
+    return;
+  }
+
+  // Schema failures on artefacts that exist are always errors: a malformed
+  // evidence record is worse than an absent one.
+  const research = ResearchManifestSchema.safeParse(JSON.parse(await readFile(manifestFile, "utf8")));
+  if (!research.success) { addError("visual.research_manifest_invalid", `reference-manifest.json is invalid: ${research.error.issues[0]?.message}`); return; }
+  const blueprint = LayoutBlueprintSchema.safeParse(JSON.parse(await readFile(blueprintFile, "utf8")));
+  if (!blueprint.success) { addError("visual.research_blueprint_invalid", `layout-blueprint.json is invalid: ${blueprint.error.issues[0]?.message}`); return; }
+
+  const evidenced = research.data.references.filter((item) => item.captures.length > 0);
+  if (evidenced.length < 2) {
+    addGated(gate, "visual.research_evidence_thin", `Direction has ${evidenced.length} captured reference(s); two independent references are required`);
+  }
+  if (research.data.researchException) {
+    // A recorded exception is honoured but never silently upgraded to a pass.
+    addWarning("visual.research_text_only_exception", `Text-only research exception approved by ${research.data.researchException.approvedBy}: ${research.data.researchException.reason}`);
+  } else if (!evidenced.length) {
+    addGated(gate, "visual.research_text_only", "Text-only research needs an explicitly approved researchException");
+  }
+
+  // Hashes are verified only where the capture is still on disk. Evidence is
+  // gitignored by default, so a missing file is expected, not a failure.
+  for (const reference of research.data.references) {
+    for (const capture of reference.captures) {
+      const file = path.join(runDir!, capture.localPath);
+      if (!existsSync(file)) continue;
+      const actual = createHash("sha256").update(readFileSync(file)).digest("hex");
+      if (actual !== capture.sha256) addGated(gate, "visual.research_hash_mismatch", `${capture.localPath} does not match its recorded hash`);
+    }
+  }
+
+  if (research.data.direction !== design.direction) addGated(gate, "visual.research_direction_mismatch", `Reference manifest direction "${research.data.direction}" does not match the manifest direction "${design.direction}"`);
+  if (blueprint.data.direction !== design.direction) addGated(gate, "visual.blueprint_direction_mismatch", `Blueprint direction "${blueprint.data.direction}" does not match the manifest direction "${design.direction}"`);
+
+  const knownReferenceIds = new Set(research.data.references.map((item) => item.id));
+  const home = blueprint.data.pages.find((page) => page.route === "/");
+  if (!home) {
+    addGated(gate, "visual.blueprint_home_missing", "The layout blueprint must describe the primary / route");
+  } else {
+    for (const id of home.referenceIds) if (!knownReferenceIds.has(id)) addGated(gate, "visual.blueprint_reference_unknown", `Blueprint cites reference ${id}, which is absent from the manifest`);
+    const registered = design.handoffs.find((handoff) => handoff.kind === "page" && handoff.id === "/");
+    if (!registered) addGated(gate, "visual.primary_renderer_missing", "The primary / experience needs a research-derived page renderer registered as a page handoff");
+    else {
+      if (registered.provenance !== "research-derived") addGated(gate, "visual.primary_renderer_not_research_derived", `Handoff for / has provenance "${registered.provenance ?? "unset"}"; prompted completion requires research-derived`);
+      if (registered.renderer !== home.renderer) addGated(gate, "visual.blueprint_renderer_mismatch", `Blueprint renderer ${home.renderer} does not match the registered handoff ${registered.renderer}`);
+    }
+  }
+
+  if (design.handoffs.length && design.handoffs.every((handoff) => handoff.renderer.startsWith("src/design-variants/"))) {
+    addGated(gate, "visual.bundled_variants_only", "Every registered handoff is a bundled src/design-variants/* renderer; those are prototyping aids and do not complete a prompted design");
+  }
+
+  await validateStructuralDivergence(design, gate);
+}
+
+// Measures how much of the built / page the project actually composed, versus how
+// much is the kit's own fallback rendering. Not a measure of originality.
+async function validateStructuralDivergence(design: NonNullable<Model["manifest"]["design"]>, gate: Gate) {
+  const home = path.join(root, "dist/index.html");
+  if (!existsSync(home)) return;
+  const print = fingerprint(parse(await readFile(home, "utf8")) as never);
+  if (!print.sections.length) return;
+  const score = divergence(print);
+  if (score >= DIVERGENCE_MIN) return;
+  const detail = `The built / page scores ${score} structural divergence against the kit's own components (threshold ${DIVERGENCE_MIN}); ${print.kitShapedCount} of ${print.sections.length} sections are unmodified kit composition`;
+  if (design.divergenceWaiver) {
+    addNotice("visual.structure_divergence_waived", `${detail}. Waived: ${design.divergenceWaiver}`);
+    return;
+  }
+  // Ships at notice tier while the threshold is validated on more projects.
+  addNotice("visual.structure_matches_fallback", `${detail}. Review whether / is genuinely research-derived.`);
 }
 
 function validatePpcPages(model: Model) {
