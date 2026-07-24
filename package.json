@@ -22,7 +22,7 @@
     "build": "astro build && tsx scripts/generate-site-files.ts dist",
     "preview": "astro preview --host 127.0.0.1",
     "typecheck": "astro check",
-    "test": "tsx --test tests/**/*.test.ts",
+    "test": "tsx --test --test-concurrency=1 tests/**/*.test.ts",
     "audit:high": "pnpm audit --prod --audit-level high",
     "skills:check-upstream": "tsx scripts/check-skill-upstreams.ts",
     "qlander:init": "tsx scripts/qlander-init.ts",
