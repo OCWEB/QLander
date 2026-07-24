@@ -3,7 +3,7 @@
   "name": "QLander Starter",
   "template": "wireframe-site-kit",
   "templateSource": "https://github.com/OCWEB/QLander",
-  "templateVersion": "0.3.0",
+  "templateVersion": "0.4.0",
   "projectType": "marketing-site",
   "contentRoot": "content",
   "dataRoot": "data",

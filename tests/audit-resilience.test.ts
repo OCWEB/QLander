@@ -31,7 +31,7 @@ async function runChecker(root: string, flags: string[]) {
   }
 }
 
-test("audit workflow is resumable and preserves feedback from initialization onward", async () => {
+test("[fast] audit workflow is resumable and preserves feedback from initialization onward", async () => {
   const skill = await readFile(path.join(repo, "skills/qlander-audit/SKILL.md"), "utf8");
   const feedback = await readFile(path.join(repo, "skills/qlander-audit/references/feedback-template.md"), "utf8");
   for (const pattern of [
@@ -53,7 +53,7 @@ test("audit workflow is resumable and preserves feedback from initialization onw
   assert.match(feedback, /not reached/i);
 });
 
-test("design research records short-lived campaign source health and frozen-audit substitutions", async () => {
+test("[fast] design research records short-lived campaign source health and frozen-audit substitutions", async () => {
   const research = await readFile(path.join(repo, "skills/qlander-design-research/SKILL.md"), "utf8");
   const audit = await readFile(path.join(repo, "skills/qlander-audit/SKILL.md"), "utf8");
   assert.match(research, /source-health cache/i);
@@ -64,7 +64,7 @@ test("design research records short-lived campaign source health and frozen-audi
   assert.match(audit, /do not modify the kit/i);
 });
 
-test("audit preview ports are deterministic and advance when the preferred port is occupied", async () => {
+test("[fast] audit preview ports are deterministic and advance when the preferred port is occupied", async () => {
   const first = await findAuditPreviewPort("example.com", { start: 43000, span: 100 });
   const repeat = await findAuditPreviewPort("example.com", { start: 43000, span: 100 });
   assert.equal(repeat, first);
@@ -79,7 +79,7 @@ test("audit preview ports are deterministic and advance when the preferred port 
   }
 });
 
-test("audit checker distinguishes visual contract from required committed browser evidence", async () => {
+test("[integration] audit checker distinguishes visual contract from required committed browser evidence", async () => {
   const fixture = await copyRuntimeFixture();
   const missing = await runChecker(fixture, ["--audit", "--json"]);
   assert.notEqual(missing.code, 0);
@@ -103,7 +103,7 @@ test("audit checker distinguishes visual contract from required committed browse
   assert.equal(evidenceJson.checks.browserVisualQa, "passed");
 });
 
-test("empty blog sentinel prevents glob warnings without creating routes, list items, or sitemap entries", async () => {
+test("[integration] empty blog sentinel prevents glob warnings without creating routes, list items, or sitemap entries", async () => {
   const fixture = await copyRuntimeFixture();
   await rm(path.join(fixture, "content/blog/welcome.md"));
   const manifestFile = path.join(fixture, "qlander.manifest.json");
