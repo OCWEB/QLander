@@ -34,8 +34,8 @@ pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Sit
 
 Profiles: `marketing-site`, `single-page-ppc`, `internal-scroll-world`, and
 `root-scroll-world`. Run `pnpm qlander:init` without arguments for the interactive
-wizard. For a marketing site, add `--no-blog`, `--no-products`, or `--minimal` to
-start without the demo blog or products routes.
+wizard. For a marketing site, add `--no-blog`, `--no-products`, or `--no-resources`
+to omit an individual demo collection. `--minimal` omits all three collections.
 
 Before handing work back to a user, run:
 
@@ -146,6 +146,25 @@ builds `/resources/<slug>` and may include a CTA, while `external` links directl
 HTTPS source. Optional `year` and `type` values power progressive index filters; the
 unfiltered complete list is the no-JavaScript fallback.
 
+Register resources with the transactional resource command so content, edit-map, and
+manifest bookkeeping cannot drift. Detail resources require body and SEO metadata;
+external resources require an HTTPS URL and never receive a detail route:
+
+```bash
+pnpm qlander:resource -- add --root . --slug annual-letter --kind detail \
+  --title "Annual letter" --summary "A letter to stakeholders." --year 2026 --type Letter \
+  --body "Letter context and highlights." --seo-title "Annual letter" \
+  --seo-description "Read the annual letter."
+pnpm qlander:resource -- add --root . --slug official-filing --kind external \
+  --title "Official filing" --summary "The regulator-hosted filing." \
+  --href https://example.org/filing --label "Open filing"
+pnpm qlander:resource -- remove --root . --slug official-filing
+```
+
+Add `--force` to an `add` command only when intentionally replacing an existing slug.
+Detail entries also accept paired `--cta-label`/`--cta-href` and `--noindex`; `year`,
+`type`, and the external `label` are optional.
+
 Changes to `src/` are developer-mode changes and require explicit user intent.
 
 ## Agent Guardrails
@@ -210,6 +229,9 @@ pnpm preview
 pnpm typecheck
 pnpm test
 pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Site"
+pnpm qlander:init -- --profile marketing-site --target ../minimal-site --name "Minimal Site" --minimal
+pnpm qlander:resource -- add --root . --slug report --kind external --title "Report" --summary "Official report." --href https://example.org/report
+pnpm qlander:resource -- remove --root . --slug report
 pnpm qlander:experience -- --slug tour --title "Product Tour"
 pnpm qlander:experience -- --section --page home --after home.hero --slug product-story --title "Product Story"
 pnpm qlander:experience -- --root --title "Product Tour"

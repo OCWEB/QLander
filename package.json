@@ -26,6 +26,7 @@
     "audit:high": "pnpm audit --prod --audit-level high",
     "skills:check-upstream": "tsx scripts/check-skill-upstreams.ts",
     "qlander:init": "tsx scripts/qlander-init.ts",
+    "qlander:resource": "tsx scripts/qlander-resource.ts",
     "qlander:experience": "node skills/scroll-world/references/scripts/register-qlander-experience.mjs",
     "qlander:check": "tsx scripts/qlander-check.ts ."
   },

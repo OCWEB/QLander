@@ -31,7 +31,7 @@ try {
     await stage("copy-template", async () => copyTemplate(target));
     if (!answers.noGit) baselineCommit = await stage("baseline-commit", async () => createBaselineCommit(target));
   }
-  await stage("configure-profile", async () => configureProfile(target, answers.profile, answers.name, answers.experienceSlug, { blog: answers.noBlog, products: answers.noProducts }));
+  await stage("configure-profile", async () => configureProfile(target, answers.profile, answers.name, answers.experienceSlug, { blog: answers.noBlog, products: answers.noProducts, resources: answers.noResources }));
   await stage("generate-contracts", async () => {
     await generateProfileTest(target, answers.profile, answers.experienceSlug);
     await mkdir(path.join(target, "docs/screenshots"), { recursive: true });
@@ -114,7 +114,8 @@ async function resolveAnswers(values: Record<string, string | boolean>, canAsk: 
     skipInstall: values["skip-install"] === true,
     skipValidate: values["skip-validate"] === true,
     noBlog: values["no-blog"] === true || values["minimal"] === true,
-    noProducts: values["no-products"] === true || values["minimal"] === true
+    noProducts: values["no-products"] === true || values["minimal"] === true,
+    noResources: values["no-resources"] === true || values["minimal"] === true
   };
 }
 
@@ -158,7 +159,7 @@ async function createBaselineCommit(target: string) {
   return (await run(target, "git", ["rev-parse", "--short", "HEAD"])).trim();
 }
 
-async function configureProfile(target: string, profile: Profile, name: string, experienceSlug: string, exclude: { blog: boolean; products: boolean } = { blog: false, products: false }) {
+async function configureProfile(target: string, profile: Profile, name: string, experienceSlug: string, exclude: { blog: boolean; products: boolean; resources: boolean } = { blog: false, products: false, resources: false }) {
   const manifest = await readJson(path.join(target, "qlander.manifest.json"));
   const site = await readJson(path.join(target, "data/site.json"));
   manifest.projectType = profile;
@@ -171,7 +172,7 @@ async function configureProfile(target: string, profile: Profile, name: string, 
   await writeJson(path.join(target, "data/site.json"), site);
   await writeWordmarkLogo(target, name);
 
-  if (profile === "marketing-site" && (exclude.blog || exclude.products)) await pruneMarketingRoutes(target, exclude);
+  if (profile === "marketing-site" && (exclude.blog || exclude.products || exclude.resources)) await pruneMarketingRoutes(target, exclude);
   if (profile === "single-page-ppc") await configurePpc(target, manifest, name);
   if (profile === "internal-scroll-world") await run(target, process.execPath, [
     "skills/scroll-world/references/scripts/register-qlander-experience.mjs",
@@ -185,26 +186,30 @@ async function configureProfile(target: string, profile: Profile, name: string, 
   ]);
 }
 
-async function pruneMarketingRoutes(target: string, exclude: { blog: boolean; products: boolean }) {
-  const collections: Array<{ key: "blog" | "products"; routePrefix: string; pages: string[]; content: string; editKey: string }> = [];
-  if (exclude.blog) collections.push({ key: "blog", routePrefix: "/blog", pages: ["src/pages/blog/index.astro", "src/pages/blog/[slug].astro"], content: "content/blog", editKey: "route.blog.seo" });
-  if (exclude.products) collections.push({ key: "products", routePrefix: "/products", pages: ["src/pages/products/index.astro", "src/pages/products/[slug].astro"], content: "content/products", editKey: "route.products.seo" });
+async function pruneMarketingRoutes(target: string, exclude: { blog: boolean; products: boolean; resources: boolean }) {
+  const collections: Array<{ key: "blog" | "products" | "resources"; routePrefix: string; pages: string[]; content: string; editKey: string; editPrefix: string }> = [];
+  if (exclude.blog) collections.push({ key: "blog", routePrefix: "/blog", pages: ["src/pages/blog/index.astro", "src/pages/blog/[slug].astro"], content: "content/blog", editKey: "route.blog.seo", editPrefix: "blog." });
+  if (exclude.products) collections.push({ key: "products", routePrefix: "/products", pages: ["src/pages/products/index.astro", "src/pages/products/[slug].astro"], content: "content/products", editKey: "route.products.seo", editPrefix: "product." });
+  if (exclude.resources) collections.push({ key: "resources", routePrefix: "/resources", pages: ["src/pages/resources/index.astro", "src/pages/resources/[slug].astro"], content: "content/resources", editKey: "route.resources.seo", editPrefix: "resource." });
 
   const manifest = await readJson(path.join(target, "qlander.manifest.json"));
   const navigation = await readJson(path.join(target, "data/navigation.json"));
   const routeSeo = await readJson(path.join(target, "data/route-seo.json"));
   const editMap = await readJson(path.join(target, "qlander.edit-map.json"));
+  const emptyBlogSentinel = exclude.blog ? await readFile(path.join(target, "content/blog/_empty.md"), "utf8") : undefined;
 
   for (const collection of collections) {
     for (const file of collection.pages) await rm(path.join(target, file), { force: true });
     await rm(path.join(target, collection.content), { recursive: true, force: true });
     await mkdir(path.join(target, collection.content), { recursive: true });
-    await writeFile(path.join(target, collection.content, ".gitkeep"), "");
+    if (collection.key === "blog") await writeFile(path.join(target, collection.content, "_empty.md"), emptyBlogSentinel!);
+    else await writeFile(path.join(target, collection.content, ".gitkeep"), "");
     manifest.routes = manifest.routes.filter((route: string) => route !== collection.routePrefix && !route.startsWith(`${collection.routePrefix}/`));
     navigation.header = navigation.header.filter((item: any) => item.href !== collection.routePrefix && !item.href.startsWith(`${collection.routePrefix}/`));
     navigation.footer = navigation.footer.filter((item: any) => item.href !== collection.routePrefix && !item.href.startsWith(`${collection.routePrefix}/`));
     delete routeSeo[collection.key];
     delete editMap[collection.editKey];
+    for (const key of Object.keys(editMap)) if (key.startsWith(collection.editPrefix)) delete editMap[key];
   }
 
   await writeJson(path.join(target, "qlander.manifest.json"), manifest);
@@ -218,7 +223,9 @@ async function pruneMarketingRoutes(target: string, exclude: { blog: boolean; pr
   for (const entry of readdirSync(pagesDir).filter((file) => file.endsWith(".json"))) {
     const file = path.join(pagesDir, entry);
     const page = await readJson(file);
-    for (const section of page.sections ?? []) {
+    page.sections = (page.sections ?? []).filter((section: any) => !(section.type === "cta" && links(section.cta?.href)));
+    for (const section of page.sections) {
+      if (section.primaryCta && links(section.primaryCta.href)) delete section.primaryCta;
       if (section.secondaryCta && links(section.secondaryCta.href)) delete section.secondaryCta;
     }
     await writeJson(file, page);
@@ -373,7 +380,7 @@ async function writeJson(file: string, value: unknown) { await mkdir(path.dirnam
 
 function parseArgs(values: string[]) {
   const result: Record<string, string | boolean> = {};
-  const booleans = new Set(["in-place", "no-git", "skip-install", "skip-validate", "no-blog", "no-products", "minimal"]);
+  const booleans = new Set(["in-place", "no-git", "skip-install", "skip-validate", "no-blog", "no-products", "no-resources", "minimal"]);
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
     if (value === "--") continue;
