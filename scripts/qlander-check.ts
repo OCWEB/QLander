@@ -293,8 +293,8 @@ function validateRobots(model: Model) {
 
 function routeNoindex(route: string, model: Model) {
   if (route === "/404") return true;
-  if (route === "/products") return model.routeSeo.products.noindex;
-  if (route === "/blog") return model.routeSeo.blog.noindex;
+  if (route === "/products") return model.routeSeo.products?.noindex ?? false;
+  if (route === "/blog") return model.routeSeo.blog?.noindex ?? false;
   const page = model.pages.find((item) => item.data.slug === route); if (page) return page.data.seo.noindex;
   const product = model.products.find((item) => `/products/${item.data.slug}` === route); if (product) return product.data.seo.noindex;
   const post = model.posts.find((item) => `/blog/${item.data.slug}` === route); if (post) return post.data.seo.noindex;

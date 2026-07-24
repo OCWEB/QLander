@@ -32,7 +32,14 @@ Deterministic answers the auditor gives at the combined approval gate in batch m
 - Approve the image plan with zero generation: annotated placeholders plus documented prompts for every slot.
 - Never download or reuse reference-site or third-party assets. Owner-site assets are recorded as available but still not downloaded during an audit.
 
+## Design research (finished-design cases)
+
+- Source scope: grant public web research for style references only (galleries, shipped public sites). Blocked sites follow the discovery fallback rules; never log in or evade.
+- Direction approval: approve the research's recommended direction with its recorded fallback, provided every cited reference has a source URL and the scorecard is present. A direction without provenance is rejected; pick the fallback or rerun research.
+- Rights: mark nothing `authorized`; all assets stay annotated placeholders regardless of license claims.
+
 ## Design
 
-- If the case requests finished design: approve one palette following the `qlander-design` recipe, require measured contrast ratios in the report, radius 8 or below. Template-tier items (fonts, motion, gradients) only where that skill sanctions them.
+- If the case requests finished design: run `qlander-design-research` first per the run protocol, then approve one palette following the `qlander-design` recipe, require measured contrast ratios in the report, radius 8 or below. Template-tier items (fonts, motion, gradients) only where that skill sanctions them.
+- Third-party tooling offers during the design pass (for example a project-local Impeccable install): always decline in batch mode and use native QLander execution.
 - Otherwise: keep the grayscale wireframe; data-tier theme tokens only.

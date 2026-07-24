@@ -14,7 +14,9 @@ const profiles = ["marketing-site", "single-page-ppc", "internal-scroll-world", 
 type Profile = (typeof profiles)[number];
 type Stage = { name: string; startedAt: string; completedAt?: string; status: "running" | "passed" | "failed"; detail?: string };
 
-const args = parseArgs(process.argv.slice(2));
+const argv = process.argv.slice(2);
+if (argv[0] === "--") argv.shift();
+const args = parseArgs(argv);
 const interactive = process.stdin.isTTY && process.stdout.isTTY;
 const answers = await resolveAnswers(args, interactive);
 const target = answers.inPlace ? sourceRoot : path.resolve(answers.target);
@@ -298,7 +300,7 @@ ${profile.includes("scroll-world") ? `test("Scroll World profile has a valid reg
 async function writeRunLog(target: string, answers: Awaited<ReturnType<typeof resolveAnswers>>, baseline: string, stageItems: Stage[], validations: typeof validationResults) {
   if (!existsSync(target)) return;
   await mkdir(path.join(target, "docs"), { recursive: true });
-  const rows = stageItems.map((item) => `| ${item.name} | ${item.status} | ${item.startedAt} | ${item.completedAt ?? "—"} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| initialization | pending | — | — | — |";
+  const rows = stageItems.map((item) => `| ${item.name} | ${item.status} | ${item.startedAt} | ${item.completedAt ?? "-"} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| initialization | pending | - | - | - |";
   const validationRows = validations.map((item) => `| \`${item.command}\` | ${item.status} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| Validation | pending | Run after dependencies are installed |";
   const log = `# QLander run\n\n- Profile: \`${answers.profile}\`\n- Site name: ${answers.name}\n- Source template: ${templateSource}\n- Baseline commit: \`${baseline}\`\n- Draft/noindex: yes\n- Created: ${stageItems[0]?.startedAt ?? new Date().toISOString()}\n\n## Stage timeline\n\n| Stage | Status | Started | Completed | Detail |\n|---|---|---|---|---|\n${rows}\n\n## Validation\n\n| Command | Status | Detail |\n|---|---|---|\n${validationRows}\n\n## Screenshots\n\nSave browser-verified desktop and phone captures under \`docs/screenshots/\`. Screenshot capture remains an agent/browser QA step so the repository does not install a browser runtime or download Chromium by default.\n\n## Discovery and media\n\nRun QLander Discovery before population. Record approved sources, reused facts, repeated questions, safe-zone edits, developer-mode edits, and media handoffs here as work continues. Scroll World profiles keep human \`queue.md\` and machine-readable \`queue.json\` status together.\n`;
   await writeFile(path.join(target, "docs/qlander-run.md"), log);

@@ -89,7 +89,7 @@ export const ProductRouteSeoSchema = SeoSchema.extend({
   eyebrow: z.string().min(1), heading: z.string().min(1), itemCtaLabel: z.string().min(1), detailCtaLabel: z.string().min(1), detailCtaHref: SafeHrefSchema
 }).strict();
 export const BlogRouteSeoSchema = SeoSchema.extend({ eyebrow: z.string().min(1), heading: z.string().min(1) }).strict();
-export const RouteSeoSchema = z.object({ products: ProductRouteSeoSchema, blog: BlogRouteSeoSchema, notFound: SeoSchema }).strict();
+export const RouteSeoSchema = z.object({ products: ProductRouteSeoSchema.optional(), blog: BlogRouteSeoSchema.optional(), notFound: SeoSchema }).strict();
 export const ProjectTypeSchema = z.enum(["marketing-site", "single-page-ppc", "internal-scroll-world", "root-scroll-world"]);
 export const ManifestSchema = z.object({ siteId: z.string().min(1), name: z.string().min(1), template: z.string().min(1), templateSource: z.url(), templateVersion: z.string().min(1), projectType: ProjectTypeSchema.optional(), contentRoot: z.string(), dataRoot: z.string(), editMap: z.string(), routes: z.array(z.string()).min(1) }).strict();
 export const EditMapEntrySchema = z.object({ route: z.string(), label: z.string().min(1), scope: z.string().min(1), contentFile: z.string().min(1), jsonPath: z.string().min(1), component: z.string().min(1), safeFields: z.array(z.string()).min(1), affectedRoutes: z.union([z.array(z.string()), z.literal("all")]) }).strict();

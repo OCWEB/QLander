@@ -28,7 +28,7 @@ Each case needs:
 1. Act as the site owner's coding agent. Follow the kit's own `AGENTS.md`, `docs/qlander-start.md`, and bundled skills exactly as written; do not use maintainer knowledge to shortcut them. Everything confusing, missing, contradictory, or broken goes into the friction log with evidence.
 2. Run discovery to the combined approval gate. In batch mode (the default), self-approve as the owner proxy using [references/owner-proxy-rules.md](references/owner-proxy-rules.md) and record the full approval package in the feedback file. In interactive mode (maintainer says they want to approve), stop and present the package.
 3. After approval: when the case requested finished design, run `qlander-design-research` before population; then populate, run `qlander-design`, run `pnpm qlander:check`, and commit inside the case repo.
-4. Hard limits: no deploys, no host or DNS config, no image generation (annotated placeholders plus prompt docs only), site stays draft/noindex, no downloads of reference-site assets, and clone-look content never contains the reference site's copy, claims, branding, or name outside brief provenance notes.
+4. Hard limits: no deploys, no host or DNS config, no image generation (annotated placeholders plus prompt docs only), no third-party tooling installs (decline the design pass's optional Impeccable offer and use native execution), site stays draft/noindex, no downloads of reference-site assets, and clone-look content never contains the reference site's copy, claims, branding, or name outside brief provenance notes.
 
 ## Grading rubric
 
@@ -41,7 +41,7 @@ Grade each dimension pass, warn, or fail, with one line of evidence:
 | Copy provenance | Redesign: owner-site facts only. Clone-look: zero lifted sentences or branding |
 | Diff scope | Only `content/`, `data/`, `public/images/` changed, plus kit-mandated bookkeeping (`qlander.manifest.json`, `qlander.edit-map.json`, `data/route-seo.json`, `docs/qlander-run.md`, init profile artifacts) and sanctioned developer-mode edits that followed `AGENTS.md` rules |
 | Validation | `pnpm qlander:check` green with only the expected draft warning; typecheck and tests pass |
-| Design contract | Theme follows the design-skill recipe with measured contrast ratios; template-tier edits only when sanctioned |
+| Design contract | Finished-design cases: sourced `content/design-research.md` with an approved direction exists before implementation; theme follows the design-skill recipe with measured contrast ratios; template-tier edits only when sanctioned |
 
 ## Feedback file
 

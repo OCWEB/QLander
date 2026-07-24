@@ -56,9 +56,9 @@ test("PPC layout and image prompt IDs are constrained", () => {
 
 test("collection headings and CTAs are structured route data", async () => {
   const routeSeo = RouteSeoSchema.parse(JSON.parse(await readFile(path.join(repo, "data/route-seo.json"), "utf8")));
-  assert.equal(routeSeo.products.heading, "Starter offers");
-  assert.equal(routeSeo.products.itemCtaLabel, "View package");
-  assert.equal(routeSeo.blog.heading, "Blog");
+  assert.equal(routeSeo.products?.heading, "Starter offers");
+  assert.equal(routeSeo.products?.itemCtaLabel, "View package");
+  assert.equal(routeSeo.blog?.heading, "Blog");
   const pageLayout = await readFile(path.join(repo, "src/layouts/PageLayout.astro"), "utf8");
   assert.match(pageLayout, /needsProducts/);
   assert.match(pageLayout, /needsProducts \?/);

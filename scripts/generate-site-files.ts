@@ -29,8 +29,8 @@ for (const file of await fg("data/experiences/*.json", { cwd: root })) {
   const experience = ScrollWorldExperienceSchema.parse(await readJson(file));
   if (experience.placement === "route" && experience.seo.noindex) noindex.add(experience.route ?? `/${experience.slug}`);
 }
-if (routeSeo.products.noindex) noindex.add("/products");
-if (routeSeo.blog.noindex) noindex.add("/blog");
+if (routeSeo.products?.noindex) noindex.add("/products");
+if (routeSeo.blog?.noindex) noindex.add("/blog");
 
 const routes = site.launchStatus === "live" ? manifest.routes.filter((route) => !noindex.has(route)) : [];
 const origin = site.url.replace(/\/$/, "");

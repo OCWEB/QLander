@@ -37,6 +37,9 @@ Route contract notes for `marketing-site`:
 
 - The profile ships demo `/blog` and `/products` routes. Visible labels (navigation, headings, CTAs) are data-tier edits via `data/route-seo.json` and `data/navigation.json`; for a services business, relabel `/products` as "Services" without changing the URL.
 - Changing route URLs, or adding and removing route files under `src/pages/`, is developer mode. If the approved sitemap requires it, follow the developer-mode rules in `AGENTS.md` (minimal edits, keep content contracts, run build, typecheck, test, and `pnpm qlander:check`). The lightest data-tier alternative for an unwanted route is: remove it from navigation, empty its collection, and set it `noindex` in `data/route-seo.json`.
+- Route bookkeeping when adding or removing routes in developer mode: update `qlander.manifest.json` routes, `data/navigation.json`, the matching `data/route-seo.json` keys (removed route keys may be deleted; the schema treats `products` and `blog` as optional), and the affected `qlander.edit-map.json` entries.
+- Keep an emptied collection directory in git with a `.gitkeep` file; deleting `content/blog/` or `content/products/` outright makes Astro's glob loader warn. A "glob() did not match any files" style warning from an intentionally emptied collection is harmless build noise, not an error.
+- Migrating owner-owned copy verbatim (testimonials, taglines): fetch-tool summaries often paraphrase; extract exact text from the raw page HTML and preserve attribution exactly.
 
 ## 1. Choose sources
 
@@ -99,7 +102,7 @@ For each proposed page where the choice affects implementation, ask for one expe
 - scoped `scroll-section` inside a normal page
 - continuous Scroll World experience
 
-Ask whether the user owns or may reuse website assets before downloading them. Plan authorized assets first, Codex image generation second, optional Magnific generation/enhancement third, and annotated placeholders last.
+Ask whether the user owns or may reuse website assets before downloading them. Plan authorized assets first, Codex image generation second, optional Magnific generation/enhancement third, and annotated placeholders last. When no generation provider is available in the environment, annotated placeholders plus prompt documents are the expected path, not a failure.
 
 ## 4. Combined approval
 
