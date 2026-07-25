@@ -32,7 +32,7 @@ Pass identity, audience, offer, approved proof, primary action, route, voice, pa
 
 Pass brand name, audience, business story, palette, tone, art direction when approved, proposed page journey, scene candidates, CTA, and approved still-image assets/prompts. Scroll World asks only for missing scene order/copy, motion grammar, native mobile choice, compatible video provider, budget approval, and cinematic QA decisions.
 
-Use the bundled `skills/scroll-world/SKILL.md`; no separate skill installation is required.
+QLander ships the Scroll World runtime, schema, and `pnpm qlander:experience` registration. The authoring skill `skills/scroll-world/SKILL.md` lives in the sibling `qlander-design` repository and is only needed to produce the media.
 Default to its manual slow queue after the cinematic page experience is approved. The
 user renders the queued still/video jobs and returns exact-named files; the agent performs
 local ingest, frame extraction, seam QA, walkthrough generation, and wiring. Keep

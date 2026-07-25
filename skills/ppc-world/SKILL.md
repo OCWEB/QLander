@@ -36,10 +36,9 @@ If the user chooses scroll:
 
 1. Explain that true cinematic scrubbing requires frame-locking video generation, extra QA, and larger assets. The bundled manual queue avoids agent/API generation calls but still requires the user to render the queued jobs in a compatible interface.
 2. Ask whether an image-led scroll story is acceptable. If yes, stay in the QLander PPC workflow and use stills; do not install `scroll-world`.
-3. If the user requires the continuous camera-flight effect, invoke the bundled `skills/scroll-world/SKILL.md` and check that the selected manual or automated video interface can frame-lock seams.
+3. If the user requires the continuous camera-flight effect, invoke `skills/scroll-world/SKILL.md` from the sibling `qlander-design` repository and check that the selected manual or automated video interface can frame-lock seams.
 4. Default to Scroll World's manual slow queue. Pass the approved brand, audience, offer, palette, voice, proposed journey, CTA, and still-image plan, then ask only missing cinematic choices. Do not install an external skill or call a paid generation API by default.
 5. If the user explicitly selects automated/API generation, follow Scroll World's provider, cost approval, generation, encoding, and seam-QA requirements.
-6. Read [references/upstream-scroll-world.md](references/upstream-scroll-world.md) when reviewing the vendored runtime or syncing upstream changes.
 7. In QLander, prefer the bundled internal-route adapter (`pnpm qlander:experience`) for a dedicated full-screen route. Use an external link-out only when explicitly approved. Do not iframe a scroll-scrub experience into a normally scrolling page or retrofit a standalone bundle into the site.
 
 ## Placeholder Deliverable

@@ -29,10 +29,11 @@ baseline commit, writes `projectType`, generates profile tests and a timed run l
 installs dependencies, and runs initial validation. Use `--skip-install` or
 `--skip-validate` only when another workflow will perform those stages immediately.
 
-The cloned kit is self-contained for Scroll World. Do not ask the user to install the
-upstream repository or a global skill: QLander vendors the manual queue, scrub runtime,
-eager-poster and route-dot fixes, scoped section mode, Astro integration, and validation.
-`pnpm install` plus the appropriate `pnpm qlander:experience` command is sufficient.
+The cloned kit ships the Scroll World runtime: scrub engine, eager-poster and route-dot
+fixes, scoped section mode, Astro integration, registration, and validation. `pnpm install`
+plus the appropriate `pnpm qlander:experience` command registers an experience with
+placeholder stills and passes checks. Only producing the cinematic media needs the
+`skills/scroll-world/` authoring skill from the sibling `qlander-design` repository.
 
 Profile meaning:
 
@@ -142,8 +143,8 @@ After the applicable approvals:
 3. Invoke `ppc-world` or `scroll-world` only for pages that selected those specialist experiences; pass the approved brief and skip answered questions.
 4. Run the required QLander checks and report changed routes, sources, assumptions, media status, and unresolved gaps.
 
-For an approved continuous Scroll World page, use the bundled
-`skills/scroll-world/SKILL.md`. Its default generation mode is a manual slow queue:
+For an approved continuous Scroll World page, use
+`skills/scroll-world/SKILL.md` from the sibling `qlander-design` repository. Its default generation mode is a manual slow queue:
 QLander writes `queue.md`, the user returns exact-named files in `results/`, and the
 agent performs local ingest, seam QA, preview, and wiring. Offer paid/API generation as
 an explicit alternative; do not require a separate Scroll World installation. For a

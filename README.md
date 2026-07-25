@@ -59,19 +59,19 @@ Before handing work back to a user, run:
 pnpm qlander:check
 ```
 
-### Scroll World is included
+### Scroll World runtime is included, the authoring skill is not
 
-Cloning or pulling QLander includes its customized Scroll World skill, scrub runtime,
-manual queue tools, Astro renderers, schemas, registration command, and regression
-checks. There is no second package or global skill to install. `pnpm install` installs
-the normal QLander dependencies; the build embeds the vendored scrub engine directly
-from `skills/scroll-world/references/scrub-engine.js`.
+QLander ships everything needed to *render* a Scroll World: the scrub runtime at
+`src/lib/scrub-engine.js`, the Astro renderers, the experience schema, the
+`internal-scroll-world` and `root-scroll-world` profiles, the `pnpm qlander:experience`
+registration command, and the regression checks. `pnpm install` installs the normal
+QLander dependencies and the build embeds the scrub engine directly. Nothing extra is
+required to build or check a project that has one.
 
-That bundled path includes QLander's protected fixes: the manual slow queue, eager still
-posters, aligned route dots, and scoped `scroll-section` mode. Register an experience
-with `pnpm qlander:experience`, then run `pnpm qlander:check`. A separately installed
-global Scroll World skill may help an agent in other repositories, but QLander does not
-depend on it.
+The authoring workflow, meaning the cinematic prompt pipeline, manual slow queue, seam
+QA, and encoding steps, lives in the separate `qlander-design` repository as
+`skills/scroll-world/`. Install it when a project actually needs to produce the media.
+Registering an experience and shipping placeholder stills works without it.
 
 ## Start A Real Site
 
@@ -204,14 +204,12 @@ For guided setup, ask an agent to run `qlander start`. The universal research, a
 
 For a focused paid-ad landing page, use the bundled `skills/ppc-world/` skill. Page content can set `layout: "ppc"` to remove normal site navigation and footer links. The skill keeps cinematic scrolling opt-in and can fall back to annotated placeholder prompts when no media generator is available.
 
-Continuous cinematic pages use the bundled, QLander-customized `skills/scroll-world/`
-skill. Once that page experience is approved, its default generation mode is a manual
-slow queue: the agent prepares prompts and filenames, the user renders and returns the
-files, and the agent performs local encoding, seam QA, preview generation, and wiring.
-Paid/API generation remains optional and requires an explicit choice. The bundled skill
-is based on `oso95/scroll-world`; check reviewed upstream changes with
-`pnpm skills:check-upstream` and see the tracking policy in
-`skills/ppc-world/references/upstream-scroll-world.md`.
+Continuous cinematic pages use `skills/scroll-world/` from the sibling `qlander-design`
+repository. Once that page experience is approved, its default generation mode is a
+manual slow queue: the agent prepares prompts and filenames, the user renders and returns
+the files, and the agent performs local encoding, seam QA, preview generation, and
+wiring. Paid/API generation remains optional and requires an explicit choice. That skill
+is based on `oso95/scroll-world` and carries its own upstream tracking record.
 
 For a Scroll World page inside a marketing site, register a dedicated route instead of
 building a standalone page first:

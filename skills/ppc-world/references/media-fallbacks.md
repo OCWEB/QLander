@@ -42,4 +42,4 @@ For a paid-ad landing, make the hero visual reinforce the ad promise within one 
 
 ## Cinematic limitation
 
-Codex or still-only Magnific workflows can produce an image-led landing or still-based scroll narrative. Do not describe that output as the original continuous 3D camera flight. That effect requires a video interface that preserves exact seam frames. After the experience is approved, use the bundled Scroll World skill and its manual queue by default; otherwise fall back to `image-scroll`.
+Codex or still-only Magnific workflows can produce an image-led landing or still-based scroll narrative. Do not describe that output as the original continuous 3D camera flight. That effect requires a video interface that preserves exact seam frames. After the experience is approved, use the Scroll World skill from the sibling `qlander-design` repository and its manual queue by default; otherwise fall back to `image-scroll`.

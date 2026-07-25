@@ -36,7 +36,7 @@ Reuse the brief for routine edits. Offer a refresh for a rebrand, migration, cha
 3. Set `layout: "ppc"` on the target page to render minimal campaign chrome.
 4. Keep one visible `h1`, one primary CTA destination, evidence-backed claims, and complete SEO metadata.
 5. For missing media, add stable `imagePromptId` values and a matching `content/prompts/<slug>-image-prompts.md` file.
-6. If the user opts into continuous scroll, invoke the bundled `skills/scroll-world/SKILL.md`. Default to its manual slow queue; use paid/API generation only when explicitly selected.
+6. If the user opts into continuous scroll, invoke `skills/scroll-world/SKILL.md` from the sibling `qlander-design` repository. Default to its manual slow queue; use paid/API generation only when explicitly selected.
 7. Run `pnpm build`, `pnpm typecheck`, `pnpm test`, and `pnpm qlander:check` for template-level changes.
 
 For a fresh standalone campaign, initialize `single-page-ppc`; QLander then checks
@@ -86,7 +86,7 @@ Client JavaScript is allowed in developer mode when an explicitly requested inte
 ## Build A Scroll World Page
 
 1. Require an approved `scroll-world` page experience in `content/site-brief.md`; do not silently apply it to the whole site.
-2. Read `skills/scroll-world/SKILL.md` and pass the approved brand, audience, offer, palette, journey, CTA, and image plan.
+2. Read `skills/scroll-world/SKILL.md` from the `qlander-design` repository and pass the approved brand, audience, offer, palette, journey, CTA, and image plan.
 3. For a route inside a marketing site, run `pnpm qlander:experience`. For an incremental
    body experience, use `pnpm qlander:experience -- --section --page <page> --after <section-id>`.
    Both populate `data/experiences/<slug>.json`; never create a one-off route or mount the

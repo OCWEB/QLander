@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { cp, mkdir, mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -145,23 +146,18 @@ test("[fast] design pass offers a port path and keeps direction provenance and t
   assert.doesNotMatch(agents, /qlander-design-research/);
 });
 
-test("[fast] bundled Scroll World defaults to manual queue without making the page type automatic", async () => {
-  const scroll = await readFile(path.join(repo, "skills/scroll-world/SKILL.md"), "utf8");
-  const queue = await readFile(path.join(repo, "skills/scroll-world/references/manual-queue.md"), "utf8");
-  const engine = await readFile(path.join(repo, "skills/scroll-world/references/scrub-engine.js"), "utf8");
+test("[fast] Scroll World runtime ships with the kit while the authoring skill lives elsewhere", async () => {
+  const engine = await readFile(path.join(repo, "src/lib/scrub-engine.js"), "utf8");
   const agents = await readFile(path.join(repo, "AGENTS.md"), "utf8");
-  const upstream = JSON.parse(await readFile(path.join(repo, "skills/ppc-world/references/upstream-scroll-world.json"), "utf8"));
-  assert.match(scroll, /Default: manual queue/i);
-  assert.match(scroll, /Do not install a\s+provider CLI, call a generation API, or spend credits unless the user explicitly\s+chooses/i);
-  assert.match(queue, /results\//);
-  assert.match(queue, /Phase 1/);
-  assert.match(queue, /Phase 2/);
+  const readme = await readFile(path.join(repo, "README.md"), "utf8");
   assert.match(engine, /img\.loading = 'eager'/);
   assert.match(engine, /\.sw-route__dot\{[^}]*padding:0/);
   assert.match(engine, /config\.mode === 'section'/);
   assert.match(engine, /\.sw-root--section \.sw-viewport\{position:sticky/);
   assert.match(agents, /Scroll World remains an opt-in page experience/i);
-  assert.equal(upstream.tracking, "vendored");
+  assert.match(agents, /qlander-design` repository/);
+  assert.match(readme, /src\/lib\/scrub-engine\.js/);
+  assert.equal(existsSync(path.join(repo, "skills/scroll-world")), false);
 });
 
 test("[fast] Scroll World experience schema supports still-first routes and constrains assets", () => {
@@ -185,7 +181,7 @@ test("[fast] Scroll World experience schema supports still-first routes and cons
 
 test("[integration] QLander registers Scroll World as an internal route without replacing the site", async () => {
   const fixture = await copyFixture(true);
-  const register = path.join(fixture, "skills/scroll-world/references/scripts/register-qlander-experience.mjs");
+  const register = path.join(fixture, "scripts/register-experience.mjs");
   await run(process.execPath, [register, "--root", fixture, "--slug", "tour", "--title", "Product Tour", "--description", "Explore the complete product journey while the normal marketing site remains available."]);
   const result = await runChecker(fixture, ["--json"]);
   assert.equal(result.code, 0, result.output);
@@ -205,7 +201,7 @@ test("[integration] QLander registers Scroll World as an internal route without 
 
 test("[integration] QLander registers Scroll World at the root without removing explicit site routes", async () => {
   const fixture = await copyFixture(true);
-  const register = path.join(fixture, "skills/scroll-world/references/scripts/register-qlander-experience.mjs");
+  const register = path.join(fixture, "scripts/register-experience.mjs");
   await run(process.execPath, [register, "--project-root", fixture, "--root", "--title", "Root Tour", "--cta-href", "https://example.org/contact"]);
   const result = await runChecker(fixture, ["--json"]);
   assert.equal(result.code, 0, result.output);
@@ -220,7 +216,7 @@ test("[integration] QLander registers Scroll World at the root without removing 
 
 test("[integration] QLander inserts a scoped scroll-section without creating or replacing a route", async () => {
   const fixture = await copyFixture(true);
-  const register = path.join(fixture, "skills/scroll-world/references/scripts/register-qlander-experience.mjs");
+  const register = path.join(fixture, "scripts/register-experience.mjs");
   await run(process.execPath, [register, "--project-root", fixture, "--section", "--page", "home", "--after", "home.hero", "--slug", "product-story", "--title", "Product Story"]);
   const result = await runChecker(fixture, ["--json"]);
   assert.equal(result.code, 0, result.output);
@@ -244,7 +240,7 @@ test("[integration] QLander inserts a scoped scroll-section without creating or 
 
 test("[integration] QLander can replace only the hero with an h1 scroll-section", async () => {
   const fixture = await copyFixture(true);
-  const register = path.join(fixture, "skills/scroll-world/references/scripts/register-qlander-experience.mjs");
+  const register = path.join(fixture, "scripts/register-experience.mjs");
   await run(process.execPath, [register, "--project-root", fixture, "--section", "--page", "home", "--replace", "home.hero", "--slug", "hero-story", "--title", "Hero Story"]);
   const result = await runChecker(fixture, ["--json"]);
   assert.equal(result.code, 0, result.output);

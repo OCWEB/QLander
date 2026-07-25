@@ -6,7 +6,7 @@ import designSystem from "../../data/design-system.json";
 import theme from "../../data/theme.json";
 import manifest from "../../qlander.manifest.json";
 import SEO from "./SEO.astro";
-import scrubEngine from "../../skills/scroll-world/references/scrub-engine.js?raw";
+import scrubEngine from "../lib/scrub-engine.js?raw";
 
 const { experience, editId } = Astro.props as { experience: ScrollWorldExperience; editId: string };
 const serialized = serializeJsonLd(experience);

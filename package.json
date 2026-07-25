@@ -32,7 +32,7 @@
     "qlander:resource": "tsx scripts/qlander-resource.ts",
     "qlander:audit": "tsx scripts/qlander-audit.ts",
     "qlander:migrate": "tsx scripts/qlander-migrate.ts",
-    "qlander:experience": "node skills/scroll-world/references/scripts/register-qlander-experience.mjs",
+    "qlander:experience": "node scripts/register-experience.mjs",
     "qlander:check": "tsx scripts/qlander-check.ts ."
   },
   "dependencies": {

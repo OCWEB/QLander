@@ -191,12 +191,12 @@ async function configureProfile(target: string, profile: Profile, name: string, 
   if (profile === "marketing-site" && (exclude.blog || exclude.products || exclude.resources)) await pruneMarketingRoutes(target, exclude);
   if (profile === "single-page-ppc") await configurePpc(target, manifest, name);
   if (profile === "internal-scroll-world") await run(target, process.execPath, [
-    "skills/scroll-world/references/scripts/register-qlander-experience.mjs",
+    "scripts/register-experience.mjs",
     "--project-root", target, "--slug", experienceSlug, "--title", `${name} Tour`,
     "--description", `Explore ${name} through an interactive visual journey.`
   ]);
   if (profile === "root-scroll-world") await run(target, process.execPath, [
-    "skills/scroll-world/references/scripts/register-qlander-experience.mjs",
+    "scripts/register-experience.mjs",
     "--project-root", target, "--root", "--prune", "--title", `${name} Experience`,
     "--description", `Explore ${name} through an interactive visual journey.`
   ]);

@@ -2,7 +2,7 @@
 import type { ScrollWorldExperience } from "../lib/types";
 import { serializeJsonLd } from "../lib/schemas";
 import theme from "../../data/theme.json";
-import scrubEngine from "../../skills/scroll-world/references/scrub-engine.js?raw";
+import scrubEngine from "../lib/scrub-engine.js?raw";
 
 const { experience, sectionId, headingLevel = "h2" } = Astro.props as { experience: ScrollWorldExperience; sectionId: string; headingLevel?: "h1" | "h2" };
 const first = experience.sections[0];

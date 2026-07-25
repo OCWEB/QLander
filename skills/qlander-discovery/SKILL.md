@@ -24,7 +24,7 @@ For routine copy, SEO, navigation, or small section edits, reuse `content/site-b
 7. Present one compact approval covering key facts, unresolved items, sitemap, page experiences, and image plan. Do not populate the site or generate images before approval.
 8. Unless creation mode is explicitly blank, treat every business prompt, site brief, source-site migration, redesign, rebrand, or visual instruction as a design trigger: run `qlander-design`, approve a direction and shared design system, and define material page/section handoffs before population is considered complete. Ask whether a design already exists to port before proposing one.
 9. Populate from the approved brief and direction. Content replacement inside the default hero/cards/bands is not a redesign.
-10. Generate only the approved image batch. Use authorized supplied assets first, Codex image generation next, optional Magnific generation/enhancement, then annotated placeholders and prompt documents. For an approved continuous Scroll World page, hand off to the bundled skill; its manual slow queue is the default cinematic generation mode.
+10. Generate only the approved image batch. Use authorized supplied assets first, Codex image generation next, optional Magnific generation/enhancement, then annotated placeholders and prompt documents. For an approved continuous Scroll World page, hand off to the Scroll World skill in the sibling `qlander-design` repository; its manual slow queue is the default cinematic generation mode.
 11. Run the repository-required verification and report sources, assumptions, unresolved gaps, generated/reused media, changed routes, and check results.
 
 ## Initialization profiles
