@@ -7,6 +7,43 @@ edit contract.
 
 Run this in two passes. Do not mix them.
 
+## First: is there a design spec?
+
+A design produced by the sibling `qlander-design` repository arrives as a
+`design-spec.json`. It was generated inside QLander's token budget rather than translated
+into it afterward, so most of this recipe collapses.
+
+When a spec is present:
+
+- **Pass 0 is already answered.** Each of its four checks maps to a spec field, and the spec
+  cannot validate otherwise: one hue is enforced by `oklch.hueDeg` matching `accent` and
+  `accentDark`; typeface availability by `fonts[].shippedWithQlander` and a `/fonts/` path;
+  text slots by `pages[].sections[].textSlots` against the per type ceiling; and anything
+  with no token slot is listed in `provenance.divergences`. Read those four instead of
+  measuring the source, and carry them into the approval as they stand.
+- **Pass 1 step 1 becomes a copy.** `spec.theme` goes to `data/theme.json` verbatim and
+  `spec.designSystem` to `data/design-system.json` verbatim, with `status` flipped from
+  `proposed` to `approved` at the combined approval. Do not re-derive, re-round, or
+  "improve" a single value; the spec was validated against these schemas before it shipped.
+- **`spec.handoffs[]` seeds both registrations,** `src/layout-handoffs.ts` and
+  `qlander.manifest.json` under `design.handoffs`. The renderer paths are already in
+  `src/` and `.astro` form.
+- **`spec.direction` is the direction string** in all three places that must match byte for
+  byte: the manifest, `selectedDirection` in `content/design-research.md`, and
+  `designSystem.direction`.
+- **`spec.claims[]` is the fact ledger.** Every entry with `verified: false` ships as a
+  visibly marked placeholder. Do not promote one to finished copy.
+- **`spec.pages[]` decides Pass 2's section split** before you start, including which
+  section carries the single `h1`.
+
+Still do yourself: build the renderers, verify fidelity at 390px and 1280px, and write the
+port record. A spec is a design decision, not a built page.
+
+If the spec fails `pnpm skills:validate-spec` in `qlander-design`, stop and fix it there.
+Never repair a spec by hand inside a QLander project.
+
+Everything below is the path for a design that arrived without a spec.
+
 ## Pass 0: survey what will not survive
 
 Ten minutes here saves a port that gets rejected at the end. Check all four before
@@ -105,6 +142,13 @@ Add to `content/design-research.md`:
 
 The loss list is the honest part of the artifact. A port record with no losses is
 almost always a port that was not compared against its source.
+
+**From a spec:** `provenance` already carries the source, tool, date, colour merge table,
+and divergences. Copy them across rather than restating them, and note the spec's path and
+`specVersion` as the source of record. Here a short loss list is legitimate, because the
+design was generated inside the budget instead of squeezed into it. An empty one is still
+suspect: font substitutions, the `displayMaxRem` ceiling, and the single `sectionY` almost
+always cost something.
 
 ## Verification
 

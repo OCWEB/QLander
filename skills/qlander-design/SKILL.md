@@ -11,7 +11,7 @@ The starter wireframe is grayscale on purpose. This skill is the sanctioned path
 
 ## Pick the path first
 
-- **Port** an existing design (Lovable, v0, Figma, a themed template, a page another agent produced). Follow [references/port-recipe.md](references/port-recipe.md). This is the default when a finished visual already exists, and it is usually the better route: QLander holds a design stable far better than it invents one.
+- **Port** an existing design (Lovable, v0, Figma, a themed template, a page another agent produced). Follow [references/port-recipe.md](references/port-recipe.md). This is the default when a finished visual already exists, and it is usually the better route: QLander holds a design stable far better than it invents one. A design from the sibling `qlander-design` repository arrives as a `design-spec.json` generated inside QLander's token budget; the recipe's first section is the short path for that, and it makes the Pass 0 survey unnecessary.
 - **Propose** a direction from the approved site brief when nothing exists yet. Use the palette recipe below.
 
 Either way, record the direction and its provenance per [references/design-direction.md](references/design-direction.md) in `content/design-research.md`.
