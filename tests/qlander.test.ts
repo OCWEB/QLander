@@ -523,3 +523,23 @@ test("[fast] an unknown content shape warns instead of guessing a section type",
   assert.equal(result.sections.length, 0);
   assert(result.warnings.some((warning) => warning.includes("not-a-shape")));
 });
+
+test("[fast] every CSS custom property a component reads is actually declared", async () => {
+  const declaredIn = (source: string) => {
+    const names = new Set(source.match(/--[\w-]+(?=\s*:)/g)?.map((name) => name.slice(2)) ?? []);
+    for (const block of source.match(/define:vars=\{\{[\s\S]*?\}\}/g) ?? []) {
+      for (const key of block.match(/^\s*(\w+):/gm) ?? []) names.add(key.trim().replace(":", ""));
+    }
+    return names;
+  };
+  const base = declaredIn(await readFile(path.join(repo, "src/layouts/BaseLayout.astro"), "utf8"));
+  const undeclared: string[] = [];
+  for (const file of await fg("src/**/*.astro", { cwd: repo })) {
+    const source = await readFile(path.join(repo, file), "utf8");
+    const allowed = new Set([...base, ...declaredIn(source)]);
+    for (const name of new Set(source.match(/var\(--[\w-]+/g)?.map((use) => use.slice(6)) ?? [])) {
+      if (!allowed.has(name)) undeclared.push(`${file}: --${name}`);
+    }
+  }
+  assert.deepEqual(undeclared, [], `Undeclared custom properties silently fall back:\n${undeclared.join("\n")}`);
+});
