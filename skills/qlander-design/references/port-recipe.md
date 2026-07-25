@@ -7,6 +7,33 @@ edit contract.
 
 Run this in two passes. Do not mix them.
 
+## Pass 0: survey what will not survive
+
+Ten minutes here saves a port that gets rejected at the end. Check all four before
+writing anything, and put the answers in the combined approval, because two of them
+can be dealbreakers the user has to decide on.
+
+1. **Count the source's colour roles.** `ThemeSchema` allows exactly five and the
+   palette recipe requires `accentDark` to be the same hue as `accent`, stepped
+   darker. **A two-hue design cannot be represented.** If the source pairs a primary
+   with a signature second hue on CTAs or accents, that hue is gone, and it is
+   usually the most recognizable thing about the page. Say so before porting, not
+   after. Neutral extras (`ink-soft`, `paper-2`, hairlines) are fine; derive them
+   with `color-mix` in the renderer.
+2. **Check the typefaces against `public/fonts/`.** Four OFL faces ship: Fraunces,
+   Newsreader, Space Grotesk, Work Sans. A CDN source has to substitute, since
+   QLander forbids font CDN links. Name the substitution and how close it is.
+3. **Count text slots per section.** Section types are fixed. `hero` has three text
+   fields (`eyebrow`, `headline`, `subheadline`); designs routinely use five or six,
+   with a tagline set as a second heading. Merging them into `subheadline` flattens
+   the source's typographic hierarchy. Decide per section whether to merge, drop, or
+   diverge.
+4. **Note anything with no token slot.** Fluid `clamp()` section padding collapses to
+   one integer `spacing.sectionY`. Per element heading leading collapses to one
+   `headingLeading`. Background gradient washes, `backdrop-filter`, and custom easing
+   curves have no representation at all; approximate with `color-mix` where cheap and
+   drop the rest.
+
 ## Pass 1: lift
 
 Reproduce the design faithfully before restructuring anything.
@@ -30,8 +57,13 @@ Reproduce the design faithfully before restructuring anything.
    geometry, not its markup. Colors resolve through `var(--ink|--paper|--muted|
    --accent|--accentDark)`, radius through `var(--radius)`, type and spacing
    through the design system variables. No hex, no font names, no literal spacing.
-5. **Verify fidelity before continuing.** Compare the ported page against the
-   source at desktop and phone width. Record any deliberate divergence.
+5. **Carry the source's placeholder marking across.** A design built to a thin brief
+   usually marks its own empty slots, and an empty `aria-hidden` box in the renderer
+   is not a marked placeholder. Every media slot and unfilled text slot keeps a
+   visible label. Losing the marking is the easiest mistake in the whole port,
+   because the page still looks finished.
+6. **Verify fidelity before continuing.** Load the source and the port side by side
+   at desktop and phone width. Record every deliberate divergence.
 
 At the end of pass 1 the copy may still be hardcoded in the renderer. That is
 expected.
@@ -65,9 +97,13 @@ Add to `content/design-research.md`:
 - tool or agent that produced it
 - token extraction table: source value, QLander token, any collapse or rounding
 - Tailwind decision, when applicable
+- **a "what the port lost" section**, one entry per Pass 0 finding, stated plainly
 - what was stripped and why
 - claims removed as unverifiable
 - fidelity divergences from the source, with reasons
+
+The loss list is the honest part of the artifact. A port record with no losses is
+almost always a port that was not compared against its source.
 
 ## Verification
 
