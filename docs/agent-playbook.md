@@ -8,18 +8,9 @@ When the user says `qlander start`, use `docs/qlander-start.md` before recommend
 
 ## QLander Start
 
-1. Read `skills/qlander-discovery/SKILL.md` and `docs/qlander-start.md`.
-2. For a fresh repository, choose and run the matching `qlander:init` profile before population. Do not retrofit a marketing build into a root tour or single-page PPC package afterward.
-3. Ask whether to use an official website, named local project paths, a written brief, or a combination.
-4. Research official sources first and inspect only the current repository plus paths the user explicitly names.
-5. Create or refresh `content/site-brief.md` with source-backed facts, uncertainties, sitemap, page experiences, and image plan.
-6. Present one compact discovery approval gate.
-7. If the user requested finished design, redesign, or rebrand, run `skills/qlander-design/SKILL.md`. Port a design built elsewhere with `references/port-recipe.md`, or propose one; either way record the direction, its origin, and the locked token invariants in `content/design-research.md` and get direction approval before implementing.
-8. During the design pass, offer Impeccable only through its optional first-use consent gate. Never install it or enable hooks from general redesign approval.
-9. After applicable approvals, populate the draft and generate only the approved media.
-10. Run the required verification and report sources, assumptions, routes, media status, and unresolved gaps.
-
-Reuse the brief for routine edits. Offer a refresh for a rebrand, migration, changed official URL, explicit request, or major work when the brief is over 30 days old. Never expose the brief as a public route or store secrets in it.
+The intake, research, approval, design, population, and verification workflow lives in
+[qlander-start.md](qlander-start.md). Do not restate it here; this playbook covers the
+per-task recipes that follow it.
 
 ## Copy Or Section Edit
 
@@ -86,20 +77,10 @@ Client JavaScript is allowed in developer mode when an explicitly requested inte
 ## Build A Scroll World Page
 
 1. Require an approved `scroll-world` page experience in `content/site-brief.md`; do not silently apply it to the whole site.
-2. Read `skills/scroll-world/SKILL.md` from the `qlander-design` repository and pass the approved brand, audience, offer, palette, journey, CTA, and image plan.
-3. For a route inside a marketing site, run `pnpm qlander:experience`. For an incremental
-   body experience, use `pnpm qlander:experience -- --section --page <page> --after <section-id>`.
-   Both populate `data/experiences/<slug>.json`; never create a one-off route or mount the
-   full-page fixed engine inside a normal section.
-   Use `--replace <section-id>` when the approved change replaces only that section;
-   replacing a hero preserves the page's `h1` through the scroll-section contract.
-   For a standalone cinematic microsite, initialize `root-scroll-world`; for an already
-   approved root replacement, `pnpm qlander:experience -- --root` registers `/`.
-4. Use the manual slow queue by default. Write the queue and workspace contract before asking the user to render anything.
-   Keep `queue.md` synchronized with machine-readable `queue.json` throughout both phases.
-5. After Phase 1 files arrive, run local ingest and provide the extracted connector keyframes for Phase 2.
-6. After Phase 2 files arrive, run ingest, seam QA, walkthrough generation, copy assets under `public/experiences/<slug>/`, populate the registered config, and link an approved existing CTA to the route.
-7. Run build, typecheck, tests, and `qlander:check`. Use an automated or credit-spending generation path only after explicit selection and spend approval.
+2. Register the experience from the kit. For a route inside a marketing site, run `pnpm qlander:experience`. For an incremental body experience, use `pnpm qlander:experience -- --section --page <page> --after <section-id>`, or `--replace <section-id>` when the approved change replaces only that section; replacing a hero preserves the page's `h1` through the scroll-section contract. For a standalone cinematic microsite, initialize `root-scroll-world`; for an approved root replacement, `pnpm qlander:experience -- --root` registers `/`. Never create a one-off route or mount the full-page fixed engine inside a normal section.
+3. Registration writes `data/experiences/<slug>.json`, a placeholder still, and both `queue.md` and `queue.json`. At this point the page builds and `qlander:check` passes. Stop here unless the project has to produce real cinematic media.
+4. To produce the media, follow `skills/scroll-world/SKILL.md` in the sibling `qlander-design` repository. Keep `queue.md` and `queue.json` synchronized throughout. Use an automated or credit-spending generation path only after explicit selection and spend approval.
+5. Run build, typecheck, tests, and `qlander:check`.
 
 ## Update SEO
 

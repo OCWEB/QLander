@@ -132,7 +132,7 @@ Do not populate the site, generate images, install tools, or add integrations be
 
 For a finished design, redesign, rebrand, or prompt asking QLander to find an appropriate style, run `skills/qlander-design/SKILL.md` after the site brief approval. It takes one of two paths. Port a design that already exists (Lovable, v0, Figma, a themed template, a page another agent produced) using `references/port-recipe.md`, which extracts its tokens into `data/theme.json` and `data/design-system.json` before any renderer is written. Or propose a direction from the approved brief. Either path records the direction, its origin, and the locked token invariants in non-routed `content/design-research.md` per `references/design-direction.md`, then takes one combined approval covering palette, typography, imagery, motion, and the layout handoffs.
 
-Impeccable is optional execution tooling, not a prerequisite. On its first useful design pass, the design skill offers either native QLander execution or an explicitly approved project-local install. Do not install it during discovery or assume redesign approval also authorizes third-party code.
+Third-party design tooling is optional execution help, not a prerequisite. The design skill may offer a project-local install on its first useful pass, but only with explicit approval. Do not install anything during discovery, and never treat redesign approval as authorization to run third-party code.
 
 ## 6. Populate and verify
 

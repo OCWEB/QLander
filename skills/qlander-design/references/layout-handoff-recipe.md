@@ -12,9 +12,11 @@ How to replace a starter renderer with an approved project-local one. A prompted
 6. Responsive and accessible: usable at 360px and 1280px, honors `prefers-reduced-motion` for any animation, contrast per the design skill minimums.
 7. Static output: no client JavaScript unless the user explicitly approved an interactive behavior.
 
-## Prebuilt variants
+## No prebuilt variants
 
-Three ready-made renderers live in `src/design-variants/` and already satisfy this contract: `HeroCentered.astro` (centered hero, media below), `FeatureRows.astro` (alternating full-width rows instead of the card grid), and `CtaPanel.astro` (accent gradient panel). Registering one against a section id counts as a material handoff. Use them as-is, or copy one into `src/design/` as the starting point for a bespoke renderer; verify white-on-accent contrast when using `CtaPanel` with a light accent.
+There is no library of ready-made renderers to register. A handoff has to express this project's approved direction, whether ported from an existing design or proposed from the brief. Registering a stock variant would satisfy the checker while leaving every project looking the same, which is the failure this contract exists to prevent.
+
+The starter components under `src/components/` remain the fallback for pages without a handoff. Read them for the prop and marker conventions, then write your own renderer.
 
 ## Registration (both steps required)
 
