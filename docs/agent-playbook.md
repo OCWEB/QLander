@@ -27,7 +27,7 @@ per-task recipes that follow it.
 3. Set `layout: "ppc"` on the target page to render minimal campaign chrome.
 4. Keep one visible `h1`, one primary CTA destination, evidence-backed claims, and complete SEO metadata.
 5. For missing media, add stable `imagePromptId` values and a matching `content/prompts/<slug>-image-prompts.md` file.
-6. If the user opts into continuous scroll, invoke `skills/scroll-world/SKILL.md` from the sibling `qlander-design` repository. Default to its manual slow queue; use paid/API generation only when explicitly selected.
+6. Continuous cinematic scroll is out of scope for this kit. Point the user at the sibling `qlander-design` repository.
 7. Run `pnpm build`, `pnpm typecheck`, `pnpm test`, and `pnpm qlander:check` for template-level changes.
 
 For a fresh standalone campaign, initialize `single-page-ppc`; QLander then checks
@@ -73,14 +73,6 @@ template route, not a structured-data claim; configure its visible labels in
 Creating a new route usually touches `src/pages/`, so treat it as developer mode unless the template already supports the route pattern.
 
 Client JavaScript is allowed in developer mode when an explicitly requested interaction needs it. Keep content and essential actions available without the enhancement when practical; `qlander:check` validates JSON-LD scripts but does not reject normal client scripts.
-
-## Build A Scroll World Page
-
-1. Require an approved `scroll-world` page experience in `content/site-brief.md`; do not silently apply it to the whole site.
-2. Register the experience from the kit. For a route inside a marketing site, run `pnpm qlander:experience`. For an incremental body experience, use `pnpm qlander:experience -- --section --page <page> --after <section-id>`, or `--replace <section-id>` when the approved change replaces only that section; replacing a hero preserves the page's `h1` through the scroll-section contract. For a standalone cinematic microsite, initialize `root-scroll-world`; for an approved root replacement, `pnpm qlander:experience -- --root` registers `/`. Never create a one-off route or mount the full-page fixed engine inside a normal section.
-3. Registration writes `data/experiences/<slug>.json`, a placeholder still, and both `queue.md` and `queue.json`. At this point the page builds and `qlander:check` passes. Stop here unless the project has to produce real cinematic media.
-4. To produce the media, follow `skills/scroll-world/SKILL.md` in the sibling `qlander-design` repository. Keep `queue.md` and `queue.json` synchronized throughout. Use an automated or credit-spending generation path only after explicit selection and spend approval.
-5. Run build, typecheck, tests, and `qlander:check`.
 
 ## Update SEO
 

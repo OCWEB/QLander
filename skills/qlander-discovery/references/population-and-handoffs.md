@@ -19,8 +19,6 @@ Do not expose `content/site-brief.md` as a route. Its absence, age, or approval 
 - `standard`: normal QLander page and site chrome
 - `focused-landing`: focused conversion layout such as `layout: "ppc"`
 - `image-scroll`: still-image narrative with optional progressive JavaScript enhancement
-- `scroll-section`: scoped sticky Scroll World sequence between normal page sections
-- `scroll-world`: dedicated cinematic experience requiring the specialist workflow and a compatible video path
 
 Record the selection in the brief even when the corresponding renderer is planned for later implementation.
 
@@ -30,17 +28,7 @@ Pass identity, audience, offer, approved proof, primary action, route, voice, pa
 
 ## Scroll World handoff
 
-Pass brand name, audience, business story, palette, tone, art direction when approved, proposed page journey, scene candidates, CTA, and approved still-image assets/prompts. Scroll World asks only for missing scene order/copy, motion grammar, native mobile choice, compatible video provider, budget approval, and cinematic QA decisions.
-
-QLander ships the Scroll World runtime, schema, and `pnpm qlander:experience` registration. The authoring skill `skills/scroll-world/SKILL.md` lives in the sibling `qlander-design` repository and is only needed to produce the media.
-Default to its manual slow queue after the cinematic page experience is approved. The
-user renders the queued still/video jobs and returns exact-named files; the agent performs
-local ingest, frame extraction, seam QA, walkthrough generation, and wiring. Keep
-`queue.md` and `queue.json` synchronized. In a multi-page site, register a dedicated
-internal route with `pnpm qlander:experience`, or use `--section --page <page> --after
-<section-id>` for an approved inline experience. Keep the rest of the sitemap unchanged.
-For a standalone root experience, initialize the `root-scroll-world` profile;
-do not retrofit a standalone generated page. Use a
-paid or automated provider path only after explicit approval. If no compatible
-frame-locking video path is available, keep the registered still-based fallback or fall
-back to `image-scroll` without pretending it is continuous video.
+Continuous cinematic scroll is not part of this kit. Hand the approved brand, audience,
+story, palette, tone, proposed journey, scene candidates, and CTA to the Scroll World
+skill in the sibling `qlander-design` repository, which brings its own runtime and route
+adapter.

@@ -31,4 +31,4 @@ Use one shared visual preamble and composition system across a generated set. Ne
 
 ## Scroll distinction
 
-Codex and Magnific stills can support a standard page or image-led scroll narrative. Do not describe them as a continuous camera flight. `scroll-world` requires a separately approved compatible video path and its own motion, mobile, budget, and seam-QA decisions.
+Codex and Magnific stills can support a standard page or image-led scroll narrative. Do not describe them as a continuous camera flight. A continuous camera flight requires the sibling `qlander-design` repository and its own motion, mobile, budget, and seam-QA decisions.

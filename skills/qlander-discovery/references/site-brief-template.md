@@ -54,7 +54,7 @@ status: proposed | approved
 |---|---|---|---|---|
 | / | ... | ... | standard | ... |
 
-Allowed experience values: `standard`, `focused-landing`, `image-scroll`, `scroll-world`.
+Allowed experience values: `standard`, `focused-landing`, `image-scroll`.
 
 ## Image plan
 

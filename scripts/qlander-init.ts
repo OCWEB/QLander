@@ -10,7 +10,7 @@ import { promisify } from "node:util";
 const exec = promisify(execFile);
 const sourceRoot = path.resolve(import.meta.dirname, "..");
 const templateSource = "https://github.com/OCWEB/QLander";
-const profiles = ["marketing-site", "single-page-ppc", "internal-scroll-world", "root-scroll-world"] as const;
+const profiles = ["marketing-site", "single-page-ppc"] as const;
 type Profile = (typeof profiles)[number];
 type Stage = { name: string; startedAt: string; completedAt?: string; status: "running" | "passed" | "failed"; detail?: string };
 
@@ -31,9 +31,9 @@ try {
     await stage("copy-template", async () => copyTemplate(target));
     if (!answers.noGit) baselineCommit = await stage("baseline-commit", async () => createBaselineCommit(target));
   }
-  await stage("configure-profile", async () => configureProfile(target, answers.profile, answers.name, answers.experienceSlug, answers.creationMode, { blog: answers.noBlog, products: answers.noProducts, resources: answers.noResources }));
+  await stage("configure-profile", async () => configureProfile(target, answers.profile, answers.name, answers.creationMode, { blog: answers.noBlog, products: answers.noProducts, resources: answers.noResources }));
   await stage("generate-contracts", async () => {
-    await generateProfileTest(target, answers.profile, answers.experienceSlug);
+    await generateProfileTest(target, answers.profile);
     await mkdir(path.join(target, "docs/screenshots"), { recursive: true });
     await writeFile(path.join(target, "docs/screenshots/manifest.json"), `${JSON.stringify({ version: 1, screenshots: [] }, null, 2)}\n`);
   });
@@ -114,7 +114,6 @@ async function resolveAnswers(values: Record<string, string | boolean>, canAsk: 
     name,
     target,
     inPlace,
-    experienceSlug: typeof values.slug === "string" ? values.slug : "tour",
     noGit: values["no-git"] === true,
     skipInstall: values["skip-install"] === true,
     skipValidate: values["skip-validate"] === true,
@@ -164,7 +163,7 @@ async function createBaselineCommit(target: string) {
   return (await run(target, "git", ["rev-parse", "--short", "HEAD"])).trim();
 }
 
-async function configureProfile(target: string, profile: Profile, name: string, experienceSlug: string, creationMode: "blank" | "prompted", exclude: { blog: boolean; products: boolean; resources: boolean } = { blog: false, products: false, resources: false }) {
+async function configureProfile(target: string, profile: Profile, name: string, creationMode: "blank" | "prompted", exclude: { blog: boolean; products: boolean; resources: boolean } = { blog: false, products: false, resources: false }) {
   const manifest = await readJson(path.join(target, "qlander.manifest.json"));
   const site = await readJson(path.join(target, "data/site.json"));
   const designSystem = await readJson(path.join(target, "data/design-system.json"));
@@ -190,16 +189,6 @@ async function configureProfile(target: string, profile: Profile, name: string, 
 
   if (profile === "marketing-site" && (exclude.blog || exclude.products || exclude.resources)) await pruneMarketingRoutes(target, exclude);
   if (profile === "single-page-ppc") await configurePpc(target, manifest, name);
-  if (profile === "internal-scroll-world") await run(target, process.execPath, [
-    "scripts/register-experience.mjs",
-    "--project-root", target, "--slug", experienceSlug, "--title", `${name} Tour`,
-    "--description", `Explore ${name} through an interactive visual journey.`
-  ]);
-  if (profile === "root-scroll-world") await run(target, process.execPath, [
-    "scripts/register-experience.mjs",
-    "--project-root", target, "--root", "--prune", "--title", `${name} Experience`,
-    "--description", `Explore ${name} through an interactive visual journey.`
-  ]);
 }
 
 async function pruneMarketingRoutes(target: string, exclude: { blog: boolean; products: boolean; resources: boolean }) {
@@ -307,7 +296,7 @@ function createSinglePageEditMap(sections: any[]) {
 }
 
 function componentFor(type: string) {
-  return ({ hero: "HeroSection", featureGrid: "FeatureGrid", richText: "RichTextSection", cta: "CTASection", contact: "ContactForm", productGrid: "ProductGrid", scrollSection: "ScrollSection" } as Record<string, string>)[type] ?? "PageSection";
+  return ({ hero: "HeroSection", featureGrid: "FeatureGrid", richText: "RichTextSection", cta: "CTASection", contact: "ContactForm", productGrid: "ProductGrid" } as Record<string, string>)[type] ?? "PageSection";
 }
 
 function safeFieldsFor(type: string) {
@@ -315,18 +304,16 @@ function safeFieldsFor(type: string) {
   if (type === "featureGrid") return ["headline", "items[].title", "items[].description", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"];
   if (type === "richText") return ["headline", "body", "visual", "image.src", "image.alt", "image.width", "image.height", "imagePromptId"];
   if (type === "cta") return ["headline", "body", "cta.label", "cta.href"];
-  if (type === "scrollSection") return ["experience", "headingLevel"];
   return ["headline", "body"];
 }
 
-async function generateProfileTest(target: string, profile: Profile, experienceSlug: string) {
+async function generateProfileTest(target: string, profile: Profile) {
   // Kit-infrastructure suites stay in the kit repo only: audit-resilience imports the
   // excluded audit skill, and the migration/resource suites build fixtures from starter
   // content that population legitimately replaces.
   for (const kitOnlyTest of ["tests/qlander.test.ts", "tests/audit-resilience.test.ts", "tests/migration.test.ts", "tests/resource-cli-init.test.ts"]) await rm(path.join(target, kitOnlyTest), { force: true });
   const schemaImports = ["ManifestSchema"];
   if (profile === "single-page-ppc") schemaImports.push("PageContentSchema");
-  if (profile.includes("scroll-world")) schemaImports.push("ScrollWorldExperienceSchema");
   const source = `import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
@@ -361,13 +348,6 @@ ${profile === "single-page-ppc" ? `test("PPC profile has one primary destination
   assert.doesNotMatch(html, /class="site-header"|class="site-footer"/);
   assert.match(html, /class="landing-header"/);
 });` : ""}
-${profile.includes("scroll-world") ? `test("Scroll World profile has a valid registered experience", async () => {
-  const filename = ${JSON.stringify(profile === "root-scroll-world" ? "root" : experienceSlug)};
-  const experience = ScrollWorldExperienceSchema.parse(JSON.parse(await readFile(path.join(root, \`data/experiences/\${filename}.json\`), "utf8")));
-  assert.equal(experience.route, ${profile === "root-scroll-world" ? '"/"' : "undefined"});
-  const queue = JSON.parse(await readFile(path.join(root, \`scroll-world/\${filename}/queue.json\`), "utf8"));
-  assert.equal(queue.mode, "manual");
-});` : ""}
 `;
   await mkdir(path.join(target, "tests"), { recursive: true });
   await writeFile(path.join(target, "tests/profile.test.ts"), source);
@@ -378,7 +358,7 @@ async function writeRunLog(target: string, answers: Awaited<ReturnType<typeof re
   await mkdir(path.join(target, "docs"), { recursive: true });
   const rows = stageItems.map((item) => `| ${item.name} | ${item.status} | ${item.startedAt} | ${item.completedAt ?? "-"} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| initialization | pending | - | - | - |";
   const validationRows = validations.map((item) => `| \`${item.command}\` | ${item.status} | ${escapeCell(item.detail ?? "")} |`).join("\n") || "| Validation | pending | Run after dependencies are installed |";
-  const log = `# QLander run\n\n- Profile: \`${answers.profile}\`\n- Creation mode: \`${answers.creationMode}\`\n- Site name: ${answers.name}\n- Source template: ${templateSource}\n- Baseline commit: \`${baseline}\`\n- Draft/noindex: yes\n- Created: ${stageItems[0]?.startedAt ?? new Date().toISOString()}\n\n## Stage timeline\n\n| Stage | Status | Started | Completed | Detail |\n|---|---|---|---|---|\n${rows}\n\n## Validation\n\n| Command | Status | Detail |\n|---|---|---|\n${validationRows}\n\n## Screenshots\n\nSave browser-verified PNG captures under \`docs/screenshots/\` and describe each one in the versioned \`docs/screenshots/manifest.json\`. Each entry records route, viewport width and height, site ID, page title, preview port, URL, filename, SHA-256, and capture time. Audit verification requires committed, clean manifest and PNG files with at least one desktop-width and one phone-width capture. Screenshot capture remains an agent/browser QA step so the repository does not install a browser runtime or download Chromium by default.\n\n## Discovery and media\n\nRun QLander Discovery before population. Record approved sources, reused facts, repeated questions, safe-zone edits, developer-mode edits, and media handoffs here as work continues. Scroll World profiles keep human \`queue.md\` and machine-readable \`queue.json\` status together.\n`;
+  const log = `# QLander run\n\n- Profile: \`${answers.profile}\`\n- Creation mode: \`${answers.creationMode}\`\n- Site name: ${answers.name}\n- Source template: ${templateSource}\n- Baseline commit: \`${baseline}\`\n- Draft/noindex: yes\n- Created: ${stageItems[0]?.startedAt ?? new Date().toISOString()}\n\n## Stage timeline\n\n| Stage | Status | Started | Completed | Detail |\n|---|---|---|---|---|\n${rows}\n\n## Validation\n\n| Command | Status | Detail |\n|---|---|---|\n${validationRows}\n\n## Screenshots\n\nSave browser-verified PNG captures under \`docs/screenshots/\` and describe each one in the versioned \`docs/screenshots/manifest.json\`. Each entry records route, viewport width and height, site ID, page title, preview port, URL, filename, SHA-256, and capture time. Audit verification requires committed, clean manifest and PNG files with at least one desktop-width and one phone-width capture. Screenshot capture remains an agent/browser QA step so the repository does not install a browser runtime or download Chromium by default.\n\n## Discovery and media\n\nRun QLander Discovery before population. Record approved sources, reused facts, repeated questions, safe-zone edits, developer-mode edits, and media handoffs here as work continues.\n`;
   await writeFile(path.join(target, "docs/qlander-run.md"), log);
 }
 

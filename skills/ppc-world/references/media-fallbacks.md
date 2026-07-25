@@ -17,8 +17,8 @@ Use the first viable path. Confirm availability and authentication before promis
    - Treat it as a still-image tool unless a verified live capability proves otherwise.
    - Never ask for account credentials or claim an automated API exists without verifying it.
 
-4. Scroll World manual queue
-   - Use only after the user approves a continuous Scroll World experience.
+4. Scroll World manual queue (external)
+   - Lives in the sibling `qlander-design` repository. Use only after the user approves a continuous Scroll World experience.
    - Default to the bundled skill's `queue.md` + `results/` handoff instead of an API.
    - Confirm the live video interface supports the required start/end frame controls
      before promising seamless connectors.
@@ -42,4 +42,4 @@ For a paid-ad landing, make the hero visual reinforce the ad promise within one 
 
 ## Cinematic limitation
 
-Codex or still-only Magnific workflows can produce an image-led landing or still-based scroll narrative. Do not describe that output as the original continuous 3D camera flight. That effect requires a video interface that preserves exact seam frames. After the experience is approved, use the Scroll World skill from the sibling `qlander-design` repository and its manual queue by default; otherwise fall back to `image-scroll`.
+Codex or still-only Magnific workflows can produce an image-led landing or still-based scroll narrative. Do not describe that output as the original continuous 3D camera flight. That effect requires a video interface that preserves exact seam frames. After the experience is approved, hand off to the Scroll World skill in the sibling `qlander-design` repository; otherwise fall back to `image-scroll`.

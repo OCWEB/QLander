@@ -9,7 +9,7 @@ import { XMLParser } from "fast-xml-parser";
 import matter from "gray-matter";
 import { parse } from "node-html-parser";
 import type { z } from "zod";
-import { BlogFrontmatterSchema, DesignSystemSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, ResourceSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
+import { BlogFrontmatterSchema, DesignSystemSchema, EditMapSchema, ManifestSchema, NavigationSchema, PageContentSchema, ProductSchema, ResourceSchema, RouteSeoSchema, SiteDataSchema, ThemeSchema, isSafeHref } from "../src/lib/schemas";
 
 type Status = "passed" | "warning" | "failed" | "skipped";
 type Message = { code: string; message: string; path?: string; route?: string };
@@ -40,7 +40,6 @@ if (model) {
   validatePpcPages(model);
   await validateDesignContract(model);
   await validateImagePrompts(model);
-  validateExperienceAssets(model);
 }
 if (!skipBuild) {
   const built = await runBuild();
@@ -192,9 +191,7 @@ async function loadModel() {
   const products = await Promise.all((await fg("content/products/*.json", { cwd: root })).map(async (file) => ({ file, data: ProductSchema.parse(await readJson(file)) })));
   const resources = await Promise.all((await fg("content/resources/*.json", { cwd: root })).map(async (file) => ({ file, data: ResourceSchema.parse(await readJson(file)) })));
   const posts = (await Promise.all((await fg("content/blog/*.md", { cwd: root })).map(async (file) => ({ file, data: BlogFrontmatterSchema.parse(matter(await readFile(path.join(root, file), "utf8")).data) })))).filter((post) => post.data.routed);
-  const experiences = await Promise.all((await fg("data/experiences/*.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldExperienceSchema.parse(await readJson(file)) })));
-  const queues = await Promise.all((await fg("scroll-world/**/queue.json", { cwd: root })).map(async (file) => ({ file, data: ScrollWorldQueueSchema.parse(await readJson(file)) })));
-  return { manifest, editMap, site, navigation, theme, designSystem, routeSeo, pages, products, resources, posts, experiences, queues };
+  return { manifest, editMap, site, navigation, theme, designSystem, routeSeo, pages, products, resources, posts };
 }
 
 function validateProfile(model: Model) {
@@ -206,14 +203,6 @@ function validateProfile(model: Model) {
     const home = model.pages.find((page) => page.data.slug === "/");
     if (!home || home.data.layout !== "ppc") addError("schema.profile_ppc_home", "single-page-ppc requires a root page with layout=ppc");
   }
-  if (profile === "root-scroll-world") {
-    if (routes.length !== 2 || !routes.includes("/") || !routes.includes("/404")) addError("schema.profile_routes", "root-scroll-world requires only / and /404");
-    if (!model.experiences.some((experience) => experienceRoute(experience.data) === "/")) addError("schema.profile_root_experience", "root-scroll-world requires a Scroll World experience with route=/");
-  }
-  if (profile === "internal-scroll-world" && !model.experiences.some((experience) => {
-    const route = experienceRoute(experience.data);
-    return route !== null && route !== "/";
-  })) addError("schema.profile_internal_experience", "internal-scroll-world requires at least one named experience route");
 }
 
 async function validateDesignContract(model: Model) {
@@ -299,28 +288,9 @@ async function validateImagePrompts(model: Model) {
   for (const id of promptIds) if (!documented.has(id)) addError("schema.image_prompt_missing", `Image prompt ${id} needs a matching ## ${id} heading under content/prompts/`);
 }
 
-function validateExperienceAssets(model: Model) {
-  const assets = new Set<string>();
-  for (const experience of model.experiences) {
-    for (const section of experience.data.sections) for (const value of [section.still, section.stillMobile, section.clip, section.clipMobile]) if (value) assets.add(value);
-    for (const value of [...experience.data.connectors, ...experience.data.connectorsMobile]) if (value) assets.add(value);
-  }
-  for (const asset of assets) if (!existsSync(path.join(root, "public", asset))) addError("links.experience_asset_missing", `Missing Scroll World asset ${asset}`, { path: asset });
-  for (const queue of model.queues) {
-    const experience = model.experiences.find((item) => item.data.slug === queue.data.experience);
-    if (!experience) addError("schema.queue_experience_missing", `${queue.file} references unknown experience ${queue.data.experience}`, { path: queue.file });
-    const ids = new Set(queue.data.jobs.map((job) => job.id));
-    for (const job of queue.data.jobs) for (const dependency of job.dependencies) if (!ids.has(dependency)) addError("schema.queue_dependency_missing", `${queue.file} job ${job.id} references missing dependency ${dependency}`, { path: queue.file });
-  }
-}
-
 function validateEditMap(model: Model) {
   const routes = new Set(model.manifest.routes);
-  const experienceRoutes = new Set<string>(model.experiences.flatMap((experience) => {
-    const route = experienceRoute(experience.data);
-    return route === null ? [] : [route];
-  }));
-  const sectionIds = new Set(model.pages.filter((page) => !experienceRoutes.has(page.data.slug)).flatMap((page) => page.data.sections.map((section) => section.id)));
+  const sectionIds = new Set(model.pages.flatMap((page) => page.data.sections.map((section) => section.id)));
   for (const id of sectionIds) if (!model.editMap[id]) addError("edit_map.section_missing", `No edit-map entry for ${id}`);
   for (const product of model.products) {
     if (path.basename(product.file, ".json") !== product.data.slug) addError("schema.product_filename", `${product.file} must match slug ${product.data.slug}`);
@@ -332,23 +302,6 @@ function validateEditMap(model: Model) {
     const route = `/resources/${resource.data.slug}`;
     if (resource.data.destination.kind === "detail" && !routes.has(route)) addError("schema.manifest_resource_missing", `Manifest is missing detail resource route ${route}`);
     if (resource.data.destination.kind === "external" && routes.has(route)) addError("schema.manifest_external_resource", `External resource ${resource.data.slug} must not claim a detail route`);
-  }
-  for (const page of model.pages) for (const section of page.data.sections) if (section.type === "scrollSection") {
-    const experience = model.experiences.find((item) => item.data.slug === section.experience);
-    if (!experience) addError("schema.scroll_section_experience_missing", `${page.file} references unknown scroll-section experience ${section.experience}`);
-    else if (experience.data.placement !== "section") addError("schema.scroll_section_placement", `${page.file} references ${section.experience}, but its placement is not section`);
-  }
-  for (const experience of model.experiences) {
-    const id = `experience.${experience.data.slug}`;
-    const fileSlug = path.basename(experience.file, ".json");
-    if (fileSlug !== experience.data.slug) addError("schema.experience_filename", `${experience.file} must match slug ${experience.data.slug}`);
-    if (!model.editMap[id]) addError("edit_map.experience_missing", `No edit-map entry for ${id}`);
-    const route = experienceRoute(experience.data);
-    if (experience.data.placement === "section") {
-      const references = model.pages.filter((page) => page.data.sections.some((section) => section.type === "scrollSection" && section.experience === experience.data.slug));
-      if (!references.length) addError("schema.scroll_section_unreferenced", `${experience.file} is a section experience but no page references it`);
-      if (model.manifest.routes.includes(`/${experience.data.slug}`)) addError("schema.scroll_section_route_leak", `Section experience ${experience.data.slug} must not add /${experience.data.slug} to the manifest`);
-    } else if (route && !routes.has(route)) addError("schema.manifest_experience_missing", `Manifest is missing Scroll World route ${route}`);
   }
   for (const [id, entry] of Object.entries(model.editMap)) {
     const file = path.join(root, entry.contentFile);
@@ -377,8 +330,6 @@ function allowedFields(value: any, jsonPath: string) {
   if (value?.type === "logoStrip") return new Set(["eyebrow", "headline", "items[].name", "items[].image.src", "items[].image.alt", "items[].image.width", "items[].image.height", "items[].imagePromptId"]);
   if (value?.type === "steps") return new Set(["eyebrow", "headline", "items[].title", "items[].description"]);
   if (value?.type === "locations") return new Set(["eyebrow", "headline", "items[].name", "items[].street", "items[].city", "items[].region", "items[].postalCode", "items[].phone", "items[].email", "items[].hoursNote"]);
-  if (value?.type === "scrollSection") return new Set(["experience", "headingLevel"]);
-  if (value?.kind === "scroll-world") return new Set(["route", "seo.title", "seo.description", "seo.noindex", "seo.socialImage", "brand.name", "brand.href", "cta.label", "cta.href", "hint", "diveScroll", "connScroll", "crossfade", "nav", "atmosphere", "sections[].label", "sections[].accent", "sections[].still", "sections[].stillMobile", "sections[].clip", "sections[].clipMobile", "sections[].scroll", "sections[].linger", "sections[].eyebrow", "sections[].title", "sections[].body", "sections[].tags", "sections[].cta.primary.label", "sections[].cta.primary.href", "sections[].cta.secondary.label", "sections[].cta.secondary.href", "connectors", "connectorsMobile"]);
   if (value?.destination && value?.slug) return new Set(["title", "summary", "year", "type", "destination.body", "destination.cta.label", "destination.cta.href", "destination.href", "destination.label", "image.src", "image.alt", "image.width", "image.height", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
   if (value?.slug && value?.summary && value?.title) return new Set(["title", "kind", "summary", "description", "priceLabel", "ctaLabel", "featured", "image.src", "image.alt", "image.width", "image.height", "imagePromptId", "seo.title", "seo.description", "seo.noindex", "seo.socialImage"]);
   if (value?.title && value?.description && jsonPath !== "$") return new Set(["title", "description", "noindex", "socialImage", "eyebrow", "heading", "itemCtaLabel", "detailCtaLabel", "detailCtaHref", "externalCtaLabel", "yearFilterLabel", "typeFilterLabel", "allYearsLabel", "allTypesLabel", "detailBackLabel"]);
@@ -436,8 +387,6 @@ async function validateDist(model: Model) {
   for (const [id, entry] of Object.entries(model.editMap)) {
     if (["SiteData", "SEO"].includes(entry.component)) continue;
     const routes = (entry.affectedRoutes === "all" ? [...builtRoutes] : entry.affectedRoutes).filter((route) => {
-      const experienceOwnsRoute = model.experiences.some((experience) => experienceRoute(experience.data) === route);
-      if (experienceOwnsRoute) return entry.component === "ScrollWorldExperience";
       if (!["Header", "Footer"].includes(entry.component)) return true;
       return model.pages.find((page) => page.data.slug === route)?.data.layout !== "ppc";
     });
@@ -479,12 +428,10 @@ function routeNoindex(route: string, model: Model) {
   const product = model.products.find((item) => `/products/${item.data.slug}` === route); if (product) return product.data.seo.noindex;
   const resource = model.resources.find((item) => item.data.destination.kind === "detail" && `/resources/${item.data.slug}` === route); if (resource) return resource.data.seo?.noindex ?? false;
   const post = model.posts.find((item) => `/blog/${item.data.slug}` === route); if (post) return post.data.seo.noindex;
-  const experience = model.experiences.find((item) => experienceRoute(item.data) === route); if (experience) return experience.data.seo.noindex;
   return false;
 }
 
 function resolveJsonPath(value: any, expression: string) { if (expression === "$") return value; return expression.replace(/\[(\d+)\]/g, ".$1").split(".").reduce((current, key) => current?.[key], value); }
-function experienceRoute(experience: { slug: string; placement?: "route" | "section"; route?: "/" }) { return experience.placement === "section" ? null : experience.route ?? `/${experience.slug}`; }
 function normalize(route: string) { return route === "/" ? "/" : `/${route.replace(/^\/+|\/+$/g, "")}`; }
 function isAsset(href: string) { return /\.(avif|gif|ico|jpg|jpeg|png|svg|webp|xml|txt)$/i.test(href.split(/[?#]/)[0]); }
 function htmlRoute(file: string, dist: string) { const relative = path.relative(dist, file).replace(/\\/g, "/"); if (relative === "index.html") return "/"; if (relative.endsWith("/index.html")) return `/${relative.replace(/\/index\.html$/, "")}`; return `/${relative.replace(/\.html$/, "")}`; }

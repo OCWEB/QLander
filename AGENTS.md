@@ -27,7 +27,7 @@ If the user says `qlander start`, requests a new site/migration/redesign/rebrand
 ## Common Workflows
 
 - Copy or section edits: update the matching file under `content/pages/`.
-- Page section types: `hero`, `featureGrid`, `richText`, `cta`, `productGrid`, `contact`, `stats`, `faq`, `testimonial`, `logoStrip`, `steps`, `locations`, `scrollSection`. Choose the type that matches the content's real shape instead of forcing everything into `featureGrid`/`richText`. Fact rules still apply: `testimonial`, `stats`, and `logoStrip` may only carry verified or user-supplied proof, and time-varying `stats` values need `asOf`.
+- Page section types: `hero`, `featureGrid`, `richText`, `cta`, `productGrid`, `contact`, `stats`, `faq`, `testimonial`, `logoStrip`, `steps`, and `locations`. Choose the type that matches the content's real shape instead of forcing everything into `featureGrid`/`richText`. Fact rules still apply: `testimonial`, `stats`, and `logoStrip` may only carry verified or user-supplied proof, and time-varying `stats` values need `asOf`.
 - Site settings: update `data/site.json`. Email and phone may be empty when an HTTPS `contactUrl` is supplied, or when the `/contact` page explicitly uses an informational contact section with no response action.
 - Navigation: update `data/navigation.json`, then verify each internal `href` exists.
 - Theme tokens: update `data/theme.json`; keep `radius` at `8` or below.
@@ -41,8 +41,6 @@ If the user says `qlander start`, requests a new site/migration/redesign/rebrand
 - Routine edits: reuse the existing site brief. Refresh it only for a rebrand, migration, changed official URL, explicit request, or major work when it is more than 30 days old.
 - PPC landing pages: use top-level `layout: "ppc"` in the target page to remove normal navigation/footer leakage. If media is unavailable, add `imagePromptId` fields and document each ID under `content/prompts/*.md`.
 - Guided PPC creation: use the approved site brief, then `skills/ppc-world/SKILL.md`. Ask only campaign-specific gaps; do not install tools, generate media, or add a scrub runtime without explicit approval.
-- Scroll World pages: QLander ships the runtime; the authoring skill `skills/scroll-world/SKILL.md` lives in the sibling `qlander-design` repository. In a marketing site, default to a dedicated internal route registered with `pnpm qlander:experience`; never generate a standalone Scroll World page and retrofit it afterward. After the user approves the experience, default to its manual slow queue and use paid/API generation only after an explicit choice. Scroll World remains an opt-in page experience, not the default for every page.
-- Scroll World queues: keep `queue.md` and `queue.json` synchronized. The JSON file records exact filenames, dependencies, render/ingest status, and QA state, never credentials.
 - Launch tasks: follow `docs/launch-checklist.md`; do not suggest or add cookie consent, accessibility/ADA services, analytics tracking, or deploy-specific config unless the user explicitly asks.
 - Going live, hosting, or deploy requests: follow `docs/deploy.md`, recommending hosts in its listed order (Cloudflare, GitHub Pages, Netlify, Vercel). Hosting stays opt-in: add no deploy workflow or host files until the user picks a host.
 - Guided launch planning: use `docs/qlander-start.md`; do not present every optional launch item at once.
@@ -97,12 +95,5 @@ The template supports an optional `layout: "ppc"` page contract. Placeholder ann
 
 Contact sections default to `mode: "action"`. Set `mode: "informational"` only when the site intentionally offers no contact action; remove unrelated hero CTAs and use `informationalNote` for the visible explanation. Resource index filters are progressive enhancement: keep every resource rendered in the static list so the complete collection remains available without JavaScript.
 
-The template supports Scroll World through `data/experiences/*.json`. Route experiences
-use `src/pages/[experience].astro` and need a manifest route. A scoped `scrollSection`
-uses `placement: "section"`, a structured reference in `content/pages/*.json`, and does
-not add a route. Every experience needs a matching `experience.<slug>` edit-map entry.
-Use the registration command instead of hand-writing these files.
+Continuous cinematic scroll experiences are not part of this kit. That workflow, including its runtime and registration adapter, lives in the sibling `qlander-design` repository.
 
-Root experiences use `data/experiences/root.json`, `route: "/"`, and the
-`experience.root` edit ID. Prefer the `root-scroll-world` init profile for a standalone
-microsite; named internal experiences keep the normal site intact.

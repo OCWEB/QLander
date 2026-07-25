@@ -17,8 +17,6 @@ pnpm qlander:init -- --blank --profile marketing-site --target ../my-blank-site 
 
 pnpm qlander:init -- --mode prompted --profile marketing-site --target ../my-site --name "My Site" --minimal
 pnpm qlander:init -- --mode prompted --profile single-page-ppc --target ../my-campaign --name "My Campaign"
-pnpm qlander:init -- --mode prompted --profile internal-scroll-world --target ../my-site-tour --name "My Site"
-pnpm qlander:init -- --mode prompted --profile root-scroll-world --target ../my-tour --name "My Tour"
 ```
 
 With no mode flag, `qlander:init` records `creationMode: prompted`; `--blank` is the explicit exception. Initialization may still copy the starter internally, but a prompted project remains `design.status: required` until approved research, an approved `data/design-system.json`, and at least one registered page/section layout handoff are implemented. Standard checks warn while work is pending; audit completion fails.
@@ -29,18 +27,13 @@ baseline commit, writes `projectType`, generates profile tests and a timed run l
 installs dependencies, and runs initial validation. Use `--skip-install` or
 `--skip-validate` only when another workflow will perform those stages immediately.
 
-The cloned kit ships the Scroll World runtime: scrub engine, eager-poster and route-dot
-fixes, scoped section mode, Astro integration, registration, and validation. `pnpm install`
-plus the appropriate `pnpm qlander:experience` command registers an experience with
-placeholder stills and passes checks. Only producing the cinematic media needs the
-`skills/scroll-world/` authoring skill from the sibling `qlander-design` repository.
+Continuous cinematic scroll pages are not part of this kit. That workflow, including its
+runtime and registration adapter, lives in the sibling `qlander-design` repository.
 
 Profile meaning:
 
 - `marketing-site`: normal multi-page site.
 - `single-page-ppc`: focused `/` plus `/404`.
-- `internal-scroll-world`: marketing site with a named cinematic route.
-- `root-scroll-world`: standalone cinematic `/` plus `/404`.
 
 Route contract notes for `marketing-site`:
 
@@ -111,8 +104,6 @@ For each proposed page where the choice affects implementation, ask for one expe
 - standard page
 - focused landing page
 - image-led scroll story
-- scoped `scroll-section` inside a normal page
-- continuous Scroll World experience
 
 Ask whether the user owns or may reuse website assets before downloading them. Plan authorized assets first, Codex image generation second, optional Magnific generation/enhancement third, and annotated placeholders last. When no generation provider is available in the environment, annotated placeholders plus prompt documents are the expected path, not a failure.
 
@@ -140,22 +131,12 @@ After the applicable approvals:
 
 1. Update structured content, site data, navigation, theme, routes, manifest, and edit map as required.
 2. Generate only the approved image batch. If generation is unavailable or declined, keep obvious placeholders and write matching prompt documents.
-3. Invoke `ppc-world` or `scroll-world` only for pages that selected those specialist experiences; pass the approved brief and skip answered questions.
+3. Invoke `ppc-world` only for pages that selected that specialist experience; pass the approved brief and skip answered questions.
 4. Run the required QLander checks and report changed routes, sources, assumptions, media status, and unresolved gaps.
 
-For an approved continuous Scroll World page, use
-`skills/scroll-world/SKILL.md` from the sibling `qlander-design` repository. Its default generation mode is a manual slow queue:
-QLander writes `queue.md`, the user returns exact-named files in `results/`, and the
-agent performs local ingest, seam QA, preview, and wiring. Offer paid/API generation as
-an explicit alternative; do not require a separate Scroll World installation. For a
-multi-page marketing site, register it as a dedicated internal route such as `/tour` with
-`pnpm qlander:experience`, or use `--section --page <page> --after <section-id>` when the
-approved experience belongs inside an existing page. Do not replace the site with the
-standalone Scroll World template or build a standalone page first and retrofit it later.
-
-Every Scroll World registration creates both `queue.md` and `queue.json`. Keep human
-instructions, exact filenames, dependencies, render status, ingest status, and QA state
-synchronized without storing credentials.
+For an approved continuous Scroll World page, hand off to the sibling `qlander-design`
+repository. This kit no longer ships the runtime, the registration command, or the queue
+contract.
 
 ## Reuse and refresh
 

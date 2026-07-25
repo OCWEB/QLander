@@ -32,8 +32,7 @@ run log, generated tests, install, and first validation:
 pnpm qlander:init -- --profile marketing-site --target ../my-site --name "My Site"
 ```
 
-Profiles: `marketing-site`, `single-page-ppc`, `internal-scroll-world`, and
-`root-scroll-world`. Run `pnpm qlander:init` without arguments for the interactive
+Profiles: `marketing-site` and `single-page-ppc`. Run `pnpm qlander:init` without arguments for the interactive
 wizard. For a marketing site, add `--no-blog`, `--no-products`, or `--no-resources`
 to omit an individual demo collection. `--minimal` omits all three collections.
 
@@ -58,20 +57,6 @@ Before handing work back to a user, run:
 ```bash
 pnpm qlander:check
 ```
-
-### Scroll World runtime is included, the authoring skill is not
-
-QLander ships everything needed to *render* a Scroll World: the scrub runtime at
-`src/lib/scrub-engine.js`, the Astro renderers, the experience schema, the
-`internal-scroll-world` and `root-scroll-world` profiles, the `pnpm qlander:experience`
-registration command, and the regression checks. `pnpm install` installs the normal
-QLander dependencies and the build embeds the scrub engine directly. Nothing extra is
-required to build or check a project that has one.
-
-The authoring workflow, meaning the cinematic prompt pipeline, manual slow queue, seam
-QA, and encoding steps, lives in the separate `qlander-design` repository as
-`skills/scroll-world/`. Install it when a project actually needs to produce the media.
-Registering an experience and shipping placeholder stills works without it.
 
 ## Start A Real Site
 
@@ -135,7 +120,6 @@ content/
   prompts/     # optional image prompts for annotated placeholders
 
 data/
-  experiences/ # optional Scroll World route configs
   site.json
   navigation.json
   theme.json
@@ -202,37 +186,13 @@ Optional launch tasks live in [docs/launch-checklist.md](docs/launch-checklist.m
 
 For guided setup, ask an agent to run `qlander start`. The universal research, approval, population, and media workflow lives in `skills/qlander-discovery/` and is routed by [docs/qlander-start.md](docs/qlander-start.md). Finished designs run `skills/qlander-design/`, which either ports a design built elsewhere or proposes one, and records the direction and its provenance in `content/design-research.md`. Optional third-party design tooling is installed only with explicit first-use consent.
 
-For a focused paid-ad landing page, use the bundled `skills/ppc-world/` skill. Page content can set `layout: "ppc"` to remove normal site navigation and footer links. The skill keeps cinematic scrolling opt-in and can fall back to annotated placeholder prompts when no media generator is available.
+For a focused paid-ad landing page, use the bundled `skills/ppc-world/` skill. Page content can set `layout: "ppc"` to remove normal site navigation and footer links. The skill can fall back to annotated placeholder prompts when no media generator is available.
 
-Continuous cinematic pages use `skills/scroll-world/` from the sibling `qlander-design`
-repository. Once that page experience is approved, its default generation mode is a
-manual slow queue: the agent prepares prompts and filenames, the user renders and returns
-the files, and the agent performs local encoding, seam QA, preview generation, and
-wiring. Paid/API generation remains optional and requires an explicit choice. That skill
-is based on `oso95/scroll-world` and carries its own upstream tracking record.
-
-For a Scroll World page inside a marketing site, register a dedicated route instead of
-building a standalone page first:
-
-```bash
-pnpm qlander:experience -- --slug tour --title "Product Tour"
-```
-
-This creates the experience config, placeholder asset, manifest entry, and edit-map entry.
-It also creates human `queue.md` plus machine-readable `queue.json`. The generic
-QLander renderer keeps the rest of the site unchanged. Use
-`pnpm qlander:experience -- --root --title "Product Tour"` when the experience owns
-`/`; prefer the `root-scroll-world` init profile for a new root-only microsite.
-
-For a cinematic sequence inside an existing page, register a scoped sticky section:
-
-```bash
-pnpm qlander:experience -- --section --page home --after home.hero --slug product-story --title "Product Story"
-```
-
-This preserves the page route, SEO, header, hero, surrounding sections, and footer.
-Use `--replace home.hero` instead of `--after home.hero` when only the hero should become
-the experience; QLander preserves the page's single visible `h1` contract.
+Continuous cinematic scroll pages are not part of this kit. They live entirely in the
+sibling `qlander-design` repository as `skills/scroll-world/`, which carries the scrub
+runtime, the Astro renderers, the registration adapter, and the manual generation queue,
+and installs them into a project on request. QLander itself stays a structured content
+and design kit.
 
 ## Commands
 
@@ -249,9 +209,6 @@ pnpm qlander:init -- --profile marketing-site --target ../minimal-site --name "M
 pnpm qlander:resource -- add --root . --slug report --kind external --title "Report" --summary "Official report." --href https://example.org/report
 pnpm qlander:resource -- remove --root . --slug report
 pnpm qlander:migrate -- --root ../my-site --to 0.4.0 --dry-run
-pnpm qlander:experience -- --slug tour --title "Product Tour"
-pnpm qlander:experience -- --section --page home --after home.hero --slug product-story --title "Product Story"
-pnpm qlander:experience -- --root --title "Product Tour"
 pnpm qlander:check
 pnpm qlander:check -- --launch
 ```

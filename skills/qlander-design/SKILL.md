@@ -54,7 +54,7 @@ Critique and refinement tools (for example Impeccable) may improve execution. QL
 ## Template-tier rules (when approved)
 
 - Typography: at most two families, one display and one body. Self-host the files under `public/`; never add a font CDN `<link>` or `@import`. When the chosen faces cannot be self-hosted (no downloadable file or no compatible license), do not defer typography as a stalled pass: choose an intentional system-font stack that fits the direction, name it in the approval, and record why the custom faces were not used.
-- Motion: CSS-only transitions and entrance reveals, wrapped in `@media (prefers-reduced-motion: no-preference)`. No animation runtime or JS library for a standard site; cinematic needs go to Scroll World.
+- Motion: CSS-only transitions and entrance reveals, wrapped in `@media (prefers-reduced-motion: no-preference)`. No animation runtime or JS library for a standard site; cinematic needs go to the sibling `qlander-design` repository.
 - Gradients: only `accent` to `accentDark`, only on the hero band or primary CTA, and only if listed in the approval.
 - No emoji as icons. No stock-photo substitution for brand imagery the user has not supplied or authorized.
 

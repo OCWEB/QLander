@@ -7,7 +7,7 @@ import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 import fg from "fast-glob";
-import { DesignSystemSchema, MediaSchema, PageContentSchema, RouteSeoSchema, ScrollWorldExperienceSchema, ScrollWorldQueueSchema, SiteDataSchema, ThemeSchema, isSafeHref, serializeJsonLd } from "../src/lib/schemas";
+import { DesignSystemSchema, MediaSchema, PageContentSchema, RouteSeoSchema, SiteDataSchema, ThemeSchema, isSafeHref, serializeJsonLd } from "../src/lib/schemas";
 import { resolveCanonical } from "../src/lib/seo";
 import { site } from "../src/lib/site";
 import { MAPPING_VERSION, SHAPE_TO_SECTION, TYPE_TO_COMPONENT, TYPE_TO_SAFE_FIELDS, mapVariant } from "../src/lib/prototype-mapping";
@@ -41,12 +41,9 @@ test("[fast] site-wide design system tokens are structured and injection-safe", 
   assert.equal(DesignSystemSchema.safeParse(system).success, true);
   assert.equal(DesignSystemSchema.safeParse({ ...system, typography: { ...system.typography, bodyFamily: "Inter; background:red" } }).success, false);
   const layout = await readFile(path.join(repo, "src/layouts/BaseLayout.astro"), "utf8");
-  const scrollWorld = await readFile(path.join(repo, "src/components/ScrollWorldPage.astro"), "utf8");
   assert.match(layout, /design-system\.json/);
   assert.match(layout, /var\(--fontBody\)/);
   assert.match(layout, /var\(--contentMax\)/);
-  assert.match(scrollWorld, /design-system\.json/);
-  assert.match(scrollWorld, /var\(--fontDisplay\)/);
 });
 
 test("[fast] core FAQ uses an accessible responsive disclosure layout", async () => {
@@ -106,7 +103,6 @@ test("[fast] discovery workflow keeps universal source, approval, reuse, media, 
     /routine copy, SEO, navigation, or small section edits/i
   ]) assert.match(discovery, pattern);
   assert.match(handoffs, /PPC World handoff/);
-  assert.match(handoffs, /Scroll World handoff/);
   assert.match(ppc, /content\/site-brief\.md/);
 });
 
@@ -146,117 +142,9 @@ test("[fast] design pass offers a port path and keeps direction provenance and t
   assert.doesNotMatch(agents, /qlander-design-research/);
 });
 
-test("[fast] Scroll World runtime ships with the kit while the authoring skill lives elsewhere", async () => {
-  const engine = await readFile(path.join(repo, "src/lib/scrub-engine.js"), "utf8");
-  const agents = await readFile(path.join(repo, "AGENTS.md"), "utf8");
-  const readme = await readFile(path.join(repo, "README.md"), "utf8");
-  assert.match(engine, /img\.loading = 'eager'/);
-  assert.match(engine, /\.sw-route__dot\{[^}]*padding:0/);
-  assert.match(engine, /config\.mode === 'section'/);
-  assert.match(engine, /\.sw-root--section \.sw-viewport\{position:sticky/);
-  assert.match(agents, /Scroll World remains an opt-in page experience/i);
-  assert.match(agents, /qlander-design` repository/);
-  assert.match(readme, /src\/lib\/scrub-engine\.js/);
-  assert.equal(existsSync(path.join(repo, "skills/scroll-world")), false);
-});
-
-test("[fast] Scroll World experience schema supports still-first routes and constrains assets", () => {
-  const experience = {
-    kind: "scroll-world", slug: "tour",
-    seo: { title: "Product Tour", description: "An interactive product journey.", noindex: true },
-    brand: { name: "Example", href: "/" },
-    sections: [{ id: "intro", label: "Intro", accent: "#6B7280", still: "/experiences/tour/poster.svg", title: "Start here", body: "A useful static fallback while cinematic media is prepared.", tags: [] }],
-    connectors: [], connectorsMobile: []
-  };
-  assert.equal(ScrollWorldExperienceSchema.safeParse(experience).success, true);
-  assert.equal(ScrollWorldExperienceSchema.safeParse({ ...experience, slug: "../tour" }).success, false);
-  assert.equal(ScrollWorldExperienceSchema.safeParse({ ...experience, sections: [{ ...experience.sections[0], clip: "/tour.mp4" }] }).success, false);
-  assert.equal(ScrollWorldExperienceSchema.safeParse({ ...experience, route: "/" }).success, true);
-  assert.equal(ScrollWorldExperienceSchema.safeParse({ ...experience, route: "/other" }).success, false);
-  assert.equal(ScrollWorldExperienceSchema.safeParse({ ...experience, placement: "section" }).success, true);
-  assert.equal(ScrollWorldExperienceSchema.safeParse({ ...experience, placement: "section", route: "/" }).success, false);
-  const queue = { version: 1, experience: "tour", mode: "manual", provider: "Magnific", mobile: false, status: "phase1-ready", updatedAt: "2026-07-19T00:00:00.000Z", jobs: [{ id: "S1", phase: 1, kind: "still", filename: "still_1_intro.png", status: "pending", dependencies: [] }] };
-  assert.equal(ScrollWorldQueueSchema.safeParse(queue).success, true);
-});
-
-test("[integration] QLander registers Scroll World as an internal route without replacing the site", async () => {
-  const fixture = await copyFixture(true);
-  const register = path.join(fixture, "scripts/register-experience.mjs");
-  await run(process.execPath, [register, "--root", fixture, "--slug", "tour", "--title", "Product Tour", "--description", "Explore the complete product journey while the normal marketing site remains available."]);
-  const result = await runChecker(fixture, ["--json"]);
-  assert.equal(result.code, 0, result.output);
-  const manifest = JSON.parse(await readFile(path.join(fixture, "qlander.manifest.json"), "utf8"));
-  const editMap = JSON.parse(await readFile(path.join(fixture, "qlander.edit-map.json"), "utf8"));
-  assert.equal(manifest.routes.includes("/tour"), true);
-  assert.equal(manifest.routes.includes("/about"), true);
-  assert.equal(editMap["experience.tour"].contentFile, "data/experiences/tour.json");
-  const queue = JSON.parse(await readFile(path.join(fixture, "scroll-world/tour/queue.json"), "utf8"));
-  assert.equal(queue.mode, "manual");
-  const rendered = await readFile(path.join(fixture, "dist/tour/index.html"), "utf8");
-  assert.match(rendered, /data-pp-edit-id="experience\.tour"/);
-  assert.match(rendered, /class="sw-fallback"/);
-  assert.match(rendered, /mountScrollWorld/);
-  await assert.rejects(readFile(path.join(fixture, "src/pages/tour.astro"), "utf8"));
-});
-
-test("[integration] QLander registers Scroll World at the root without removing explicit site routes", async () => {
-  const fixture = await copyFixture(true);
-  const register = path.join(fixture, "scripts/register-experience.mjs");
-  await run(process.execPath, [register, "--project-root", fixture, "--root", "--title", "Root Tour", "--cta-href", "https://example.org/contact"]);
-  const result = await runChecker(fixture, ["--json"]);
-  assert.equal(result.code, 0, result.output);
-  const manifest = JSON.parse(await readFile(path.join(fixture, "qlander.manifest.json"), "utf8"));
-  assert.equal(manifest.routes.includes("/about"), true);
-  const experience = JSON.parse(await readFile(path.join(fixture, "data/experiences/root.json"), "utf8"));
-  assert.equal(experience.route, "/");
-  const rendered = await readFile(path.join(fixture, "dist/index.html"), "utf8");
-  assert.match(rendered, /data-pp-edit-id="experience\.root"/);
-  assert.match(rendered, /class="sw-fallback"/);
-});
-
-test("[integration] QLander inserts a scoped scroll-section without creating or replacing a route", async () => {
-  const fixture = await copyFixture(true);
-  const register = path.join(fixture, "scripts/register-experience.mjs");
-  await run(process.execPath, [register, "--project-root", fixture, "--section", "--page", "home", "--after", "home.hero", "--slug", "product-story", "--title", "Product Story"]);
-  const result = await runChecker(fixture, ["--json"]);
-  assert.equal(result.code, 0, result.output);
-  const manifest = JSON.parse(await readFile(path.join(fixture, "qlander.manifest.json"), "utf8"));
-  const home = PageContentSchema.parse(JSON.parse(await readFile(path.join(fixture, "content/pages/home.json"), "utf8")));
-  const experience = ScrollWorldExperienceSchema.parse(JSON.parse(await readFile(path.join(fixture, "data/experiences/product-story.json"), "utf8")));
-  const editMap = JSON.parse(await readFile(path.join(fixture, "qlander.edit-map.json"), "utf8"));
-  assert.equal(manifest.routes.includes("/product-story"), false);
-  assert.deepEqual(home.sections[1], { id: "home.scroll-product-story", type: "scrollSection", experience: "product-story", headingLevel: "h2" });
-  assert.equal(experience.placement, "section");
-  assert.equal(editMap["home.scroll-product-story"].component, "ScrollSection");
-  assert.equal(editMap["experience.product-story"].component, "ScrollSectionExperience");
-  const rendered = await readFile(path.join(fixture, "dist/index.html"), "utf8");
-  assert.match(rendered, /class="site-header"/);
-  assert.match(rendered, /class="site-footer"/);
-  assert.match(rendered, /data-pp-edit-id="home\.scroll-product-story"/);
-  assert.match(rendered, /data-pp-edit-id="experience\.product-story"/);
-  assert.match(rendered, /"mode":"section"/);
-  await assert.rejects(readFile(path.join(fixture, "dist/product-story/index.html"), "utf8"));
-});
-
-test("[integration] QLander can replace only the hero with an h1 scroll-section", async () => {
-  const fixture = await copyFixture(true);
-  const register = path.join(fixture, "scripts/register-experience.mjs");
-  await run(process.execPath, [register, "--project-root", fixture, "--section", "--page", "home", "--replace", "home.hero", "--slug", "hero-story", "--title", "Hero Story"]);
-  const result = await runChecker(fixture, ["--json"]);
-  assert.equal(result.code, 0, result.output);
-  const home = PageContentSchema.parse(JSON.parse(await readFile(path.join(fixture, "content/pages/home.json"), "utf8")));
-  const editMap = JSON.parse(await readFile(path.join(fixture, "qlander.edit-map.json"), "utf8"));
-  assert.deepEqual(home.sections[0], { id: "home.scroll-hero-story", type: "scrollSection", experience: "hero-story", headingLevel: "h1" });
-  assert.equal(editMap["home.hero"], undefined);
-  const rendered = await readFile(path.join(fixture, "dist/index.html"), "utf8");
-  assert.equal((rendered.match(/<h1(?:\s|>)/g) ?? []).length, 1);
-  assert.match(rendered, /<h1[^>]*>Hero Story<\/h1>/);
-  assert.match(rendered, /class="site-footer"/);
-});
-
 test("[integration] QLander init generates all four detached project profiles", async () => {
   const init = path.join(repo, "scripts/qlander-init.ts");
-  for (const profile of ["marketing-site", "single-page-ppc", "internal-scroll-world", "root-scroll-world"]) {
+  for (const profile of ["marketing-site", "single-page-ppc"]) {
     const target = await mkdtemp(path.join(os.tmpdir(), `qlander-init-${profile}-`));
     await run(tsx, [init, "--profile", profile, "--target", target, "--name", `Fixture ${profile}`, "--skip-install", "--skip-validate"], { cwd: repo });
     const manifest = JSON.parse(await readFile(path.join(target, "qlander.manifest.json"), "utf8"));
@@ -268,12 +156,7 @@ test("[integration] QLander init generates all four detached project profiles", 
     assert.deepEqual(await findLegacyNamespace(target), []);
     const { stdout } = await run("git", ["log", "--oneline"], { cwd: target });
     assert.match(stdout, /Start project from QLander baseline/);
-    if (profile === "single-page-ppc" || profile === "root-scroll-world") assert.deepEqual(manifest.routes, ["/", "/404"]);
-    if (profile.includes("scroll-world")) {
-      const queueSlug = profile === "root-scroll-world" ? "root" : "tour";
-      const queue = JSON.parse(await readFile(path.join(target, `scroll-world/${queueSlug}/queue.json`), "utf8"));
-      assert.equal(ScrollWorldQueueSchema.safeParse(queue).success, true);
-    }
+    if (profile === "single-page-ppc") assert.deepEqual(manifest.routes, ["/", "/404"]);
   }
 });
 

@@ -42,10 +42,9 @@ Prompt: ...
 
 With Codex + Magnific, default to an image-led narrative using QLander sections and optimized stills. Do not label it as a continuous camera flight.
 
-Do not add an improvised scrub script to a normal QLander page. If the user requires true cinematic video and approves a compatible frame-locking path, use the `skills/scroll-world/` skill from the sibling `qlander-design` repository with its default manual queue and either:
+Do not add an improvised scrub script to a normal QLander page. If the user requires true cinematic video and approves a compatible frame-locking path, hand off to the `skills/scroll-world/` skill in the sibling `qlander-design` repository, which owns the runtime and adapter. Either:
 
-- register a dedicated full-screen experience route with `pnpm qlander:experience` and link the PPC CTA/visual to it; or
-- initialize a separate `root-scroll-world` project when the cinematic experience is an approved external link-out; or
+- treat the cinematic experience as an approved external link-out; or
 - host the generated experience separately and use an HTTPS link-out.
 
 Keep the standard landing usable with its poster and copy when motion is unavailable or reduced motion is requested.

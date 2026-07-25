@@ -1,6 +1,6 @@
 ---
 name: ppc-world
-description: Build or revise a focused, single-purpose QLander landing page for PPC and paid-ad traffic. Use when a user asks for a paid campaign landing page, conversion page, ad-to-landing message match, a visual campaign journey, or an optional scroll-cinematic landing experience. Guides campaign intake, QLander's ppc layout, media-provider selection, annotated prompt placeholders, validation, and an opt-in handoff to the scroll-world skill.
+description: Build or revise a focused, single-purpose QLander landing page for PPC and paid-ad traffic. Use when a user asks for a paid campaign landing page, conversion page, ad-to-landing message match, a visual campaign journey, or an optional scroll-cinematic landing experience. Guides campaign intake, QLander's ppc layout, media-provider selection, annotated prompt placeholders, validation, and an opt-in handoff to the external Scroll World skill.
 ---
 
 # PPC World
@@ -35,11 +35,10 @@ Ask: “Do you want this to be a standard image-led PPC landing page, or a scrol
 If the user chooses scroll:
 
 1. Explain that true cinematic scrubbing requires frame-locking video generation, extra QA, and larger assets. The bundled manual queue avoids agent/API generation calls but still requires the user to render the queued jobs in a compatible interface.
-2. Ask whether an image-led scroll story is acceptable. If yes, stay in the QLander PPC workflow and use stills; do not install `scroll-world`.
-3. If the user requires the continuous camera-flight effect, invoke `skills/scroll-world/SKILL.md` from the sibling `qlander-design` repository and check that the selected manual or automated video interface can frame-lock seams.
-4. Default to Scroll World's manual slow queue. Pass the approved brand, audience, offer, palette, voice, proposed journey, CTA, and still-image plan, then ask only missing cinematic choices. Do not install an external skill or call a paid generation API by default.
-5. If the user explicitly selects automated/API generation, follow Scroll World's provider, cost approval, generation, encoding, and seam-QA requirements.
-7. In QLander, prefer the bundled internal-route adapter (`pnpm qlander:experience`) for a dedicated full-screen route. Use an external link-out only when explicitly approved. Do not iframe a scroll-scrub experience into a normally scrolling page or retrofit a standalone bundle into the site.
+2. Ask whether an image-led scroll story is acceptable. If yes, stay in the QLander PPC workflow and use stills; nothing external is needed.
+3. If the user requires the continuous camera-flight effect, hand off to `skills/scroll-world/SKILL.md` in the sibling `qlander-design` repository. That repository owns the runtime, the route adapter, and the generation queue; this kit ships none of them.
+4. Pass the approved brand, audience, offer, palette, voice, proposed journey, CTA, and still-image plan, then ask only missing cinematic choices. Do not install an external skill or call a paid generation API by default.
+7. The Scroll World runtime and its route adapter live in `qlander-design`, not in this kit. Do not iframe a scroll-scrub experience into a normally scrolling page or retrofit a standalone bundle into the site.
 
 ## Placeholder Deliverable
 
