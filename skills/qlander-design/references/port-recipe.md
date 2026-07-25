@@ -27,7 +27,8 @@ can be dealbreakers the user has to decide on.
    fields (`eyebrow`, `headline`, `subheadline`); designs routinely use five or six,
    with a tagline set as a second heading. Merging them into `subheadline` flattens
    the source's typographic hierarchy. Decide per section whether to merge, drop, or
-   diverge.
+   diverge. `SLOT_TO_FIELD` in `src/lib/prototype-mapping.ts` lists every section
+   type's slots against its real content fields; read it rather than guessing.
 4. **Note anything with no token slot.** Fluid `clamp()` section padding collapses to
    one integer `spacing.sectionY`. Per element heading leading collapses to one
    `headingLeading`. Background gradient washes, `backdrop-filter`, and custom easing
