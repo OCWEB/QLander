@@ -40,6 +40,6 @@ Deterministic answers the auditor gives at the combined approval gate in batch m
 
 ## Design
 
-- If the case requests finished design: run `qlander-design-research` first per the run protocol, then approve one palette following the `qlander-design` recipe, require measured contrast ratios in the report, radius 8 or below. Template-tier items (fonts, motion, gradients) only where that skill sanctions them.
+- If the case requests finished design: record the direction and its origin per `qlander-design/references/design-direction.md`, then approve one palette following the `qlander-design` recipe, require measured contrast ratios in the report, radius 8 or below. Template-tier items (fonts, motion, gradients) only where that skill sanctions them.
 - Third-party tooling offers during the design pass (for example a project-local Impeccable install): always decline in batch mode and use native QLander execution.
 - Otherwise: keep the grayscale wireframe; data-tier theme tokens only.

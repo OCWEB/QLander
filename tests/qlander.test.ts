@@ -109,41 +109,40 @@ test("[fast] discovery workflow keeps universal source, approval, reuse, media, 
   assert.match(ppc, /content\/site-brief\.md/);
 });
 
-test("[fast] design research separates sourced direction selection from optional Impeccable execution", async () => {
-  const research = await readFile(path.join(repo, "skills/qlander-design-research/SKILL.md"), "utf8");
-  const template = await readFile(path.join(repo, "skills/qlander-design-research/references/design-research-template.md"), "utf8");
+test("[fast] design pass offers a port path and keeps direction provenance and token authority", async () => {
   const design = await readFile(path.join(repo, "skills/qlander-design/SKILL.md"), "utf8");
+  const direction = await readFile(path.join(repo, "skills/qlander-design/references/design-direction.md"), "utf8");
+  const port = await readFile(path.join(repo, "skills/qlander-design/references/port-recipe.md"), "utf8");
   const agents = await readFile(path.join(repo, "AGENTS.md"), "utf8");
   for (const pattern of [
-    /3 to 5 distinct aesthetic families/i,
+    /references\/port-recipe\.md/,
+    /references\/design-direction\.md/,
+    /data\/design-system\.json/,
+    /src\/layout-handoffs\.ts/,
+    /must use at least one material handoff/i,
+    /explicit approval/i,
+    /QLander remains the source of truth/i,
+    /remains authoritative for color and radius/i
+  ]) assert.match(design, pattern);
+  for (const pattern of [
     /content\/design-research\.md/,
-    /reference URL/i,
-    /accessibility/i,
-    /Do not copy/i,
-    /approved public web research/i,
-    /Pinterest/i,
-    /21st\.dev/i,
-    /researchRunId/i,
-    /randomized without replacement/i,
-    /do not repeat the exact source mix/i,
-    /design token invariants/i,
-    /theme\.json remains authoritative/i
-  ]) assert.match(research, pattern);
-  assert.match(template, /status: proposed/);
-  assert.match(template, /researchRunId/);
-  assert.match(template, /## Source mix/);
-  assert.match(template, /## Design token invariants/);
-  assert.match(template, /## Direction scorecard/);
-  assert.match(template, /## Design-system handoff/);
-  assert.match(template, /## Layout handoff plan/);
-  assert.match(design, /data\/design-system\.json/);
-  assert.match(design, /src\/layout-handoffs\.ts/);
-  assert.match(design, /must use at least one material handoff/i);
-  assert.match(design, /npx impeccable install/);
-  assert.match(design, /explicit approval/i);
-  assert.match(design, /optional/i);
-  assert.match(design, /QLander remains the source of truth/i);
-  assert.match(agents, /qlander-design-research/);
+    /status: approved/,
+    /selectedDirection/,
+    /locked/i,
+    /provisional/i,
+    /not permission to reuse/i
+  ]) assert.match(direction, pattern);
+  for (const pattern of [
+    /Pass 1: lift/i,
+    /Pass 2: shift/i,
+    /Extract tokens first/i,
+    /Tailwind/,
+    /data-pp-edit-id/,
+    /qlander\.edit-map\.json/,
+    /visibly marked placeholder/i
+  ]) assert.match(port, pattern);
+  assert.match(agents, /skills\/qlander-design\/SKILL\.md/);
+  assert.doesNotMatch(agents, /qlander-design-research/);
 });
 
 test("[fast] bundled Scroll World defaults to manual queue without making the page type automatic", async () => {

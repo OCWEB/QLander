@@ -89,13 +89,12 @@ test("[fast] audit workflow is resumable and preserves feedback from initializat
   assert.match(feedback, /not reached/i);
 });
 
-test("[fast] design research records short-lived campaign source health and frozen-audit substitutions", async () => {
-  const research = await readFile(path.join(repo, "skills/qlander-design-research/SKILL.md"), "utf8");
+test("[fast] audit records short-lived campaign source health and frozen-audit substitutions", async () => {
   const audit = await readFile(path.join(repo, "skills/qlander-audit/SKILL.md"), "utf8");
-  assert.match(research, /source-health cache/i);
-  assert.match(research, /per-campaign/i);
-  assert.match(research, /24 hours/i);
-  assert.match(research, /blocked.*substitut/is);
+  assert.match(audit, /source-health cache/i);
+  assert.match(audit, /per-campaign/i);
+  assert.match(audit, /24 hours/i);
+  assert.match(audit, /blocked.*substitut/is);
   assert.match(audit, /frozen audit/i);
   assert.match(audit, /do not modify the kit/i);
 });
