@@ -1,0 +1,175 @@
+---
+import type { PageSection } from "../lib/types";
+import PlaceholderVisual from "../components/PlaceholderVisual.astro";
+
+type Hero = Extract<PageSection, { type: "hero" }>;
+
+const { section } = Astro.props as { section: Hero };
+---
+
+<section class="banner" data-pp-edit-id={section.id}>
+  <div class="banner-inner">
+    <div class="banner-copy">
+      {section.eyebrow && <p class="banner-eyebrow">{section.eyebrow}</p>}
+      <h1 class="banner-headline">{section.headline}</h1>
+      <p class="banner-subhead">{section.subheadline}</p>
+      {(section.primaryCta || section.secondaryCta) && (
+        <div class="banner-actions">
+          {section.primaryCta && (
+            <a class="banner-button primary" href={section.primaryCta.href}>{section.primaryCta.label}</a>
+          )}
+          {section.secondaryCta && (
+            <a class="banner-button secondary" href={section.secondaryCta.href}>{section.secondaryCta.label}</a>
+          )}
+        </div>
+      )}
+    </div>
+    <div class="banner-visual">
+      {section.image ? (
+        <img
+          src={section.image.src}
+          alt={section.image.alt}
+          width={section.image.width}
+          height={section.image.height}
+          fetchpriority="high"
+        />
+      ) : (
+        <PlaceholderVisual label="Hero banner image placeholder" promptId={section.imagePromptId} variant="hero" />
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .banner {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accentDark) 100%);
+    color: var(--paper);
+    padding-block: var(--sectionY);
+  }
+
+  .banner-inner {
+    width: min(var(--contentMax), calc(100% - calc(var(--spaceUnit) * 8)));
+    margin-inline: auto;
+    display: grid;
+    gap: calc(var(--contentGap) * 2);
+    align-items: center;
+  }
+
+  .banner-copy {
+    display: grid;
+    gap: var(--contentGap);
+    max-width: var(--readingMax);
+  }
+
+  .banner-eyebrow {
+    margin: 0;
+    color: var(--paper);
+    font-family: var(--fontLabel);
+    font-weight: var(--weightLabel);
+    font-size: var(--labelSize);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.82;
+  }
+
+  .banner-headline {
+    margin: 0;
+    font-family: var(--fontDisplay);
+    font-weight: var(--weightDisplay);
+    font-size: clamp(var(--displayMin), 6vw, var(--displayMax));
+    line-height: var(--headingLeading);
+    letter-spacing: var(--tracking);
+  }
+
+  .banner-subhead {
+    margin: 0;
+    color: var(--paper);
+    font-size: calc(var(--bodySize) * 1.15);
+    line-height: var(--bodyLeading);
+    opacity: 0.9;
+  }
+
+  .banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spaceUnit) * 3);
+    margin-top: calc(var(--spaceUnit) * 2);
+  }
+
+  .banner-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--spaceUnit) * 3.5) calc(var(--spaceUnit) * 6);
+    border-radius: var(--radius);
+    border: 1px solid var(--paper);
+    font-family: var(--fontLabel);
+    font-weight: var(--weightLabel);
+    text-decoration: none;
+  }
+
+  .banner-button.primary {
+    background: var(--paper);
+    color: var(--accentDark);
+  }
+
+  .banner-button.secondary {
+    background: transparent;
+    color: var(--paper);
+  }
+
+  .banner-button:focus-visible {
+    outline: 3px solid var(--paper);
+    outline-offset: 3px;
+  }
+
+  .banner-visual {
+    border: 1px solid rgb(255 255 255 / 0.35);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  .banner-visual img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media (min-width: 900px) {
+    .banner-inner {
+      grid-template-columns: 1.05fr 0.95fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .banner-copy > *,
+    .banner-visual {
+      animation: banner-rise 620ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    }
+
+    .banner-copy > *:nth-child(2) { animation-delay: 70ms; }
+    .banner-copy > *:nth-child(3) { animation-delay: 140ms; }
+    .banner-copy > *:nth-child(4) { animation-delay: 210ms; }
+    .banner-visual { animation-delay: 160ms; }
+
+    .banner-button {
+      transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+    }
+
+    .banner-button:hover {
+      transform: translateY(-1px);
+    }
+
+    @keyframes banner-rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
+</style>
