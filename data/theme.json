@@ -1,10 +1,10 @@
 {
   "colors": {
-    "ink": "#111111",
-    "paper": "#f6f7f8",
-    "muted": "#5f6368",
-    "accent": "#2b2b2b",
-    "accentDark": "#4b5563"
+    "ink": "#10142b",
+    "paper": "#f7f8fc",
+    "muted": "#5a6180",
+    "accent": "#2c4be0",
+    "accentDark": "#1b31a6"
   },
-  "radius": 8
+  "radius": 4
 }

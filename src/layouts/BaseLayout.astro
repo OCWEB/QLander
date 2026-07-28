@@ -52,6 +52,20 @@ const { seo, structuredData, ogType, chrome = "site" } = Astro.props as {
       contentGap: `${designSystem.spacing.contentGap}px`,
       spaceUnit: `${designSystem.spacing.base}px`
     }}>
+      @font-face {
+        font-family: "Newsreader";
+        src: url("/fonts/newsreader-variable.woff2") format("woff2");
+        font-weight: 300 800;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Work Sans";
+        src: url("/fonts/work-sans-variable.woff2") format("woff2");
+        font-weight: 300 800;
+        font-display: swap;
+      }
+
       :root {
         color-scheme: light;
         font-family: var(--fontBody);

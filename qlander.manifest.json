@@ -7,10 +7,12 @@
   "projectType": "marketing-site",
   "creationMode": "blank",
   "design": {
-    "status": "starter",
-    "direction": "QLander starter scaffold",
+    "status": "implemented",
+    "direction": "Connected growth with clarity",
     "system": "data/design-system.json",
-    "handoffs": []
+    "handoffs": [
+      { "kind": "section", "id": "home.hero", "renderer": "src/design/HomeHeroBanner.astro", "routes": ["/"] }
+    ]
   },
   "contentRoot": "content",
   "dataRoot": "data",

@@ -13,6 +13,29 @@ The kit combines:
 - a local `qlander:check` validation command
 - root-level agent instructions for safe edits
 
+## The QLander Project Family
+
+QLander is one of three independent frontend-development projects with distinct
+responsibilities:
+
+- **QLander** owns structure: schemas, the edit contract, SEO, validation, and
+  shipping. It consumes artifacts from the sibling projects but depends on neither.
+- **qlander-design** owns visual decisions: palette, typography, treatment, taste,
+  and the QLander-compatible token budget. It outputs `design-spec.json`.
+- **qlander-prototyper** owns measured geometry: section proportions and sequence,
+  derived from 3,492 local section previews. It is a measuring tool, not a designer,
+  and outputs a `manifest.json` (`LayoutResultV1`) with ranked wireframe candidates.
+  It deliberately stops before QLander compilation.
+
+They compose without overlapping: the prototyper answers “what proportions and
+section sequence,” design answers “what palette, type, and treatment,” and QLander
+answers “does it validate and ship.” The intended contract seam is
+`design-spec.json` under `pages[].sections[]`: a future adapter can translate a
+prototyper blueprint there without making either sibling a QLander dependency.
+
+All three projects remain independently usable. QLander is the final arbiter because
+it alone owns the final site-validation and shipping gate.
+
 ## Quick Start
 
 Requires Node.js 22.12 or newer and Corepack-enabled pnpm.

@@ -1,4 +1,5 @@
 import type StarterSection from "./components/HeroSection.astro";
+import HomeHeroBanner from "./design/HomeHeroBanner.astro";
 
 type LayoutHandoff = typeof StarterSection;
 
@@ -7,4 +8,6 @@ type LayoutHandoff = typeof StarterSection;
 // Prompted design work imports approved Astro renderers here and records the same
 // page route or section edit ID in qlander.manifest.json.
 export const pageHandoffs: Record<string, LayoutHandoff> = {};
-export const sectionHandoffs: Record<string, LayoutHandoff> = {};
+export const sectionHandoffs: Record<string, LayoutHandoff> = {
+  "home.hero": HomeHeroBanner
+};

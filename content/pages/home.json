@@ -10,12 +10,12 @@
     {
       "id": "home.hero",
       "type": "hero",
-      "eyebrow": "Starter wireframe",
-      "headline": "Website landing page",
-      "subheadline": "This starter page is intentionally plain, with image placeholders and editable content blocks ready to replace.",
+      "eyebrow": "Connected growth",
+      "headline": "Every journey connected. Every campaign measured.",
+      "subheadline": "Route people to the right place across app, web, paid, owned, and offline channels, then prove what the campaign actually delivered.",
       "primaryCta": {
-        "label": "Learn more",
-        "href": "/about"
+        "label": "Request a demo",
+        "href": "/contact"
       },
       "secondaryCta": {
         "label": "Contact",
